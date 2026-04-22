@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>HW Gaming Lab — 需求申請表單</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+</style>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg0:#0b0e17;
+  --bg1:#111827;
+  --bg2:#161d2e;
+  --bg3:#1e2a40;
+  --bg4:#243047;
+  --surface:#1a2236;
+  --surface2:#212d44;
+  --border:#ffffff10;
+  --border2:#ffffff20;
+  --border3:#ffffff35;
+  --text:#e8edf5;
+  --text2:#8fa0bb;
+  --text3:#4f6180;
+  --blue:#4c9ef5;
+  --blue2:#1a6fd4;
+  --blue-glow:rgba(76,158,245,0.25);
+  --cyan:#00d4ff;
+  --cyan-glow:rgba(0,212,255,0.2);
+  --green:#00e5a0;
+  --green-glow:rgba(0,229,160,0.2);
+  --amber:#ffb347;
+  --amber-glow:rgba(255,179,71,0.2);
+  --red:#ff5c7a;
+  --red-glow:rgba(255,92,122,0.2);
+  --purple:#a855f7;
+  --purple-glow:rgba(168,85,247,0.2);
+  --font-head:'Segoe UI','Microsoft JhengHei',sans-serif;
+  --font-body:'Noto Sans TC','Segoe UI','Microsoft JhengHei',sans-serif;
+  --font-mono:'Consolas','Courier New',monospace;
+  --r4:4px;--r6:6px;--r8:8px;--r12:12px;
+}
+
+body{font-family:var(--font-body);background:var(--bg0);color:var(--text);min-height:100vh;padding:0;font-size:19px;line-height:1.7;overflow-x:hidden;}
+
+/* BG GRID */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(76,158,245,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,158,245,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(76,158,245,0.07),transparent);pointer-events:none;z-index:0;}
+
+.outer{position:relative;z-index:1;display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:64px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;position:sticky;top:0;height:100vh;flex-shrink:0;}
+.sidebar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:var(--r8);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;box-shadow:0 0 16px var(--blue-glow);}
+.nav-item{width:44px;height:44px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all 0.2s;font-size:20px;border:1px solid transparent;}
+.nav-item:hover{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
+.nav-item.active{background:var(--blue-glow);color:var(--blue);border-color:rgba(76,158,245,0.4);box-shadow:0 0 12px var(--blue-glow);}
+.nav-sep{width:32px;height:1px;background:var(--border);margin:8px 0;}
+.nav-label{font-size:11px;color:var(--text3);letter-spacing:0.06em;text-align:center;margin-top:2px;font-family:var(--font-head);}
+.sidebar-admin{margin-top:auto;padding-bottom:8px;}
+
+/* MAIN */
+.main{flex:1;padding:28px 32px 60px;overflow-x:hidden;}
+
+/* HEADER */
+.page-header{margin-bottom:28px;animation:fadeUp 0.5s ease both;}
+.page-header .breadcrumb{font-size:16px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.breadcrumb-sep{color:var(--border3);}
+.page-header h1{font-family:var(--font-head);font-size:30px;font-weight:700;letter-spacing:0.04em;color:var(--text);line-height:1.1;margin-bottom:6px;}
+.page-header h1 span{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow);}
+.page-header p{font-size:17px;color:var(--text2);}
+
+/* METRIC CARDS */
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;animation:fadeUp 0.5s 0.1s ease both;}
+.mcard{border-radius:var(--r12);padding:20px 22px;position:relative;overflow:hidden;cursor:default;}
+.mcard::before{content:'';position:absolute;inset:0;opacity:0.9;}
+.mcard-blue::before{background:linear-gradient(135deg,#1565c0,#1a9fd4);}
+.mcard-orange::before{background:linear-gradient(135deg,#c0392b,#e67e22);}
+.mcard-purple::before{background:linear-gradient(135deg,#6a1a9a,#a855f7);}
+.mcard-content{position:relative;z-index:1;}
+.mcard-label{font-family:var(--font-head);font-size:16px;font-weight:600;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:8px;}
+.mcard-val{font-family:var(--font-head);font-size:24px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:0.02em;}
+.mcard-sub{font-size:16px;color:rgba(255,255,255,0.6);}
+.mcard-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:48px;opacity:0.15;z-index:1;}
+
+/* STEPS BAR */
+.steps-bar{display:flex;align-items:center;margin-bottom:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r8);padding:4px;animation:fadeUp 0.5s 0.15s ease both;}
+.sbar-item{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:var(--r6);font-family:var(--font-head);font-size:17px;font-weight:600;letter-spacing:0.04em;color:var(--text3);transition:all 0.2s;cursor:default;}
+.sbar-item.active{background:var(--blue-glow);color:var(--blue);box-shadow:0 0 12px var(--blue-glow);}
+.sbar-item.done{color:var(--green);}
+.sbar-num{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.sbar-div{width:1px;height:20px;background:var(--border2);}
+
+/* MODE SCREEN */
+.mode-screen{animation:fadeUp 0.4s ease both;}
+.mode-title{font-family:var(--font-head);font-size:17px;font-weight:600;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:20px;}
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px;}
+.mcard-sel{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:28px 24px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.mcard-sel::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;pointer-events:none;}
+.mcard-sel.new::before{background:linear-gradient(135deg,rgba(76,158,245,0.08),transparent);}
+.mcard-sel.retest::before{background:linear-gradient(135deg,rgba(255,179,71,0.08),transparent);}
+.mcard-sel:hover{border-color:var(--border3);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.mcard-sel.new:hover::before{opacity:1;}
+.mcard-sel.new:hover{border-color:rgba(76,158,245,0.5);box-shadow:0 8px 32px var(--blue-glow);}
+.mcard-sel.retest:hover{border-color:rgba(255,179,71,0.5);box-shadow:0 8px 32px var(--amber-glow);}
+.mcard-sel.retest:hover::before{opacity:1;}
+.mcard-sel-icon{font-size:32px;margin-bottom:14px;}
+.mcard-sel-title{font-family:var(--font-head);font-size:20px;font-weight:700;letter-spacing:0.04em;margin-bottom:6px;}
+.mcard-sel.new .mcard-sel-title{color:var(--blue);}
+.mcard-sel.retest .mcard-sel-title{color:var(--amber);}
+.mcard-sel-desc{font-size:16px;color:var(--text2);line-height:1.6;}
+
+/* PANEL */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);margin-bottom:20px;overflow:hidden;animation:fadeUp 0.4s ease both;}
+.panel-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);}
+.panel-title{font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);display:flex;align-items:center;gap:8px;}
+.panel-title::before{content:'';width:3px;height:14px;border-radius:2px;background:var(--blue);box-shadow:0 0 8px var(--blue-glow);}
+.panel-body{padding:20px;}
+
+/* SECTION */
+.sec{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:14px;margin-top:22px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.sec:first-child{margin-top:0;}
+.sec::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+
+/* FIELD */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.field>label{font-family:var(--font-head);font-size:16px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);}
+.req{color:var(--red);margin-left:2px;}
+.hint{font-size:16px;color:var(--text3);}
+.hint-info{font-size:16px;color:var(--cyan);display:flex;gap:4px;align-items:flex-start;}
+.hint-info::before{content:'◈';font-size:16px;flex-shrink:0;margin-top:1px;}
+
+input[type=text],input[type=email],input[type=date],select,textarea{
+  font-family:var(--font-body);font-size:17px;color:var(--text);
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r6);padding:9px 12px;width:100%;outline:none;
+  transition:all 0.2s;-webkit-appearance:none;appearance:none;
+}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.8;cursor:pointer;}
+input[type=text]:focus,input[type=email]:focus,input[type=date]:focus,select:focus,textarea:focus{
+  border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);background:var(--bg4);
+}
+input::placeholder,textarea::placeholder{color:var(--text3);font-size:16px;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%234f6180' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
+select option{background:var(--bg3);}
+textarea{resize:vertical;min-height:76px;line-height:1.6;}
+
+/* PHASE CHIPS */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.chip{padding:6px 16px;border-radius:4px;border:1px solid var(--border2);font-family:var(--font-head);font-size:17px;font-weight:600;letter-spacing:0.06em;cursor:pointer;background:var(--bg3);color:var(--text2);transition:all 0.15s;user-select:none;}
+.chip:hover{border-color:var(--border3);color:var(--text);}
+.chip.sel-blue{background:rgba(76,158,245,0.15);color:var(--blue);border-color:rgba(76,158,245,0.5);box-shadow:0 0 10px var(--blue-glow);}
+.chip.sel-cyan{background:rgba(0,212,255,0.12);color:var(--cyan);border-color:rgba(0,212,255,0.4);box-shadow:0 0 10px var(--cyan-glow);}
+.chip.sel-green{background:rgba(0,229,160,0.12);color:var(--green);border-color:rgba(0,229,160,0.4);box-shadow:0 0 10px var(--green-glow);}
+
+/* FAN MODE */
+.fan-chip{padding:8px 20px;border-radius:4px;border:1px solid var(--border2);font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:0.06em;cursor:pointer;background:var(--bg3);color:var(--text2);transition:all 0.15s;user-select:none;}
+.fan-chip:hover{border-color:var(--border3);color:var(--text);}
+.fan-chip.sel{background:rgba(0,212,255,0.12);color:var(--cyan);border-color:rgba(0,212,255,0.5);box-shadow:0 0 12px var(--cyan-glow);}
+
+/* SKU TABLE */
+.sku-hint{font-size:16px;color:var(--text3);margin-bottom:8px;font-family:var(--font-mono);}
+.sku-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r8);margin-bottom:12px;-webkit-overflow-scrolling:touch;}
+.sku-wrap table{width:100%;border-collapse:collapse;font-size:16px;min-width:1100px;}
+.sku-wrap th{background:var(--bg3);color:var(--text3);font-family:var(--font-head);font-weight:700;font-size:16px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 8px;text-align:left;border-bottom:1px solid var(--border2);}
+.sku-wrap td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.sku-wrap tr:last-child td{border-bottom:none;}
+.sku-wrap tr:hover td{background:rgba(255,255,255,0.02);}
+.sku-wrap td input{border:none;background:transparent;font-size:16px;width:100%;font-family:var(--font-mono);color:var(--text);outline:none;padding:2px 4px;border-radius:3px;min-width:58px;}
+.sku-wrap td input:focus{background:var(--bg4);}
+.sku-wrap td input::placeholder{color:var(--text3);font-size:16px;}
+.col-i{width:28px;text-align:center;color:var(--text3);font-size:16px;font-family:var(--font-mono);}
+.col-d{width:30px;}
+.del-btn{width:22px;height:22px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:19px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;transition:all 0.12s;}
+.del-btn:hover{background:var(--red-glow);color:var(--red);}
+.add-row-btn{display:inline-flex;align-items:center;gap:6px;font-size:16px;font-family:var(--font-head);font-weight:600;letter-spacing:0.06em;color:var(--blue);background:none;border:1px dashed rgba(76,158,245,0.35);border-radius:var(--r6);padding:6px 16px;cursor:pointer;margin-bottom:1.5rem;transition:all 0.15s;}
+.add-row-btn:hover{background:var(--blue-glow);border-color:rgba(76,158,245,0.6);}
+
+/* UPLOAD */
+.upload-zone{border:1px dashed var(--border2);border-radius:var(--r8);padding:20px;text-align:center;background:var(--bg3);margin-bottom:1.5rem;transition:border-color 0.2s;}
+.upload-zone:hover{border-color:var(--border3);}
+.upload-zone p{font-size:16px;color:var(--text2);margin-bottom:8px;}
+.upload-zone input[type=file]{font-size:16px;cursor:pointer;color:var(--text2);}
+.upload-zone input[type=text]{max-width:480px;font-size:16px;margin-top:8px;}
+
+/* TEST CARDS */
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+.tcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r12);padding:18px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.tcard::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;}
+.tcard:hover::before{opacity:1;}
+.tcard-bat::before{background:linear-gradient(135deg,rgba(0,229,160,0.06),transparent);}
+.tcard-bench::before{background:linear-gradient(135deg,rgba(76,158,245,0.06),transparent);}
+.tcard-fps::before{background:linear-gradient(135deg,rgba(168,85,247,0.06),transparent);}
+.tcard:hover{border-color:var(--border3);transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,0.3);}
+.tcard.sel-bat{border-color:rgba(0,229,160,0.5);box-shadow:0 0 20px var(--green-glow);background:rgba(0,229,160,0.05);}
+.tcard.sel-bench{border-color:rgba(76,158,245,0.5);box-shadow:0 0 20px var(--blue-glow);background:rgba(76,158,245,0.05);}
+.tcard.sel-fps{border-color:rgba(168,85,247,0.5);box-shadow:0 0 20px var(--purple-glow);background:rgba(168,85,247,0.05);}
+.tc-icon{width:40px;height:40px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;position:relative;z-index:1;}
+.tcard-bat .tc-icon{background:rgba(0,229,160,0.12);}
+.tcard-bench .tc-icon{background:rgba(76,158,245,0.12);}
+.tcard-fps .tc-icon{background:rgba(168,85,247,0.12);}
+.tc-title{font-family:var(--font-head);font-size:19px;font-weight:700;letter-spacing:0.04em;margin-bottom:4px;position:relative;z-index:1;}
+.tcard-bat .tc-title{color:var(--green);}
+.tcard-bench .tc-title{color:var(--blue);}
+.tcard-fps .tc-title{color:var(--purple);}
+.tc-desc{font-size:16px;color:var(--text2);line-height:1.5;position:relative;z-index:1;}
+.tc-chk{position:absolute;top:14px;right:14px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;color:transparent;transition:all 0.15s;}
+.tcard.sel-bat .tc-chk{background:var(--green);border-color:var(--green);color:#000;box-shadow:0 0 8px var(--green-glow);}
+.tcard.sel-bench .tc-chk{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 8px var(--blue-glow);}
+.tcard.sel-fps .tc-chk{background:var(--purple);border-color:var(--purple);color:#fff;box-shadow:0 0 8px var(--purple-glow);}
+
+/* SUB PANEL */
+.sub-panel{display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:14px;overflow:hidden;}
+.sub-panel.show{display:block;}
+.sph{background:rgba(255,255,255,0.02);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sph h4{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);}
+.spb{padding:14px 16px;}
+.cbadge{font-size:16px;font-family:var(--font-mono);background:var(--blue-glow);color:var(--blue);border-radius:10px;padding:1px 8px;margin-left:6px;display:none;}
+.cbadge.show{display:inline;}
+.sa-btn{font-size:16px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:var(--font-head);font-weight:600;letter-spacing:0.04em;}
+.sa-btn:hover{color:var(--cyan);}
+.cg{margin-bottom:14px;}
+.cgt{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;}
+.cg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 10px;}
+.crow{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:var(--r4);font-size:16px;color:var(--text2);cursor:pointer;transition:all 0.1s;}
+.crow:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+.crow input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;}
+
+/* CUSTOM */
+.cs{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;}
+.cs-label{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.cs-badge{background:rgba(255,179,71,0.15);color:var(--amber);font-size:16px;padding:2px 7px;border-radius:3px;font-weight:700;}
+.ct-row{display:flex;gap:8px;margin-bottom:8px;}
+.ct-row input{flex:1;font-size:16px;}
+.ct-row button{font-size:16px;font-family:var(--font-head);font-weight:600;letter-spacing:0.04em;color:var(--blue);background:rgba(76,158,245,0.1);border:1px solid rgba(76,158,245,0.3);border-radius:var(--r6);padding:0 14px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.ct-row button:hover{background:rgba(76,158,245,0.2);}
+.ct-tags{display:flex;flex-wrap:wrap;gap:6px;min-height:18px;}
+.ctag{display:inline-flex;align-items:center;gap:5px;background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.3);border-radius:20px;padding:3px 10px 3px 12px;font-size:16px;color:var(--amber);font-family:var(--font-mono);}
+.ctag-d{background:none;border:none;cursor:pointer;color:var(--amber);font-size:18px;line-height:1;padding:0;display:flex;align-items:center;opacity:0.6;}
+.ctag-d:hover{opacity:1;}
+.empty-hint{font-size:16px;color:var(--text3);font-family:var(--font-mono);}
+.note-f{margin-top:10px;}
+
+/* RETEST BLOCK */
+.retest-block{background:rgba(255,179,71,0.05);border:1px solid rgba(255,179,71,0.25);border-radius:var(--r8);padding:14px 16px;margin-bottom:18px;}
+.retest-block-title{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.retest-block-title::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--amber);box-shadow:0 0 6px var(--amber-glow);}
+
+/* BUTTONS */
+.btn-row{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.btn{font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:0.06em;padding:10px 24px;border-radius:var(--r6);cursor:pointer;transition:all 0.15s;border:none;}
+.btn-sec{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.btn-sec:hover{border-color:var(--border3);color:var(--text);background:var(--bg4);}
+.btn-pri{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;box-shadow:0 4px 16px var(--blue-glow);}
+.btn-pri:hover{box-shadow:0 6px 24px rgba(76,158,245,0.4);transform:translateY(-1px);}
+.btn-grn{background:linear-gradient(135deg,#0e7a5a,var(--green));color:#000;box-shadow:0 4px 16px var(--green-glow);}
+.btn-grn:hover{box-shadow:0 6px 24px rgba(0,229,160,0.35);transform:translateY(-1px);}
+
+/* SUMMARY */
+.ok-banner{background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.3);border-radius:var(--r8);padding:12px 16px;font-size:17px;color:var(--green);margin-bottom:18px;display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-weight:600;letter-spacing:0.04em;}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);padding:16px 20px;margin-bottom:12px;}
+.scard h3{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.srow{display:flex;gap:10px;font-size:16px;margin-bottom:6px;}
+.srow .sl{color:var(--text3);min-width:160px;flex-shrink:0;font-family:var(--font-mono);font-size:16px;}
+.srow .sv{color:var(--text);font-weight:500;}
+.ttag{display:inline-block;background:rgba(255,255,255,0.06);border:1px solid var(--border2);border-radius:3px;font-size:16px;font-family:var(--font-mono);padding:2px 8px;margin:2px;color:var(--text2);}
+.ttag-c{display:inline-block;background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.3);border-radius:3px;font-size:16px;font-family:var(--font-mono);padding:2px 8px;margin:2px;color:var(--amber);}
+
+/* PAGE TRANSITIONS */
+.page{display:none;}.page.active{display:block;}
+.hidden{display:none!important;}
+
+/* ADMIN BAR */
+.admin-bar{background:rgba(76,158,245,0.05);border:1px solid rgba(76,158,245,0.2);border-radius:var(--r8);padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:fadeUp 0.5s 0.05s ease both;}
+.admin-bar-info p{font-family:var(--font-head);font-size:16px;font-weight:600;letter-spacing:0.06em;color:var(--blue);}
+.admin-bar-info span{font-size:16px;color:var(--text3);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 1rem;overflow-y:auto;backdrop-filter:blur(4px);}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r12);padding:24px;width:100%;max-width:700px;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.6);}
+.modal h2{font-family:var(--font-head);font-size:22px;font-weight:700;letter-spacing:0.04em;color:var(--text);margin-bottom:4px;}
+.modal-sub{font-size:16px;color:var(--text3);margin-bottom:18px;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);}
+.modal-close:hover{color:var(--text);}
+.btabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.btab{padding:8px 16px;font-family:var(--font-head);font-size:16px;font-weight:600;letter-spacing:0.06em;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;transition:all 0.15s;}
+.btab:hover{color:var(--text2);}
+.btab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.btab-panel{display:none;}.btab-panel.active{display:block;}
+.sub-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r8);padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.si-title{font-family:var(--font-mono);font-size:17px;color:var(--blue);margin-bottom:3px;}
+.si-sub{font-size:16px;color:var(--text3);}
+.sbadge{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.06em;padding:3px 10px;border-radius:20px;}
+.sb-pending{background:rgba(255,179,71,0.15);color:var(--amber);}
+.sb-accept{background:rgba(0,229,160,0.12);color:var(--green);}
+.sb-fail{background:rgba(255,92,122,0.12);color:var(--red);}
+.ab{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.04em;padding:5px 12px;border-radius:var(--r4);cursor:pointer;transition:all 0.12s;border:none;}
+.ab-acc{background:rgba(0,229,160,0.12);color:var(--green);border:1px solid rgba(0,229,160,0.3);}
+.ab-acc:hover{background:rgba(0,229,160,0.2);}
+.ab-fail{background:rgba(255,92,122,0.1);color:var(--red);border:1px solid rgba(255,92,122,0.25);}
+.ab-fail:hover{background:rgba(255,92,122,0.18);}
+.fail-form{background:rgba(255,92,122,0.05);border:1px solid rgba(255,92,122,0.2);border-radius:var(--r6);padding:10px 12px;margin-top:8px;font-size:16px;}
+.fail-form label{display:block;font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+.fail-form textarea{min-height:60px;font-size:16px;border-color:rgba(255,92,122,0.2);background:rgba(0,0,0,0.2);}
+.fail-notify-btn{margin-top:8px;font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.04em;background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:var(--r4);cursor:pointer;}
+.fail-notify-btn:hover{background:#e03355;}
+.compare-hint{background:var(--blue-glow);border:1px solid rgba(76,158,245,0.2);border-radius:var(--r8);padding:12px 14px;font-size:16px;color:var(--blue);margin-bottom:14px;}
+.result-slot{border:1px dashed var(--border2);border-radius:var(--r8);padding:16px;background:var(--bg2);text-align:center;margin-bottom:14px;}
+.result-slot p{font-size:16px;color:var(--text2);margin-bottom:8px;}
+
+/* LOOKUP */
+.retest-lookup{max-width:540px;padding:0;}
+.retest-lookup h3{font-family:var(--font-head);font-size:19px;font-weight:700;letter-spacing:0.04em;color:var(--text);margin-bottom:14px;}
+.lookup-row{display:flex;gap:10px;margin-bottom:14px;}
+.lookup-row input{flex:1;font-family:var(--font-mono);}
+.found-card{background:var(--bg3);border:1px solid rgba(76,158,245,0.3);border-radius:var(--r8);padding:14px 16px;margin-bottom:14px;}
+.fc-title{font-family:var(--font-head);font-size:19px;font-weight:700;color:var(--blue);margin-bottom:8px;}
+.frow{display:flex;gap:6px;margin-bottom:4px;font-size:16px;color:var(--text2);}
+.frow span{font-family:var(--font-mono);color:var(--text);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+@media(max-width:860px){
+  .sidebar{display:none;}
+  .main{padding:20px 16px 40px;}
+  .g2,.g3,.test-grid,.cg2,.cg3,.mode-cards,.metric-row{grid-template-columns:1fr;}
+}
+@media print{
+  .sidebar,.admin-bar,.modal-overlay,.btn-row{display:none!important;}
+  body{background:#fff;color:#000;}
+  .page{display:block!important;}
+  .panel{border:1px solid #ddd;}
+}
+</style>
+</head>
+<body>
+<div class="outer">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">GL</div>
+  <div style="text-align:center;">
+    <div class="nav-item active" title="Form">📋</div>
+    <div class="nav-label">Form</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Result" onclick="window.location.href='result.html'">📊</div>
+    <div class="nav-label">Result</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Admin" onclick="openAdmin()">🔧</div>
+    <div class="nav-label">Admin</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="sidebar-admin" style="text-align:center;">
+    <div class="nav-item" title="User Guide" onclick="alert('使用說明 — 即將推出。')">📖</div>
+    <div class="nav-label">Guide</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="breadcrumb">
+      <span>HW GAMING LAB</span>
+    </div>
+    <h1>HW Gaming Lab<br><span>效能測試需求申請表單</span></h1>
+    <p>請依序填寫各項資訊，完成後點擊「確認送出」提交至實驗室排程系統</p>
+  </div>
+
+  <!-- METRIC CARDS -->
+  <div class="metric-row">
+    <div class="mcard mcard-blue">
+      <div class="mcard-content">
+        <div class="mcard-label">本月受理需求</div>
+        <div class="mcard-val">n 件</div>
+        <div class="mcard-sub">— 待連結資料庫</div>
+      </div>
+      <div class="mcard-icon">📋</div>
+    </div>
+    <div class="mcard mcard-orange">
+      <div class="mcard-content">
+        <div class="mcard-label">進行中測試</div>
+        <div class="mcard-val">n 件</div>
+        <div class="mcard-sub">— 待連結資料庫</div>
+      </div>
+      <div class="mcard-icon">⚡</div>
+    </div>
+    <div class="mcard mcard-purple">
+      <div class="mcard-content">
+        <div class="mcard-label">本月完成報告</div>
+        <div class="mcard-val">n 件</div>
+        <div class="mcard-sub">— 待連結資料庫</div>
+      </div>
+      <div class="mcard-icon">🎮</div>
+    </div>
+  </div>
+
+  <!-- ADMIN BAR -->
+  <div class="admin-bar">
+    <div class="admin-bar-info">
+      <p>⚙ 實驗室管理人員入口</p>
+      <span>接單審核 · 上傳結果</span>
+    </div>
+    <button class="btn btn-sec" style="font-size:16px;padding:7px 16px;" onclick="openAdmin()">開啟後台管理 →</button>
+  </div>
+
+  <!-- MODE SCREEN -->
+  <div id="mode-screen" class="mode-screen">
+    <div class="mode-title">SELECT FORM TYPE</div>
+    <div class="mode-cards">
+      <div class="mcard-sel new" onclick="startNew()">
+        <div class="mcard-sel-icon">📋</div>
+        <div class="mcard-sel-title">新建測試表單</div>
+        <div class="mcard-sel-desc">全新專案需求，從頭填寫所有測試資訊與機台規格</div>
+      </div>
+      <div class="mcard-sel retest" onclick="startRetest()">
+        <div class="mcard-sel-icon">🔄</div>
+        <div class="mcard-sel-title">複測</div>
+        <div class="mcard-sel-desc">沿用既有專案資料，修改或新增測試項目與複測原因</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RETEST LOOKUP -->
+  <div id="retest-lookup" class="hidden panel">
+    <div class="panel-header"><div class="panel-title">載入既有表單</div></div>
+    <div class="panel-body">
+      <div class="retest-lookup">
+        <h3>選擇專案以載入既有資料</h3>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Product Line<span class="req">*</span></label>
+          <select id="rt-product-line" onchange="onProductLineChange('retest')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+            <option value="">--- 選擇 Product Line ---</option>
+            <option value="Strix">Strix</option>
+            <option value="TUF">TUF</option>
+            <option value="Consumer">Consumer</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Chipset / Sub-series<span class="req">*</span></label>
+          <select id="rt-sub-series" onchange="onSubSeriesChange('retest')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+            <option value="">--- 請先選擇 Product Line ---</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>專案名稱<span class="req">*</span></label>
+          <select id="rt-proj-code" onchange="onProjCodeChange('retest')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+            <option value="">--- 請先選擇 Chipset ---</option>
+          </select>
+        </div>
+        <div id="lookup-result" class="hidden">
+          <div class="found-card">
+            <div class="fc-title" id="fc-title">—</div>
+            <div class="frow">PROJ CODE：<span id="fc-code">—</span></div>
+            <div class="frow">PHASE：<span id="fc-phase">—</span></div>
+            <div class="frow">CREATED：<span id="fc-date">—</span></div>
+            <div class="frow">REQUESTER：<span id="fc-req">—</span></div>
+          </div>
+          <button class="btn btn-pri" onclick="loadRetestData()" style="width:100%;">✓ 載入此表單進行複測</button>
+        </div>
+        <div id="rt-loading" class="hidden" style="text-align:center;padding:12px;color:var(--text3);font-family:var(--font-mono);">查詢中...</div>
+        <div style="margin-top:14px;"><button class="btn btn-sec" onclick="backToMode()">← 返回選擇</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN FORM -->
+  <div id="main-form" class="hidden">
+
+    <!-- STEPS BAR -->
+    <div class="steps-bar">
+      <div class="sbar-item active" id="step1-tab"><span class="sbar-num" id="sn1">1</span>基本資訊</div>
+      <div class="sbar-div"></div>
+      <div class="sbar-item" id="step2-tab"><span class="sbar-num" id="sn2">2</span>測試需求</div>
+      <div class="sbar-div"></div>
+      <div class="sbar-item" id="step3-tab"><span class="sbar-num" id="sn3">3</span>確認送出</div>
+    </div>
+
+    <!-- PAGE 1 -->
+    <div class="page active" id="page1">
+      <div id="retest-block" class="retest-block hidden">
+        <div class="retest-block-title">RETEST INFO</div>
+        <div class="field">
+          <label>複測原因<span class="req">*</span></label>
+          <select id="retest-reason" onchange="toggleRetestOther()">
+            <option value="">— SELECT REASON —</option>
+            <option value="BIOS update">1. BIOS update</option>
+            <option value="Driver update">2. Driver update</option>
+            <option value="data-gap">3. 測試數據落差過大</option>
+            <option value="other">4. 其它</option>
+          </select>
+        </div>
+        <div id="retest-gap-field" class="hidden field">
+          <label>落差測項說明<span class="req">*</span></label>
+          <input type="text" id="retest-gap-item" placeholder="請填寫落差過大的測試項目"/>
+        </div>
+        <div id="retest-other-field" class="hidden field">
+          <label>其它原因說明<span class="req">*</span></label>
+          <input type="text" id="retest-other-text" placeholder="請說明複測原因"/>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">需求單位資訊</div></div>
+        <div class="panel-body">
+          <div class="g2">
+            <div class="field"><label>需求部門<span class="req">*</span></label><input type="text" id="dept" placeholder="例：NB EE Department (NB-EE)"/></div>
+            <div class="field"><label>需求人姓名<span class="req">*</span></label><input type="text" id="requester" placeholder="例：王小明"/></div>
+          </div>
+          <div class="field">
+            <label>需求人 E-mail<span class="req">*</span></label>
+            <input type="email" id="req-email" placeholder="例：Yu.Sandra@inventec.com"/>
+            <span class="hint">審核結果與通知將寄送至此信箱</span>
+          </div>
+          <div class="g3">
+            <div class="field"><label>EE 對接窗口</label><input type="text" id="ee" placeholder="例：Yu.Sandra"/></div>
+            <div class="field"><label>PL 對接窗口</label><input type="text" id="pl" placeholder="例：Chen.Kevin"/></div>
+            <div class="field"><label>QA 對接窗口</label><input type="text" id="qa" placeholder="例：Lin.Amy"/></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">專案資訊</div></div>
+        <div class="panel-body">
+          <div class="g2" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Product Line<span class="req">*</span></label>
+              <select id="pl-product-line" onchange="onProductLineChange('new')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+                <option value="">--- 選擇 Product Line ---</option>
+                <option value="Strix">Strix</option>
+                <option value="TUF">TUF</option>
+                <option value="Consumer">Consumer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Chipset / Sub-series<span class="req">*</span></label>
+              <select id="pl-sub-series" onchange="onSubSeriesChange('new')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+                <option value="">--- 請先選擇 Product Line ---</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>專案名稱<span class="req">*</span></label>
+            <select id="pl-proj-code" onchange="onProjCodeChange('new')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+              <option value="">--- 請先選擇 Chipset / Sub-series ---</option>
+            </select>
+            <input type="hidden" id="proj_name"/>
+            <input type="hidden" id="proj_code"/>
+            <input type="hidden" id="prod_line"/>
+            <input type="hidden" id="sub_series"/>
+          </div>
+          <div class="g2">
+          <div class="field">
+            <label>Phase<span class="req">*</span></label>
+            <div class="chips" id="phase-chips">
+              <span class="chip" onclick="selPhase(this,'ER1')">ER1</span>
+              <span class="chip" onclick="selPhase(this,'ER2')">ER2</span>
+              <span class="chip" onclick="selPhase(this,'PR')">PR</span>
+              <span class="chip" onclick="selPhase(this,'MP')">MP</span>
+              <span class="chip" onclick="selPhase(this,'其他')">其他</span>
+            </div>
+            <input type="hidden" id="phase"/>
+          </div>
+          <div class="g2">
+            <div class="field">
+              <label>測試時段 (Schedule)<span class="req">*</span></label>
+              <div class="hint-info">請填入本次機台可供測試的時間區段</div>
+              <input type="date" id="sch_start" style="margin-top:6px;font-family:var(--font-mono);"/>
+              <span class="hint">開始日期</span>
+              <input type="date" id="sch_end" style="margin-top:8px;font-family:var(--font-mono);"/>
+              <span class="hint">結束日期</span>
+            </div>
+            <div class="field">
+              <label>Expected Report Deadline<span class="req">*</span></label>
+              <div class="hint-info" style="visibility:hidden;font-size:0;">spacer</div>
+              <input type="date" id="report_due" style="margin-top:6px;font-family:var(--font-mono);"/>
+              <span class="hint">最少為今日起第 6 天</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">測試機台 SKU</div></div>
+        <div class="panel-body">
+          <p class="sku-hint">// 欄位較多，可左右滑動 — 支援最多 10+ 台機台</p>
+          <div class="sku-wrap">
+            <table>
+              <thead><tr>
+                <th class="col-i">#</th>
+                <th style="min-width:88px;">SKU 型號</th>
+                <th style="min-width:80px;">OS 版本</th>
+                <th style="min-width:88px;">Panel</th>
+                <th style="min-width:130px;">CPU</th>
+                <th style="min-width:78px;">GPU</th>
+                <th style="min-width:52px;">RAM</th>
+                <th style="min-width:82px;">BIOS</th>
+                <th style="min-width:82px;">VBIOS</th>
+                <th style="min-width:82px;"  >DCD</th>
+                <th style="min-width:100px;">VGA Driver</th>
+                <th style="min-width:78px;">備註</th>
+                <th class="col-d"></th>
+              </tr></thead>
+              <tbody id="sku-tbody">
+                <tr>
+                  <td class="col-i">01</td>
+                  <td><input type="text" placeholder="SKU-XXXX" required/></td>
+                  <td><input type="text" placeholder="Win11 24H2"/></td>
+                  <td><input type="text" placeholder='14" FHD 144Hz'/></td>
+                  <td><input type="text" placeholder="Intel Core Ultra 7"/></td>
+                  <td><input type="text" placeholder="RTX 4070"/></td>
+                  <td><input type="text" placeholder="32GB"/></td>
+                  <td><input type="text" placeholder="X.XX.XXX"/></td>
+                  <td><input type="text" placeholder="XX.XX.XX"/></td>
+                  <td><input type="text" placeholder="X.X.XXXX"/></td>
+                  <td><input type="text" placeholder="XXX.XX"/></td>
+                  <td><input type="text" placeholder="—"/></td>
+                  <td><button class="del-btn" onclick="delRow(this)">×</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addSkuRow()">＋ ADD MACHINE</button>
+          <div class="sec">SKU 規格表上傳</div>
+          <div class="upload-zone" id="upload-zone-box">
+            <p>上傳 SKU 規格對照表（Excel / PDF）</p>
+            <input type="file" accept=".xlsx,.xls,.pdf,.csv" id="sku-file" onchange="handleFileSelect(this)"/>
+            <p style="font-size:13px;color:var(--text3);margin-top:6px;font-family:var(--font-mono);">// 檔案大小上限：5MB</p>
+            <div id="file-preview" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.3);border-radius:6px;font-family:var(--font-mono);font-size:14px;color:var(--text2);">
+              <span id="file-preview-name"></span>
+              <button onclick="clearFile()" style="margin-left:10px;background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">× 移除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-sec" onclick="backToMode()">← BACK</button>
+        <button class="btn btn-pri" onclick="goPage(2)">NEXT: TEST REQUIREMENTS →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page" id="page2">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Fan Mode</div></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>Fan Mode<span class="req">*</span></label>
+            <div class="chips">
+              <span class="fan-chip" onclick="selFan(this,'Turbo')">TURBO</span>
+              <span class="fan-chip" onclick="selFan(this,'Performance')">PERFORMANCE</span>
+              <span class="fan-chip" onclick="selFan(this,'Silent')">SILENT</span>
+            </div>
+            <input type="hidden" id="fan_mode"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">測試項目選擇</div></div>
+        <div class="panel-body">
+          <div class="test-grid">
+            <div class="tcard tcard-bat" id="card-battery" onclick="togTest('battery','bat')">
+              <div class="tc-chk" id="chk-battery"></div>
+              <div class="tc-icon">🔋</div>
+              <div class="tc-title">BATTERY LIFE</div>
+              <div class="tc-desc">電池續航測試，涵蓋各使用情境</div>
+            </div>
+            <div class="tcard tcard-bench" id="card-bench" onclick="togTest('bench','bench')">
+              <div class="tc-chk" id="chk-bench"></div>
+              <div class="tc-icon">📊</div>
+              <div class="tc-title">BENCHMARK</div>
+              <div class="tc-desc">GPU / CPU 效能基準跑分測試</div>
+            </div>
+            <div class="tcard tcard-fps" id="card-fps" onclick="togTest('fps','fps')">
+              <div class="tc-chk" id="chk-fps"></div>
+              <div class="tc-icon">🎮</div>
+              <div class="tc-title">GAMING FPS</div>
+              <div class="tc-desc">遊戲場景幀率測試（X86 / WOA）</div>
+            </div>
+          </div>
+
+          <!-- BATTERY -->
+          <div class="sub-panel" id="sub-battery">
+            <div class="sph">
+              <h4>BATTERY LIFE — ITEMS <span class="cbadge" id="badge-battery"></span></h4>
+              <button class="sa-btn" onclick="selAll('battery')">ALL / NONE</button>
+            </div>
+            <div class="spb">
+              <div class="cg2">
+                <label class="crow"><input type="checkbox" data-group="battery" value="FHD Video Playback (ADK)" onchange="updCount('battery')"> FHD Video Playback (ADK)</label>
+                <label class="crow"><input type="checkbox" data-group="battery" value="Web Browsing (ADK)" onchange="updCount('battery')"> Web Browsing (ADK)</label>
+                <label class="crow"><input type="checkbox" data-group="battery" value="Maximum Runtime (斷網+IDLE)" onchange="updCount('battery')"> Maximum Runtime (斷網+IDLE)</label>
+                <label class="crow"><input type="checkbox" data-group="battery" value="PCMark 10 (Modern Office mode)" onchange="updCount('battery')"> PCMark 10 (Modern Office mode)</label>
+                <label class="crow"><input type="checkbox" data-group="battery" value="Teams (ADK)" onchange="updCount('battery')"> Teams (ADK)</label>
+                <label class="crow"><input type="checkbox" data-group="battery" value="Modern Standby (ADK)" onchange="updCount('battery')"> Modern Standby (ADK)</label>
+                <label class="crow"><input type="checkbox" data-group="battery" value="UL Procyon Office Productivity" onchange="updCount('battery')"> UL Procyon Office Productivity</label>
+              </div>
+              <div class="cs">
+                <div class="cs-label">CUSTOM ITEMS <span class="cs-badge">ADD</span></div>
+                <div class="ct-row"><input type="text" id="ci-battery" placeholder="輸入自訂項目，按 Enter 新增" onkeydown="if(event.key==='Enter')addCustom('battery')"/><button onclick="addCustom('battery')">＋ ADD</button></div>
+                <div class="ct-tags" id="ct-battery"><span class="empty-hint">// no custom items</span></div>
+              </div>
+              <div class="note-f field"><label>特殊測試條件說明</label><textarea id="note-battery" placeholder="例：螢幕亮度 200nits、飛航模式、指定電源計畫…"></textarea></div>
+            </div>
+          </div>
+
+          <!-- BENCHMARK -->
+          <div class="sub-panel" id="sub-bench">
+            <div class="sph">
+              <h4>BENCHMARK — ITEMS <span class="cbadge" id="badge-bench"></span></h4>
+              <button class="sa-btn" onclick="selAll('bench')">ALL / NONE</button>
+            </div>
+            <div class="spb">
+              <div class="cg"><div class="cgt">3DMark</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Fire Strike (Score)" onchange="updCount('bench')"> Fire Strike — Score</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Fire Strike (Graphics)" onchange="updCount('bench')"> Fire Strike — Graphics</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Fire Strike (Physics)" onchange="updCount('bench')"> Fire Strike — Physics</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Fire Strike (Combined)" onchange="updCount('bench')"> Fire Strike — Combined</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Time Spy (Score)" onchange="updCount('bench')"> Time Spy — Score</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Time Spy (Graphics)" onchange="updCount('bench')"> Time Spy — Graphics</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Time Spy (CPU)" onchange="updCount('bench')"> Time Spy — CPU</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="3DMark Port Royal" onchange="updCount('bench')"> Port Royal</label>
+                </div>
+              </div>
+              <div class="cg"><div class="cgt">Cinebench</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="bench" value="CineBench R20 (1T)" onchange="updCount('bench')"> R20 (1T)</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="CineBench R20 (nT)" onchange="updCount('bench')"> R20 (nT)</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="CineBench R23 (1T)" onchange="updCount('bench')"> R23 (1T)</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="CineBench R23 (nT)" onchange="updCount('bench')"> R23 (nT)</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="CineBench R24 (1T)" onchange="updCount('bench')"> R24 (1T)</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="CineBench R24 (nT)" onchange="updCount('bench')"> R24 (nT)</label>
+                </div>
+              </div>
+              <div class="cg"><div class="cgt">Stress / Others</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="bench" value="PCMark 10 Modern Office" onchange="updCount('bench')"> PCMark 10 Modern Office</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="Furmark" onchange="updCount('bench')"> Furmark</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="Burnin Test" onchange="updCount('bench')"> Burnin Test</label>
+                  <label class="crow"><input type="checkbox" data-group="bench" value="Unigen Heaven" onchange="updCount('bench')"> Unigen Heaven</label>
+                </div>
+              </div>
+              <div class="cs">
+                <div class="cs-label">CUSTOM ITEMS <span class="cs-badge">ADD</span></div>
+                <div class="ct-row"><input type="text" id="ci-bench" placeholder="輸入自訂項目，按 Enter 新增" onkeydown="if(event.key==='Enter')addCustom('bench')"/><button onclick="addCustom('bench')">＋ ADD</button></div>
+                <div class="ct-tags" id="ct-bench"><span class="empty-hint">// no custom items</span></div>
+              </div>
+              <div class="note-f field"><label>平台說明 / 特殊參數</label><textarea id="note-bench" placeholder="例：X86 / WOA Snapdragon X Elite，需含散熱模式切換…"></textarea></div>
+            </div>
+          </div>
+
+          <!-- GAMING FPS -->
+          <div class="sub-panel" id="sub-fps">
+            <div class="sph">
+              <h4>GAMING FPS — ITEMS <span class="cbadge" id="badge-fps"></span></h4>
+              <button class="sa-btn" onclick="selAll('fps')">ALL / NONE</button>
+            </div>
+            <div class="spb">
+              <div class="cg"><div class="cgt">Cyberpunk 2077</div>
+                <div class="cg3">
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Cyberpunk 2077 原生" onchange="updCount('fps')"> 原生</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Cyberpunk 2077 DLSS X3" onchange="updCount('fps')"> DLSS X3</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Cyberpunk 2077 DLSS X4" onchange="updCount('fps')"> DLSS X4</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Cyberpunk 2077 W/RTX" onchange="updCount('fps')"> W/RTX</label>
+                </div>
+              </div>
+              <div class="cg"><div class="cgt">Metro Exodus</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Metro Exodus (w/o RTX)" onchange="updCount('fps')"> W/O RTX</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Metro Exodus (w RTX)" onchange="updCount('fps')"> W RTX</label>
+                </div>
+              </div>
+              <div class="cg"><div class="cgt">AAA Titles</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Red Dead Redemption 2" onchange="updCount('fps')"> Red Dead Redemption 2</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Forza Horizon 5" onchange="updCount('fps')"> Forza Horizon 5</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Monster Hunter Wilds" onchange="updCount('fps')"> Monster Hunter Wilds</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Black Myth: Wukong" onchange="updCount('fps')"> Black Myth: Wukong</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="SOTTR" onchange="updCount('fps')"> SOTTR (Shadow of the Tomb Raider)</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Assassin's Creed Valhalla" onchange="updCount('fps')"> Assassin's Creed Valhalla</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="FFXV" onchange="updCount('fps')"> FFXV</label>
+                </div>
+              </div>
+              <div class="cg"><div class="cgt">FPS / Competitive</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="fps" value="CS2" onchange="updCount('fps')"> CS2</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Rainbow Six Siege" onchange="updCount('fps')"> Rainbow Six Siege</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="PUBG" onchange="updCount('fps')"> PUBG</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Naraka: Bladepoint" onchange="updCount('fps')"> Naraka: Bladepoint</label>
+                </div>
+              </div>
+              <div class="cg"><div class="cgt">MOBA / Online</div>
+                <div class="cg2">
+                  <label class="crow"><input type="checkbox" data-group="fps" value="League of Legends" onchange="updCount('fps')"> League of Legends (LOL)</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="DOTA 2" onchange="updCount('fps')"> DOTA 2</label>
+                  <label class="crow"><input type="checkbox" data-group="fps" value="Far Cry 6" onchange="updCount('fps')"> Far Cry 6</label>
+                </div>
+              </div>
+              <div class="cs">
+                <div class="cs-label">CUSTOM GAME / ITEM <span class="cs-badge">ADD</span></div>
+                <div class="ct-row"><input type="text" id="ci-fps" placeholder="輸入遊戲或自訂項目，按 Enter 新增" onkeydown="if(event.key==='Enter')addCustom('fps')"/><button onclick="addCustom('fps')">＋ ADD</button></div>
+                <div class="ct-tags" id="ct-fps"><span class="empty-hint">// no custom items</span></div>
+              </div>
+              <div class="note-f field"><label>解析度 / 畫質 / 其他條件</label><textarea id="note-fps" placeholder="例：統一 Ultra 畫質、開啟 DLSS/XeSS/FSR、需含 Prism 散熱模式紀錄…"></textarea></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">補充說明</div></div>
+        <div class="panel-body">
+          <div class="field"><label>其他補充說明</label><textarea id="extra_notes" placeholder="任何額外需求、特殊環境條件、或對本次測試的備註…" style="min-height:88px;"></textarea></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-sec" onclick="goPage(1)">← BACK</button>
+        <button class="btn btn-pri" onclick="goPage(3)">NEXT: REVIEW →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 3 -->
+    <div class="page" id="page3">
+      <div class="ok-banner">◈ 請確認以下資訊無誤後，再按下「SUBMIT」</div>
+      <div class="scard">
+        <h3>Form Info</h3>
+        <div class="srow"><span class="sl">FORM_TYPE</span><span class="sv" id="s-mode">—</span></div>
+        <div class="srow"><span class="sl">CREATED</span><span class="sv" id="s-createdate">—</span></div>
+        <div id="s-retest-reason-row" class="srow hidden"><span class="sl">RETEST_REASON</span><span class="sv" id="s-retest-reason">—</span></div>
+      </div>
+      <div class="scard">
+        <h3>Requester</h3>
+        <div class="srow"><span class="sl">DEPT</span><span class="sv" id="s-dept">—</span></div>
+        <div class="srow"><span class="sl">NAME</span><span class="sv" id="s-req">—</span></div>
+        <div class="srow"><span class="sl">EMAIL</span><span class="sv" id="s-email">—</span></div>
+        <div class="srow"><span class="sl">EE_CONTACT</span><span class="sv" id="s-ee">—</span></div>
+        <div class="srow"><span class="sl">PL_CONTACT</span><span class="sv" id="s-pl">—</span></div>
+        <div class="srow"><span class="sl">QA_CONTACT</span><span class="sv" id="s-qa">—</span></div>
+      </div>
+      <div class="scard">
+        <h3>Project</h3>
+        <div class="srow"><span class="sl">PROJECT_NAME</span><span class="sv" id="s-pname">—</span></div>
+        <div class="srow"><span class="sl">PROJECT_CODE</span><span class="sv" id="s-pcode">—</span></div>
+        <div class="srow"><span class="sl">PHASE</span><span class="sv" id="s-phase">—</span></div>
+        <div class="srow"><span class="sl">FAN_MODE</span><span class="sv" id="s-fan">—</span></div>
+        <div class="srow"><span class="sl">TEST_SCHEDULE</span><span class="sv" id="s-sched">—</span></div>
+        <div class="srow"><span class="sl">REPORT_DEADLINE</span><span class="sv" id="s-due">—</span></div>
+      </div>
+      <div class="scard">
+        <h3>SKU Machines (<span id="s-sku-count">0</span> units)</h3>
+        <div id="s-sku-list" style="font-size:16px;line-height:2;font-family:var(--font-mono);"></div>
+      </div>
+      <div class="scard"><h3>Battery Life</h3><div id="s-battery"><span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">// none selected</span></div></div>
+      <div class="scard"><h3>Benchmark</h3><div id="s-bench"><span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">// none selected</span></div></div>
+      <div class="scard"><h3>Gaming FPS</h3><div id="s-fps"><span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">// none selected</span></div></div>
+      <div class="btn-row">
+        <button class="btn btn-sec" onclick="goPage(2)">← BACK</button>
+        <button class="btn btn-pri" onclick="submitForm()">SUBMIT REQUEST ✓</button>
+      </div>
+    </div>
+  </div><!-- /main-form -->
+
+  <div style="margin-top:2rem;text-align:center;font-family:var(--font-mono);font-size:16px;color:var(--text3);">
+    // HW GAMING ACCELERATION LAB — FORM SYSTEM v2.1
+  </div>
+</div><!-- /main -->
+</div><!-- /outer -->
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal" style="max-width:780px;">
+    <button class="modal-close" onclick="closeAdmin()">×</button>
+    <h2>⚙ 後台管理</h2>
+    <p class="modal-sub">// Gaming 加速實驗室 — 內部管理人員專用</p>
+    <div class="btabs">
+      <button class="btab active" id="tab-review" onclick="switchTab('tab-review')">接單審核</button>
+      <button class="btab" id="tab-result" onclick="switchTab('tab-result')">Result 上傳</button>
+    </div>
+    <div class="btab-panel active" id="btab-review">
+      <div id="admin-loading" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
+      <div id="admin-list"></div>
+    </div>
+    <div class="btab-panel" id="btab-result">
+      <p style="font-size:16px;color:var(--text2);">Result 上傳功能開發中...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
+(function(){
+  var d=new Date();
+  d.setDate(d.getDate()+6);
+  var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);
+  var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();
+  var minDate=d.getFullYear()+'-'+mm+'-'+dd;
+  var el=document.getElementById('report_due');
+  if(el){el.min=minDate;}
+  document.addEventListener('DOMContentLoaded',function(){
+    var el2=document.getElementById('report_due');
+    if(el2){el2.min=minDate;}
+  });
+  // block manual keyboard entry below min on change
+  document.addEventListener('DOMContentLoaded',function(){
+    var inp=document.getElementById('report_due');
+    if(inp){
+      inp.addEventListener('change',function(){
+        if(this.value && this.value < minDate){
+          this.value=minDate;
+          alert('⚠ 報告截止日須為今日起第 6 天之後。');
+        }
+      });
+    }
+  });
+})();
+var saState={battery:false,bench:false,fps:false};
+var custom={battery:[],bench:[],fps:[]};
+var formDb={};
+var testSelMap={battery:'sel-bat',bench:'sel-bench',fps:'sel-fps'};
+var selTests={};
+
+function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');}
+function startRetest(){isRetest=true;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.remove('hidden');}
+function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
+function lookupFormByName(projName){
+  if(!projName) return;
+  var loadingEl=document.getElementById('rt-loading');
+  var resultEl=document.getElementById('lookup-result');
+  if(loadingEl) loadingEl.classList.remove('hidden');
+  if(resultEl) resultEl.classList.add('hidden');
+  var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
+  fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryCode:projName,allStatus:true,queryAll:true})})
+  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
+  .then(function(data){
+    if(loadingEl) loadingEl.classList.add('hidden');
+    var items=data.value||data.d&&data.d.results||[];
+    var match=null;
+    for(var i=0;i<items.length;i++){
+      var pc=items[i].ProjectName||items[i].ProjectCode||items[i].Title||'';
+      if(typeof pc==='object') pc=pc.Title||pc.Value||'';
+      if(pc===projName){match=items[i];break;}
+    }
+    if(!match&&items.length>0) match=items[0];
+    if(!match){
+      alert('此專案尚未有表單記錄，請確認是否已提交過申請。');
+      return;
+    }
+    var proj={
+      name:match.ProjectName||match.Title||projName,
+      phase:match.Phase||'',
+      date:(match.SubmittedDate||match.Created||'').slice(0,10),
+      requester:match.Requester||'',
+      dept:match.Dept||'',
+      email:match.RequesterEmail||'',
+      ee:match.EEContact||'',
+      pl:match.PLContact||'',
+      qa:match.QAContact||'',
+      fanMode:match.FanMode||'',
+      schedStart:match.ScheduleStart||'',
+      schedEnd:match.ScheduleEnd||'',
+      notes:match.Notes||'',
+      prodLine:match.ProductLine||'',
+      subSeries:match.SubSeries||''
+    };
+    document.getElementById('fc-title').textContent=proj.name||'—';
+    document.getElementById('fc-code').textContent=projName;
+    document.getElementById('fc-phase').textContent=proj.phase||'—';
+    document.getElementById('fc-date').textContent=proj.date||'—';
+    document.getElementById('fc-req').textContent=proj.requester||'—';
+    document.getElementById('lookup-result').classList.remove('hidden');
+    formDb['current']=proj;
+  })
+  .catch(function(err){
+    if(loadingEl) loadingEl.classList.add('hidden');
+    alert('查詢失敗：'+err.message);
+  });
+}
+function lookupForm(){
+  var code=document.getElementById('lookup-code').value.trim();
+  if(!code){alert('請輸入專案代號');return;}
+  var btn=document.querySelector('[onclick="lookupForm()"]');
+  if(btn){btn.disabled=true;btn.textContent='查詢中...';}
+  var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
+  fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryCode:code.toUpperCase(),allStatus:true,queryAll:true})})
+  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
+  .then(function(data){
+    if(btn){btn.disabled=false;btn.textContent='LOAD';}
+    var items=data.value||data.d&&data.d.results||[];
+    // find latest record matching this project code
+    var match=null;
+    for(var i=0;i<items.length;i++){
+      var pc=items[i].ProjectCode;
+      if(pc&&typeof pc==='object') pc=pc.Title||pc.Value||''
+      if((pc||items[i].Title||'').toUpperCase()===code.toUpperCase()){match=items[i];break;}
+    }
+    if(!match){alert('找不到專案代號：'+code+'\n請確認代號是否正確，或此專案尚未在系統中建檔。');return;}
+    var proj={
+      name:match.ProjectName||match.Title||'',
+      phase:match.Phase||'',
+      date:(match.SubmittedDate||match.Created||'').slice(0,10),
+      requester:match.Requester||'',
+      dept:match.Dept||'',
+      email:match.RequesterEmail||'',
+      ee:match.EEContact||'',
+      pl:match.PLContact||'',
+      qa:match.QAContact||'',
+      fanMode:match.FanMode||'',
+      schedStart:match.ScheduleStart||'',
+      schedEnd:match.ScheduleEnd||'',
+      notes:match.Notes||'',
+    };
+    document.getElementById('fc-title').textContent=proj.name||'—';
+    document.getElementById('fc-code').textContent=code.toUpperCase();
+    document.getElementById('fc-phase').textContent=proj.phase||'—';
+    document.getElementById('fc-date').textContent=proj.date||'—';
+    document.getElementById('fc-req').textContent=proj.requester||'—';
+    document.getElementById('lookup-result').classList.remove('hidden');
+    formDb['current']=proj;
+  })
+  .catch(function(err){
+    if(btn){btn.disabled=false;btn.textContent='LOAD';}
+    alert('查詢失敗：'+err.message);
+  });
+}
+function loadRetestData(){
+  var data=formDb['current'];
+  document.getElementById('retest-lookup').classList.add('hidden');
+  document.getElementById('main-form').classList.remove('hidden');
+  document.getElementById('retest-block').classList.remove('hidden');
+  var code=document.getElementById('lookup-code').value.trim().toUpperCase();
+  // fill all fields from previous form
+  if(data){
+    var set=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+    set('proj_code', code);
+    set('proj_name', data.name);
+    set('dept',      data.dept);
+    set('requester', data.requester);
+    set('req-email', data.email);
+    set('ee',        data.ee);
+    set('pl',        data.pl);
+    set('qa',        data.qa);
+    // phase chips
+    document.querySelectorAll('#phase-chips .chip').forEach(function(c){c.classList.remove('sel-blue','sel-cyan','sel-green');});
+    document.querySelectorAll('#phase-chips .chip').forEach(function(c){
+      if(c.textContent===data.phase){c.classList.add('sel-blue');selPhaseVal=data.phase;}
+    });
+    // fan mode
+    if(data.fanMode){
+      document.querySelectorAll('.fan-chip').forEach(function(fc){fc.classList.remove('sel');});
+      document.querySelectorAll('.fan-chip').forEach(function(fc){
+        if(fc.textContent.trim()===data.fanMode||fc.dataset&&fc.dataset.val===data.fanMode){
+          fc.classList.add('sel');selFanVal=data.fanMode;
+          var hid=document.getElementById('fan_mode');if(hid)hid.value=data.fanMode;
+        }
+      });
+    }
+    // schedule dates (pre-fill but leave editable)
+    set('sch_start', data.schedStart?data.schedStart.slice(0,10):'');
+    set('sch_end',   data.schedEnd?data.schedEnd.slice(0,10):'');
+    // notes
+    set('extra_notes', data.notes);
+    // restore ProductLine / SubSeries hidden fields
+    set('prod_line', data.prodLine||'');
+    set('sub_series', data.subSeries||'');
+  }
+}
+function toggleRetestOther(){
+  var v=document.getElementById('retest-reason').value;
+  document.getElementById('retest-gap-field').classList.toggle('hidden',v!=='data-gap');
+  document.getElementById('retest-other-field').classList.toggle('hidden',v!=='other');
+}
+function selPhase(el,val){
+  document.querySelectorAll('#phase-chips .chip').forEach(function(c){c.classList.remove('sel-blue','sel-cyan','sel-green');});
+  el.classList.add('sel-blue');selPhaseVal=val;
+}
+function selFan(el,val){
+  document.querySelectorAll('.fan-chip').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel');selFanVal=val;document.getElementById('fan_mode').value=val;
+}
+function togTest(name,cls){
+  selTests[name]=!selTests[name];
+  var card=document.getElementById('card-'+name);
+  var chk=document.getElementById('chk-'+name);
+  var sub=document.getElementById('sub-'+name);
+  var selCls=testSelMap[name];
+  if(selTests[name]){card.classList.add(selCls);chk.innerHTML='✓';sub.classList.add('show');}
+  else{card.classList.remove(selCls);chk.innerHTML='';sub.classList.remove('show');}
+}
+function updCount(g){
+  var n=document.querySelectorAll('input[data-group="'+g+'"]:checked').length+custom[g].length;
+  var b=document.getElementById('badge-'+g);
+  b.textContent=n;if(n>0)b.classList.add('show');else b.classList.remove('show');
+}
+function selAll(g){
+  saState[g]=!saState[g];
+  document.querySelectorAll('input[data-group="'+g+'"]').forEach(function(cb){cb.checked=saState[g];});
+  updCount(g);
+}
+function addCustom(g){
+  var inp=document.getElementById('ci-'+g);var val=inp.value.trim();if(!val)return;
+  custom[g].push(val);inp.value='';renderCustom(g);updCount(g);
+}
+function removeCustom(g,i){custom[g].splice(i,1);renderCustom(g);updCount(g);}
+function renderCustom(g){
+  var c=document.getElementById('ct-'+g);
+  if(!custom[g].length){c.innerHTML='<span class="empty-hint">// no custom items</span>';return;}
+  c.innerHTML=custom[g].map(function(item,i){return '<span class="ctag">'+esc(item)+'<button class="ctag-d" onclick="removeCustom(\''+g+'\','+i+')">×</button></span>';}).join('');
+}
+function addSkuRow(){
+  skuCount++;var tbody=document.getElementById('sku-tbody');var tr=document.createElement('tr');
+  var n=skuCount<10?'0'+skuCount:skuCount;
+  tr.innerHTML='<td class="col-i">'+n+'</td>'+
+    '<td><input type="text" placeholder="SKU-XXXX" required/></td>'+
+    '<td><input type="text" placeholder="Win11 24H2"/></td>'+
+    '<td><input type="text" placeholder=\'14" FHD 144Hz\'/></td>'+
+    '<td><input type="text" placeholder="Intel Core Ultra 7"/></td>'+
+    '<td><input type="text" placeholder="RTX 4070"/></td>'+
+    '<td><input type="text" placeholder="32GB"/></td>'+
+    '<td><input type="text" placeholder="X.XX.XXX"/></td>'+
+    '<td><input type="text" placeholder="XX.XX.XX"/></td>'+
+    '<td><input type="text" placeholder="X.X.XXXX"/></td>'+
+    '<td><input type="text" placeholder="XXX.XX"/></td>'+
+    '<td><input type="text" placeholder="—"/></td>'+
+    '<td><button class="del-btn" onclick="delRow(this)">×</button></td>';
+  tbody.appendChild(tr);
+}
+function delRow(btn){
+  var rows=document.querySelectorAll('#sku-tbody tr');if(rows.length<=1)return;
+  btn.closest('tr').remove();
+  document.querySelectorAll('#sku-tbody tr').forEach(function(r,i){var n=i+1<10?'0'+(i+1):i+1;r.cells[0].textContent=n;});
+  skuCount=document.querySelectorAll('#sku-tbody tr').length;
+}
+function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function getChecked(g){var p=Array.prototype.slice.call(document.querySelectorAll('input[data-group="'+g+'"]:checked')).map(function(c){return c.value;});return p.concat(custom[g]);}
+function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+function buildSummary(){
+  document.getElementById('s-mode').textContent=isRetest?'RETEST':'NEW';
+  document.getElementById('s-createdate').textContent=today();
+  if(isRetest){var rr=document.getElementById('retest-reason');var rv=rr?rr.value:'';var rt=rv==='data-gap'?'數據落差過大 — '+v('retest-gap-item'):rv==='other'?'其它 — '+v('retest-other-text'):rv;document.getElementById('s-retest-reason').textContent=rt||'—';document.getElementById('s-retest-reason-row').classList.remove('hidden');}
+  document.getElementById('s-dept').textContent=v('dept')||'—';
+  document.getElementById('s-req').textContent=v('requester')||'—';
+  document.getElementById('s-email').textContent=v('req-email')||'—';
+  document.getElementById('s-ee').textContent=v('ee')||'—';
+  document.getElementById('s-pl').textContent=v('pl')||'—';
+  document.getElementById('s-qa').textContent=v('qa')||'—';
+  document.getElementById('s-pname').textContent=v('proj_name')||'—';
+  document.getElementById('s-pcode').textContent=v('proj_code')||'—';
+  document.getElementById('s-phase').textContent=selPhaseVal||'—';
+  document.getElementById('s-fan').textContent=selFanVal||'—';
+  var ss=v('sch_start'),se=v('sch_end');document.getElementById('s-sched').textContent=ss&&se?ss+' ~ '+se:(ss||'—');
+  document.getElementById('s-due').textContent=v('report_due')||'—';
+  var rows=document.querySelectorAll('#sku-tbody tr');document.getElementById('s-sku-count').textContent=rows.length;
+  var sh='';rows.forEach(function(r,i){var inp=r.querySelectorAll('input');sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);">'+
+    (i+1<10?'0'+(i+1):i+1)+'. '+esc(inp[0].value||'(未填)')+
+    (inp[3].value?' &nbsp;|&nbsp; '+esc(inp[3].value):'')+
+    (inp[4].value?' / '+esc(inp[4].value):'')+
+    (inp[6].value?' &nbsp;|&nbsp; BIOS:'+esc(inp[6].value):'')+
+    '</div>';});
+  document.getElementById('s-sku-list').innerHTML=sh||'—';
+  ['battery','bench','fps'].forEach(function(g){var items=getChecked(g);if(!items.length){document.getElementById('s-'+g).innerHTML='<span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">// none selected</span>';return;}var pre=Array.prototype.slice.call(document.querySelectorAll('input[data-group="'+g+'"]:checked')).map(function(c){return c.value;});var html=pre.map(function(it){return '<span class="ttag">'+esc(it)+'</span>';}).join('');html+=custom[g].map(function(it){return '<span class="ttag-c">★ '+esc(it)+'</span>';}).join('');document.getElementById('s-'+g).innerHTML=html;});
+}
+function goPage(n){
+  if(n===3)buildSummary();
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page'+n).classList.add('active');
+  ['step1-tab','step2-tab','step3-tab'].forEach(function(id,i){
+    var el=document.getElementById(id);var sn=document.getElementById('sn'+(i+1));
+    el.classList.remove('active','done');
+    if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');sn.innerHTML='✓';}else{sn.innerHTML=String(i+1);}
+  });window.scrollTo(0,0);
+}
+function handleFileSelect(input){
+  var file=input.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){
+    alert('檔案大小超過 5MB，請縮小後再上傳。');
+    input.value='';
+    return;
+  }
+  document.getElementById('file-preview-name').textContent='📎 '+file.name+' ('+Math.round(file.size/1024)+' KB)';
+  document.getElementById('file-preview').style.display='block';
+}
+function clearFile(){
+  document.getElementById('sku-file').value='';
+  document.getElementById('file-preview').style.display='none';
+  document.getElementById('file-preview-name').textContent='';
+}
+
+// ── 專案層級資料 ──────────────────────────────────────────────────────────────
+var PROJECT_DATA = {
+  'Strix': {
+    'Intel': [
+      'Intel NVL-HX(G8-Scar)-BD1',
+      'Intel NVL-HX(G6-Scar)-BD1',
+      'Intel NVL-HX(G8/G6-G)-BD1',
+      'Intel NVL-HX(G8/G6-G)-BD2',
+      'Intel RPL Next (G8/G6-G)-BD2'
+    ],
+    'AMD': [
+      'Gator Range (G6/G8-AMD)-BD1',
+      'Gator Range (G6/G8-AMD)-BD2'
+    ]
+  },
+  'TUF': {
+    'Intel': [
+      'Intel NVL-HX-BD2(FX 16")',
+      'Intel RPL-BD2(FX 16")',
+      'Intel NVL-BD1 (18")',
+      'Intel NVL-BD1 (16")'
+    ],
+    'AMD': [
+      'AMD Hawk Point-BD2(FA/FX 16")',
+      'AMD Gator Range/Fire Range-BD1(FA/FX 16")',
+      'AMD Gator Range/Fire Range-BD2(FA/FX 16")',
+      'AMD Gator Range/Fire Range-BD1(FA 18")',
+      'AMD Gator Range/Fire Range-BD2(FA 18")',
+      'Madusa Point-BD2 (FA402)'
+    ]
+  },
+  'Consumer': {
+    'Zenbook': [
+      'Zenbook A-Qcom_Gtymur (COB)',
+      'Zenbook A-Qcom_Gtymur (SIP)',
+      'Zenbook A-Qcom_Kalambo',
+      'Zenbook S-Intel_NV_LAKE',
+      'Zenbook S-AMD_Medusa Point',
+      'Zenbook SE-Intel NV LAKE',
+      'Zenbook SE-AMD_Medusa Point',
+      'Zenbook SE-AMD_RMB+FP7',
+      'Zenbook SE-Intel_PTL',
+      'Zenbook SE-AMD Gorgon Point',
+      'Zenbook SE-Qcom_Purwa SE'
+    ],
+    'Vivobook': [
+      'Vivobook S_Intel_NV LAKE',
+      'Vivobook S_AMD_Medusa Point',
+      'Vivobook S-Qcom_Purwa SE',
+      'Vivobook S_AMD_RMB+FP7'
+    ]
+  }
+};
+
+function getProductLines(){ return Object.keys(PROJECT_DATA); }
+function getSubSeries(pl){ return pl&&PROJECT_DATA[pl]?Object.keys(PROJECT_DATA[pl]):[]; }
+function getProjects(pl,ss){ return pl&&ss&&PROJECT_DATA[pl]&&PROJECT_DATA[pl][ss]?PROJECT_DATA[pl][ss]:[]; }
+
+function buildSelect(id, options, placeholder){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.innerHTML='<option value="">'+placeholder+'</option>';
+  options.forEach(function(o){
+    var opt=document.createElement('option');
+    opt.value=o; opt.textContent=o;
+    el.appendChild(opt);
+  });
+}
+
+function onProductLineChange(src){
+  var pl=document.getElementById(src==='retest'?'rt-product-line':'pl-product-line').value;
+  var ssId=src==='retest'?'rt-sub-series':'pl-sub-series';
+  var codeId=src==='retest'?'rt-proj-code':'pl-proj-code';
+  buildSelect(ssId, getSubSeries(pl), '--- 選擇 Chipset / Sub-series ---');
+  buildSelect(codeId, [], '--- 請先選擇上層 ---');
+  if(src!=='retest'){ document.getElementById('proj_name').value=''; document.getElementById('proj_code').value=''; }
+}
+
+function onSubSeriesChange(src){
+  var pl=document.getElementById(src==='retest'?'rt-product-line':'pl-product-line').value;
+  var ss=document.getElementById(src==='retest'?'rt-sub-series':'pl-sub-series').value;
+  var codeId=src==='retest'?'rt-proj-code':'pl-proj-code';
+  buildSelect(codeId, getProjects(pl,ss), '--- 選擇專案 ---');
+  if(src!=='retest'){ document.getElementById('proj_name').value=''; document.getElementById('proj_code').value=''; }
+}
+
+function onProjCodeChange(src){
+  var val=document.getElementById(src==='retest'?'rt-proj-code':'pl-proj-code').value;
+  if(src==='retest'){
+    if(val) lookupFormByName(val);
+  } else {
+    // fill proj_name and proj_code
+    document.getElementById('proj_name').value=val;
+    document.getElementById('proj_code').value=val;
+    // also set ProductLine and SubSeries hidden fields
+    document.getElementById('prod_line').value=document.getElementById('pl-product-line').value;
+    document.getElementById('sub_series').value=document.getElementById('pl-sub-series').value;
+  }
+}
+
+function submitForm(){
+  var miss=[];
+  if(!v('dept'))miss.push('需求部門');
+  if(!v('requester'))miss.push('需求人姓名');
+  if(!isRetest&&!document.getElementById('pl-product-line').value)miss.push('Product Line');
+  if(!isRetest&&!document.getElementById('pl-sub-series').value)miss.push('Chipset / Sub-series');
+  if(!v('req-email'))miss.push('需求人Email');
+  if(!v('proj_name'))miss.push('專案名稱');
+  if(!v('proj_code'))miss.push('專案代號');
+  if(!selPhaseVal)miss.push('Phase');
+  if(!selFanVal)miss.push('FanMode');
+  if(!v('sch_start'))miss.push('測試時段');
+  if(!v('report_due'))miss.push('截止日');
+  // SKU required check
+  var skuFirst=document.querySelector('#sku-tbody tr input');
+  if(!skuFirst||!skuFirst.value.trim())miss.push('SKU（至少填寫第一筆）');
+  if(isRetest&&!v('retest-reason'))miss.push('複測原因');
+  if(miss.length){alert('以下欄位未填寫: '+miss.join(', '));return;}
+  paSubmit();
+}
+function paSubmit(){
+  var PA_URL='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f72524dfbf1649b69aace89bc5b37b57/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jkj-f6ttMbePYMiAg_vXWc2MKT6ESEwVlRAUNICZyEw';
+  var Q=String.fromCharCode(39);
+  function getItems(g){
+    var p=Array.prototype.slice.call(document.querySelectorAll('[data-group='+Q+g+Q+']:checked')).map(function(c){return c.value;});
+    var all=p.concat(custom[g].filter(function(x){return x;}));
+    // Numbered list for SP multi-line field — easy to read, no comma confusion
+    return all.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
+  }
+  var sku='';
+  document.querySelectorAll('#sku-tbody tr').forEach(function(r,i){
+    var inp=r.querySelectorAll('input');
+    if(inp[0]&&inp[0].value){
+      sku+=(i+1)+'. '+inp[0].value+
+        (inp[3]&&inp[3].value?' CPU:'+inp[3].value:'')+
+        (inp[4]&&inp[4].value?' GPU:'+inp[4].value:'')+' | ';
+    }
+  });
+  var retestTxt='';
+  var rrEl=document.getElementById('retest-reason');
+  if(rrEl&&rrEl.value){
+    if(rrEl.value==='data-gap'){retestTxt='數據落差:'+v('retest-gap-item');}
+    else if(rrEl.value==='other'){retestTxt='其它:'+v('retest-other-text');}
+    else{retestTxt=rrEl.options[rrEl.selectedIndex]?rrEl.options[rrEl.selectedIndex].text:'';}
+  }
+  var btn=document.querySelector('[onclick="submitForm()"]');
+  if(btn){btn.disabled=true;btn.textContent='送出中...';}
+  var payload={
+    Title:v('proj_code'),
+    FormType:isRetest?'複測':'新建',
+    ProductLine:v('prod_line')||document.getElementById('pl-product-line').value||'',
+    SubSeries:v('sub_series')||document.getElementById('pl-sub-series').value||'',
+    Dept:v('dept'),
+    Requester:v('requester'),
+    RequesterEmail:v('req-email'),
+    EEContact:v('ee'),
+    PLContact:v('pl'),
+    QAContact:v('qa'),
+    ProjectName:v('proj_name'),
+    ProjectCode:v('proj_code'),
+    Phase:selPhaseVal,
+    FanMode:selFanVal,
+    ScheduleStart:v('sch_start')||'',
+    ScheduleEnd:v('sch_end')||'',
+    ReportDeadline:v('report_due')||'',
+    SKUList:sku,
+    BatteryItems:getItems('battery'),
+    BenchmarkItems:getItems('bench'),
+    GamingFPSItems:getItems('fps'),
+    Notes:v('extra_notes'),
+    RetestReason:retestTxt,
+    Status:'Pending',
+    SubmittedDate:new Date().toISOString()
+  };
+  // 讀取附件檔案（若有），轉 Base64 後一起送出
+  var fileInput=document.getElementById('sku-file');
+  var file=fileInput&&fileInput.files&&fileInput.files[0];
+  function doSubmit(fileBase64, fileName){
+    if(fileBase64){
+      payload.SkuFileBase64=fileBase64;
+      payload.SkuFileName=fileName;
+    }
+    fetch(PA_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    })
+    .then(function(r){
+      if(!r.ok)throw new Error('Error '+r.status);
+      if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
+      alert('表單已成功送出！\n專案：'+v('proj_code')+'\n需求人：'+v('requester')+'\n\n實驗室將於 1 個工作天內確認排程並回覆。');
+      setTimeout(function(){window.location.href='index.html';},1500);
+    })
+    .catch(function(err){
+      if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
+      alert('送出失敗：'+err.message);
+    });
+  }
+  if(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      // e.target.result = "data:application/xxx;base64,XXXX..."
+      var base64=e.target.result.split(',')[1];
+      doSubmit(base64, file.name);
+    };
+    reader.onerror=function(){
+      if(confirm('檔案讀取失敗，是否略過附件直接送出？')){
+        doSubmit(null, null);
+      } else {
+        if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
+      }
+    };
+    reader.readAsDataURL(file);
+  } else {
+    doSubmit(null, null);
+  }
+}
+var _adminAuth=false;
+// Auto-open admin if arriving from result page after password auth
+document.addEventListener('DOMContentLoaded',function(){
+  if(window.location.hash==='#admin' && sessionStorage.getItem('adminAuth')==='1'){
+    sessionStorage.removeItem('adminAuth');
+    setTimeout(function(){
+      _adminAuth=true;
+      document.getElementById('admin-modal').classList.add('show');
+      loadAdminData();
+      history.replaceState(null,'',window.location.pathname);
+    },400);
+  }
+});
+function openAdmin(){
+  if(_adminAuth){
+    document.getElementById('admin-modal').classList.add('show');
+    loadAdminData();
+    return;
+  }
+  var pw=prompt('🔒 後台管理\n請輸入密碼：');
+  if(pw===null) return; // cancelled
+  if(pw==='GL#31#'){
+    _adminAuth=true;
+    document.getElementById('admin-modal').classList.add('show');
+    loadAdminData();
+  } else {
+    alert('❌ 密碼錯誤，請重新輸入。');
+  }
+}
+function closeAdmin(){
+  document.getElementById('admin-modal').classList.remove('show');
+}
+function switchTab(id){
+  document.querySelectorAll('.btab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.btab-panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  var map={'tab-review':'btab-review','tab-result':'btab-result'};
+  document.getElementById(map[id]).classList.add('active');
+}
+function loadAdminData(){
+  var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
+  document.getElementById('admin-loading').style.display='block';
+  document.getElementById('admin-list').innerHTML='';
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){
+    if(!r.ok)throw new Error('Error '+r.status);
+    return r.json();
+  })
+  .then(function(data){
+    document.getElementById('admin-loading').style.display='none';
+    var items=data.value||data.d&&data.d.results||[];
+    if(!items.length){
+      document.getElementById('admin-list').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有待審核的申請</p>';
+      return;
+    }
+    var html='';
+    items.forEach(function(item){
+      // 兼容 SharePoint 回傳的各種 ID 欄位名稱
+      var itemId=item.ID||item.Id||item.id||item.ItemId||'';
+      // 日期＋時間：優先 SubmittedDate，備用 Created
+      var rawDt=item.SubmittedDate||item.Created||'';
+      var dt='—';
+      if(rawDt){
+        try{
+          var d=new Date(rawDt);
+          var pad=function(n){return n<10?'0'+n:String(n);};
+          dt=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())
+            +' '+pad(d.getHours())+':'+pad(d.getMinutes());
+        }catch(e){dt=rawDt.replace('T',' ').slice(0,16);}
+      }
+      // ProjectCode / Phase 可能是物件，強制取字串
+      var projCode=item.ProjectCode;
+      if(projCode&&typeof projCode==='object') projCode=projCode.Title||projCode.Value||'';
+      projCode=projCode||item.Title||'—';
+      var phase=item.Phase;
+      if(phase&&typeof phase==='object') phase=phase.Title||phase.Value||'';
+      phase=phase||'—';
+      var isRetest=item.FormType==='複測';
+      html+='<div class="sub-item" data-id="'+itemId+'" data-email="'+(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'">';
+      html+='<div>';
+      html+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase);
+      if(isRetest)html+=' &nbsp;<span style="font-size:14px;background:rgba(255,179,71,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;">RETEST</span>';
+      html+='</div>';
+      html+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — '+dt+'</div>';
+      html+='</div>';
+      html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
+      html+='<span class="sbadge sb-pending">PENDING</span>';
+      html+='<div style="display:flex;gap:6px;">';
+      html+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
+      html+='</div>';
+      html+='</div>';
+      html+='</div>';
+    });
+    document.getElementById('admin-list').innerHTML=html;
+  })
+  .catch(function(err){
+    document.getElementById('admin-loading').style.display='none';
+    document.getElementById('admin-list').innerHTML='<p style="color:var(--red);padding:20px 0;">載入失敗：'+err.message+'</p>';
+  });
+}
+function acceptItem(btn){
+  var item=btn.closest('.sub-item');
+  var id=item.dataset.id;
+  var email=item.dataset.email;
+  var code=item.dataset.code;
+  if(!id){alert('找不到申請 ID，請重新整理後再試。');return;}
+  btn.disabled=true;btn.textContent='處理中...';
+  var PA_ACCEPT='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/33b3ad8cd52c4f84964ba7a7f30bb5f3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=XFwxnUk-BZQGfP8aYAnFfl5CkoS8SzPvBNuzweplAP4';
+  fetch(PA_ACCEPT,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({itemId:parseInt(id),requesterEmail:email,adminNote:''})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('Error '+r.status);
+    item.querySelector('.sbadge').className='sbadge sb-accept';
+    item.querySelector('.sbadge').textContent='ACCEPTED';
+    btn.remove();
+    alert('✅ 接單完成！\n確認信已寄送至：'+email);
+  })
+  .catch(function(err){
+    btn.disabled=false;btn.textContent='✓ 接單';
+    alert('接單失敗：'+err.message);
+  });
+}
+</script>
+</body>
+</html>

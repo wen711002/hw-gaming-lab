@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HW Gaming Lab — Result</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg0:#0b0e17;--bg1:#111827;--bg2:#161d2e;--bg3:#1e2a40;--bg4:#243047;
+  --text:#e8edf5;--text2:#8fa0bb;--text3:#4f6180;
+  --border:#ffffff10;--border2:#ffffff20;--border3:#ffffff35;
+  --blue:#4c9ef5;--blue-l:rgba(76,158,245,0.15);--blue-glow:rgba(76,158,245,0.25);
+  --cyan:#00d4ff;--cyan-glow:rgba(0,212,255,0.2);
+  --green:#00e5a0;--green-glow:rgba(0,229,160,0.2);
+  --amber:#ffb347;--amber-glow:rgba(255,179,71,0.2);
+  --red:#ff5c7a;--purple:#a855f7;--purple-glow:rgba(168,85,247,0.2);
+  --font-head:'Rajdhani','Segoe UI',sans-serif;
+  --font-body:'Noto Sans TC','Segoe UI',sans-serif;
+  --font-mono:'Share Tech Mono','Courier New',monospace;
+  --r4:4px;--r6:6px;--r8:8px;--r12:12px;
+}
+body{font-family:var(--font-body);background:var(--bg0);color:var(--text);min-height:100vh;font-size:17px;line-height:1.6;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(76,158,245,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,158,245,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(76,158,245,0.07),transparent);pointer-events:none;z-index:0;}
+
+/* LAYOUT */
+.outer{display:flex;min-height:100vh;position:relative;z-index:1;}
+.main-content{flex:1;overflow-x:hidden;display:flex;flex-direction:column;}
+
+/* SIDEBAR */
+.sidebar{width:64px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;position:sticky;top:0;height:100vh;flex-shrink:0;}
+.sidebar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:var(--r8);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;box-shadow:0 0 16px var(--blue-glow);}
+.nav-item{width:44px;height:44px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all 0.2s;font-size:20px;border:1px solid transparent;}
+.nav-item:hover{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
+.nav-item.active{background:var(--blue-glow);color:var(--blue);border-color:rgba(76,158,245,0.4);box-shadow:0 0 12px var(--blue-glow);}
+.nav-sep{width:32px;height:1px;background:var(--border);margin:8px 0;}
+.nav-label{font-size:11px;color:var(--text3);letter-spacing:0.06em;text-align:center;margin-top:2px;font-family:var(--font-head);}
+.sidebar-admin{margin-top:auto;padding-bottom:8px;}
+
+/* HEADER */
+.page-header{padding:32px 40px 24px;border-bottom:1px solid var(--border);}
+.page-header h1{font-family:var(--font-head);font-size:32px;font-weight:700;letter-spacing:0.04em;color:var(--text);}
+.page-header h1 span{color:var(--blue);}
+.page-header p{color:var(--text2);margin-top:6px;font-size:16px;}
+
+/* MODE SELECTOR */
+.mode-wrap{padding:40px;display:flex;gap:24px;flex-wrap:wrap;}
+.mode-card{flex:1;min-width:280px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:32px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;}
+.mode-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;}
+.mode-card.single::before{background:linear-gradient(135deg,rgba(0,212,255,0.06),transparent);}
+.mode-card.compare::before{background:linear-gradient(135deg,rgba(168,85,247,0.06),transparent);}
+.mode-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.mode-card.single:hover{border-color:rgba(0,212,255,0.5);}
+.mode-card.compare:hover{border-color:rgba(168,85,247,0.5);}
+.mode-card:hover::before{opacity:1;}
+.mc-icon{font-size:40px;margin-bottom:16px;}
+.mc-title{font-family:var(--font-head);font-size:22px;font-weight:700;letter-spacing:0.05em;margin-bottom:8px;}
+.mode-card.single .mc-title{color:var(--cyan);}
+.mode-card.compare .mc-title{color:var(--purple);}
+.mc-desc{color:var(--text2);font-size:15px;line-height:1.7;}
+.mc-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;}
+.mc-tag{padding:3px 10px;border-radius:20px;font-size:13px;font-family:var(--font-mono);}
+.mode-card.single .mc-tag{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3);}
+.mode-card.compare .mc-tag{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
+
+/* PANELS */
+.panel-wrap{padding:0 40px 40px;display:none;}
+.panel-wrap.active{display:block;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text2);cursor:pointer;font-size:15px;margin-bottom:24px;transition:all 0.2s;}
+.back-btn:hover{color:var(--text);border-color:var(--border3);}
+
+/* FILTER BOX */
+.filter-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:28px;margin-bottom:24px;}
+.filter-box h3{font-family:var(--font-head);font-size:18px;font-weight:700;letter-spacing:0.06em;color:var(--text);margin-bottom:20px;}
+.filter-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+.filter-field{display:flex;flex-direction:column;gap:6px;min-width:180px;flex:1;}
+.filter-field label{font-size:13px;color:var(--text3);letter-spacing:0.06em;font-family:var(--font-head);}
+.filter-field select,.filter-field input{padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;outline:none;transition:border-color 0.2s;}
+.filter-field select:focus,.filter-field input:focus{border-color:var(--blue);}
+.btn{padding:9px 20px;border-radius:var(--r6);font-size:15px;font-family:var(--font-head);font-weight:600;letter-spacing:0.06em;cursor:pointer;border:none;transition:all 0.2s;}
+.btn-pri{background:linear-gradient(135deg,var(--blue),#1a6fd4);color:#fff;box-shadow:0 0 16px var(--blue-glow);}
+.btn-pri:hover{box-shadow:0 0 24px var(--blue-glow);transform:translateY(-1px);}
+.btn-sec{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.btn-sec:hover{border-color:var(--border3);color:var(--text);}
+.btn-grn{background:linear-gradient(135deg,var(--green),#00b37a);color:#000;}
+.btn-amber{background:linear-gradient(135deg,var(--amber),#e6901a);color:#000;}
+
+/* RESULT TABLE */
+.result-wrap{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);overflow:hidden;}
+.result-meta{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;gap:24px;flex-wrap:wrap;align-items:center;}
+.meta-item{font-size:14px;color:var(--text2);font-family:var(--font-mono);}
+.meta-item span{color:var(--blue);}
+.result-actions{margin-left:auto;display:flex;gap:8px;}
+.table-scroll{overflow-x:auto;}
+table.result-table{width:100%;border-collapse:collapse;font-size:14px;}
+table.result-table th{background:var(--bg3);color:var(--text2);padding:10px 14px;text-align:center;font-family:var(--font-head);font-size:13px;letter-spacing:0.06em;border-bottom:1px solid var(--border2);white-space:nowrap;position:sticky;top:0;}
+table.result-table th.col-item{text-align:left;min-width:200px;}
+table.result-table th.col-unit{min-width:60px;}
+table.result-table td{padding:8px 14px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;}
+table.result-table td.col-item{text-align:left;color:var(--text2);}
+table.result-table td.col-unit{color:var(--text3);font-size:13px;}
+table.result-table td.val{font-family:var(--font-mono);color:var(--cyan);}
+table.result-table td.val.empty{color:var(--text3);}
+table.result-table tr.cat-header td{background:var(--bg3);color:var(--amber);font-family:var(--font-head);font-weight:700;letter-spacing:0.08em;font-size:14px;padding:10px 14px;}
+table.result-table tr:hover td{background:rgba(76,158,245,0.04);}
+.sku-header{font-size:13px;line-height:1.5;}
+.sku-sub{font-size:11px;color:var(--text3);font-family:var(--font-mono);}
+
+/* COMPARE TABLE */
+table.compare-table th.proj-header{background:rgba(168,85,247,0.15);color:var(--purple);border-bottom:2px solid var(--purple);}
+table.compare-table td.best{color:var(--green);font-weight:700;}
+table.compare-table td.worst{color:var(--red);}
+
+/* EMPTY / LOADING */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-state .ei{font-size:48px;margin-bottom:16px;}
+.empty-state p{font-size:16px;}
+.loading-bar{text-align:center;padding:40px;color:var(--text3);font-family:var(--font-mono);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+
+/* COMPARE MULTI SELECT */
+.proj-sel-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.proj-sel-chip{padding:5px 14px;border-radius:20px;font-size:13px;font-family:var(--font-mono);background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all 0.2s;}
+.proj-sel-chip.sel{background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.5);color:var(--purple);}
+.proj-sel-chip:hover{border-color:var(--border3);color:var(--text);}
+.sel-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.sel-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:4px;font-size:13px;font-family:var(--font-mono);color:var(--purple);}
+.sel-tag .rm{cursor:pointer;color:var(--text3);font-size:15px;line-height:1;}
+.sel-tag .rm:hover{color:var(--red);}
+
+/* UPLOAD MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:32px;width:100%;max-width:560px;position:relative;}
+.modal-title{font-family:var(--font-head);font-size:22px;font-weight:700;letter-spacing:0.06em;color:var(--text);margin-bottom:20px;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;}
+.modal-close:hover{color:var(--text);}
+.upload-area{border:2px dashed var(--border2);border-radius:var(--r8);padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:16px;}
+.upload-area:hover,.upload-area.drag{border-color:var(--blue);background:rgba(76,158,245,0.05);}
+.upload-area .ui{font-size:36px;margin-bottom:10px;}
+.upload-area p{color:var(--text2);font-size:15px;}
+.upload-area .hint{font-size:13px;color:var(--text3);margin-top:4px;font-family:var(--font-mono);}
+.upload-preview{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);padding:10px 14px;font-family:var(--font-mono);font-size:14px;color:var(--text2);display:none;margin-bottom:16px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:13px;color:var(--text3);letter-spacing:0.06em;font-family:var(--font-head);margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;outline:none;}
+.field input:focus,.field select:focus{border-color:var(--blue);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:10px;display:none;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:2px;transition:width 0.3s;}
+</style>
+</head>
+<body>
+<div class="outer">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">GL</div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Form" onclick="window.location.href='form.html'">📋</div>
+    <div class="nav-label">Form</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item active" title="Result">📊</div>
+    <div class="nav-label">Result</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Admin" onclick="openAdmin()">🔧</div>
+    <div class="nav-label">Admin</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="sidebar-admin" style="text-align:center;">
+    <div class="nav-item" title="使用說明" onclick="alert('使用說明 — 即將推出。')">📖</div>
+    <div class="nav-label">Guide</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-content">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>Result <span>Viewer</span></h1>
+    <p>查看單一專案測試結果，或跨專案比對看板</p>
+  </div>
+
+  <!-- MODE SELECTOR -->
+  <div class="mode-wrap" id="mode-wrap">
+    <div class="mode-card single" onclick="enterMode('single')">
+      <div class="mc-icon">📄</div>
+      <div class="mc-title">Single Project Result</div>
+      <div class="mc-desc">查看單一專案的完整測試報告，顯示所有 SKU 測試數據，可下載 Excel。</div>
+      <div class="mc-tags">
+        <span class="mc-tag">單一專案</span>
+        <span class="mc-tag">完整報告</span>
+        <span class="mc-tag">SKU 比較</span>
+        <span class="mc-tag">下載 Excel</span>
+      </div>
+    </div>
+    <div class="mode-card compare" onclick="enterMode('compare')">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">Compare Dashboard</div>
+      <div class="mc-desc">跨專案、跨 Phase、複測前後比對，選取特定測項並排比較數據。</div>
+      <div class="mc-tags">
+        <span class="mc-tag">跨專案比對</span>
+        <span class="mc-tag">Phase 篩選</span>
+        <span class="mc-tag">複測比對</span>
+        <span class="mc-tag">匯出 CSV</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SINGLE PROJECT PANEL -->
+  <div class="panel-wrap" id="panel-single">
+    <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
+    <div class="filter-box">
+      <h3>選擇專案</h3>
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>PRODUCT LINE</label>
+          <select id="s-product-line" onchange="onSinglePLChange()">
+            <option value="">--- 選擇 Product Line ---</option>
+            <option value="Strix">Strix</option>
+            <option value="TUF">TUF</option>
+            <option value="Consumer">Consumer</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>CHIPSET / SUB-SERIES</label>
+          <select id="s-sub-series" onchange="onSingleSSChange()">
+            <option value="">--- 請先選擇 Product Line ---</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>專案名稱</label>
+          <select id="s-proj-name" onchange="onSingleProjChange()">
+            <option value="">--- 請先選擇 Chipset ---</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-row" id="s-file-row" style="display:none;">
+        <div class="filter-field">
+          <label>版本 / 檔案</label>
+          <select id="s-file-sel">
+            <option value="">--- 選擇版本 ---</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button class="btn btn-pri" onclick="loadSingleResult()">載入結果 →</button>
+        </div>
+      </div>
+    </div>
+    <div id="single-result-area">
+      <div class="empty-state">
+        <div class="ei">📄</div>
+        <p>請從上方選擇專案與版本後，點擊「載入結果」</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARE PANEL -->
+  <div class="panel-wrap" id="panel-compare">
+    <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
+    <div class="filter-box">
+      <h3>選擇比對專案（最多 5 個）</h3>
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>PRODUCT LINE</label>
+          <select id="c-product-line" onchange="onComparePLChange()">
+            <option value="">--- 選擇 Product Line ---</option>
+            <option value="Strix">Strix</option>
+            <option value="TUF">TUF</option>
+            <option value="Consumer">Consumer</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>CHIPSET / SUB-SERIES</label>
+          <select id="c-sub-series" onchange="onCompareSSChange()">
+            <option value="">--- 請先選擇 Product Line ---</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>專案名稱</label>
+          <select id="c-proj-name">
+            <option value="">--- 請先選擇 Chipset ---</option>
+          </select>
+        </div>
+        <div class="filter-field" style="min-width:120px;max-width:160px;">
+          <label>版本</label>
+          <select id="c-file-sel">
+            <option value="">--- ---</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button class="btn btn-sec" onclick="addCompareItem()">＋ 加入比對</button>
+        </div>
+      </div>
+      <div class="sel-tags" id="compare-tags"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="filter-field" style="max-width:200px;">
+          <label>篩選測試類別</label>
+          <select id="c-cat-filter">
+            <option value="all">全部</option>
+            <option value="battery">🔋 Battery Life</option>
+            <option value="bench">📊 Benchmark</option>
+            <option value="fps">🎮 Gaming FPS</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px;">
+          <button class="btn btn-pri" onclick="runCompare()" id="compare-btn" disabled>執行比對 →</button>
+          <button class="btn btn-sec" onclick="exportCompareCSV()" id="export-btn" style="display:none;">⬇ 匯出 CSV</button>
+        </div>
+      </div>
+    </div>
+    <div id="compare-result-area">
+      <div class="empty-state">
+        <div class="ei">📊</div>
+        <p>請從上方加入 2~5 個專案版本，再點「執行比對」</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+</div><!-- /outer -->
+
+<!-- UPLOAD MODAL (Admin only) -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeUploadModal()">×</button>
+    <div class="modal-title">📤 Result 上傳</div>
+    <div class="upload-area" id="upload-area" onclick="document.getElementById('result-file-input').click()" ondragover="onDragOver(event)" ondrop="onDrop(event)">
+      <div class="ui">📊</div>
+      <p>點擊選擇或拖曳 Excel 檔案至此</p>
+      <div class="hint">// 格式：PROJECTNAME_PHASE_RESULT_NEW.XLSX 或 _R1.XLSX</div>
+      <input type="file" id="result-file-input" accept=".xlsx,.xls" style="display:none;" onchange="onFileSelect(this)"/>
+    </div>
+    <div class="upload-preview" id="upload-preview"></div>
+    <div class="field">
+      <label>上傳者</label>
+      <select id="uploader-name">
+        <option value="Sandra">Yu.Sandra</option>
+        <option value="Allen">Allen</option>
+        <option value="Sally">Sally</option>
+        <option value="Enya">Enya</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>備註（選填）</label>
+      <input type="text" id="upload-note" placeholder="例：新增 BD2 資料、修正 FPS 數值…"/>
+    </div>
+    <div class="progress-bar" id="upload-progress-bar">
+      <div class="progress-fill" id="upload-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sec" onclick="closeUploadModal()">取消</button>
+      <button class="btn btn-pri" onclick="submitUpload()" id="upload-submit-btn">確認上傳</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+
+// ── Project hierarchy data ────────────────────────────────────────────────────
+var PROJECT_DATA = {
+  'Strix': {
+    'Intel': ['Intel NVL-HX(G8-Scar)-BD1','Intel NVL-HX(G6-Scar)-BD1','Intel NVL-HX(G8/G6-G)-BD1','Intel NVL-HX(G8/G6-G)-BD2','Intel RPL Next (G8/G6-G)-BD2'],
+    'AMD':   ['Gator Range (G6/G8-AMD)-BD1','Gator Range (G6/G8-AMD)-BD2']
+  },
+  'TUF': {
+    'Intel': ['Intel NVL-HX-BD2(FX 16")','Intel RPL-BD2(FX 16")','Intel NVL-BD1 (18")','Intel NVL-BD1 (16")'],
+    'AMD':   ['AMD Hawk Point-BD2(FA/FX 16")','AMD Gator Range/Fire Range-BD1(FA/FX 16")','AMD Gator Range/Fire Range-BD2(FA/FX 16")','AMD Gator Range/Fire Range-BD1(FA 18")','AMD Gator Range/Fire Range-BD2(FA 18")','Madusa Point-BD2 (FA402)']
+  },
+  'Consumer': {
+    'Zenbook':  ['Zenbook A-Qcom_Gtymur (COB)','Zenbook A-Qcom_Gtymur (SIP)','Zenbook A-Qcom_Kalambo','Zenbook S-Intel_NV_LAKE','Zenbook S-AMD_Medusa Point','Zenbook SE-Intel NV LAKE','Zenbook SE-AMD_Medusa Point','Zenbook SE-AMD_RMB+FP7','Zenbook SE-Intel_PTL','Zenbook SE-AMD Gorgon Point','Zenbook SE-Qcom_Purwa SE'],
+    'Vivobook': ['Vivobook S_Intel_NV LAKE','Vivobook S_AMD_Medusa Point','Vivobook S-Qcom_Purwa SE','Vivobook S_AMD_RMB+FP7']
+  }
+};
+
+// Uploaded results index: projName → [{label, url, filename}]
+// This is populated from SharePoint GameLabResults list
+var RESULT_INDEX = {}; // will be loaded from SP
+
+// Compare selection
+var compareItems = []; // [{label, projName, filename, url}]
+
+// ── Utility ──────────────────────────────────────────────────────────────────
+function buildSelect(id, opts, placeholder){
+  var el=document.getElementById(id); if(!el) return;
+  el.innerHTML='<option value="">'+placeholder+'</option>';
+  opts.forEach(function(o){var x=document.createElement('option');x.value=o;x.textContent=o;el.appendChild(x);});
+}
+function getSubSeries(pl){ return pl&&PROJECT_DATA[pl]?Object.keys(PROJECT_DATA[pl]):[]; }
+function getProjects(pl,ss){ return pl&&ss&&PROJECT_DATA[pl]&&PROJECT_DATA[pl][ss]?PROJECT_DATA[pl][ss]:[]; }
+
+// ── Mode switching ────────────────────────────────────────────────────────────
+function enterMode(mode){
+  document.getElementById('mode-wrap').style.display='none';
+  document.getElementById('panel-single').classList.remove('active');
+  document.getElementById('panel-compare').classList.remove('active');
+  document.getElementById('panel-'+mode).classList.add('active');
+}
+function backToMode(){
+  document.getElementById('mode-wrap').style.display='flex';
+  document.getElementById('panel-single').classList.remove('active');
+  document.getElementById('panel-compare').classList.remove('active');
+}
+
+// ── Single Project ─────────────────────────────────────────────────────────
+function onSinglePLChange(){
+  var pl=document.getElementById('s-product-line').value;
+  buildSelect('s-sub-series',getSubSeries(pl),'--- 請先選擇 Chipset ---');
+  buildSelect('s-proj-name',[],'--- 請先選擇 Chipset ---');
+  buildSelect('s-file-sel',[],'--- 選擇版本 ---');
+  document.getElementById('s-file-row').style.display='none';
+}
+function onSingleSSChange(){
+  var pl=document.getElementById('s-product-line').value;
+  var ss=document.getElementById('s-sub-series').value;
+  buildSelect('s-proj-name',getProjects(pl,ss),'--- 選擇專案 ---');
+  buildSelect('s-file-sel',[],'--- 選擇版本 ---');
+  document.getElementById('s-file-row').style.display='none';
+}
+function onSingleProjChange(){
+  var proj=document.getElementById('s-proj-name').value;
+  if(!proj){ document.getElementById('s-file-row').style.display='none'; return; }
+  var files=RESULT_INDEX[proj]||[];
+  if(files.length){
+    buildSelect('s-file-sel',files.map(function(f){return f.label;}),'--- 選擇版本 ---');
+  } else {
+    buildSelect('s-file-sel',[],'// 尚無上傳結果');
+  }
+  document.getElementById('s-file-row').style.display='flex';
+}
+
+function loadSingleResult(){
+  var proj=document.getElementById('s-proj-name').value;
+  var label=document.getElementById('s-file-sel').value;
+  if(!proj||!label){alert('請選擇專案與版本。');return;}
+  var files=RESULT_INDEX[proj]||[];
+  var entry=null;
+  for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
+  if(!entry){alert('找不到對應檔案。');return;}
+  var area=document.getElementById('single-result-area');
+  area.innerHTML='<div class="loading-bar">讀取中，請稍候...</div>';
+  fetchAndRenderSingle(entry, proj, label, area);
+}
+
+function fetchAndRenderSingle(entry, proj, label, area){
+  fetch(entry.url)
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();})
+  .then(function(buf){
+    var wb=XLSX.read(buf,{type:'array'});
+    var ws=wb.Sheets['Performance Test'];
+    if(!ws){throw new Error('找不到 Performance Test sheet，請確認 Excel 格式正確。');}
+    renderSingleTable(ws, proj, label, area, buf);
+  })
+  .catch(function(e){
+    area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>載入失敗：'+e.message+'</p></div>';
+  });
+}
+
+function renderSingleTable(ws, proj, label, area, rawBuf){
+  var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+  // Row 0-7: header info, Row 8+: data
+  // Find SKU columns (col 3 onwards in row 3 = index 3)
+  var headerRow=data[3]||[];
+  var skuCols=[];
+  for(var c=3;c<headerRow.length;c++){
+    if(headerRow[c]!=null){
+      skuCols.push({col:c,sku:headerRow[c],bd:(data[4]||[])[c]||'',cpu:(data[5]||[])[c]||'',panel:(data[6]||[])[c]||'',ddr:(data[7]||[])[c]||''});
+    }
+  }
+  // extract meta
+  var meta={
+    projCode:(data[1]||[])[1]||proj,
+    os:(data[1]||[])[3]||'',
+    phase:(data[1]||[])[5]||'',
+    bios:(data[1]||[])[7]||'',
+    vbios:(data[2]||[])[1]||'',
+    fanMode:(data[2]||[])[7]||''
+  };
+
+  var html='<div class="result-wrap">';
+  html+='<div class="result-meta">';
+  html+='<div class="meta-item">Project: <span>'+escH(String(meta.projCode))+'</span></div>';
+  html+='<div class="meta-item">Phase: <span>'+escH(String(meta.phase))+'</span></div>';
+  html+='<div class="meta-item">OS: <span>'+escH(String(meta.os))+'</span></div>';
+  html+='<div class="meta-item">BIOS: <span>'+escH(String(meta.bios))+'</span></div>';
+  html+='<div class="meta-item">Fan Mode: <span>'+escH(String(meta.fanMode))+'</span></div>';
+  html+='<div class="result-actions">';
+  html+='<button class="btn btn-grn" onclick="downloadOriginalExcel(\''+escH(label)+'\',\''+escH(proj)+'\')">⬇ 下載 Excel</button>';
+  html+='</div></div>';
+
+  html+='<div class="table-scroll"><table class="result-table">';
+  html+='<thead><tr><th class="col-item">測試項目</th><th class="col-unit">單位</th>';
+  skuCols.forEach(function(s){
+    html+='<th><div class="sku-header">'+escH(String(s.sku))+'</div>';
+    if(s.bd) html+='<div class="sku-sub">'+escH(String(s.bd))+'</div>';
+    if(s.cpu) html+='<div class="sku-sub">'+escH(String(s.cpu))+'</div>';
+    html+='</th>';
+  });
+  html+='</tr></thead><tbody>';
+
+  for(var r=8;r<data.length-1;r++){
+    var row=data[r]||[];
+    var id=row[0],item=row[1],unit=row[2];
+    if(!id&&!item) continue;
+    if(!id&&item){
+      // category header
+      html+='<tr class="cat-header"><td colspan="'+(2+skuCols.length)+'">'+escH(String(item))+'</td></tr>';
+      continue;
+    }
+    html+='<tr>';
+    html+='<td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(id))+'</span>'+escH(String(item||''))+'</td>';
+    html+='<td class="col-unit">'+escH(String(unit||''))+'</td>';
+    skuCols.forEach(function(s){
+      var val=row[s.col];
+      if(val===null||val===undefined||val===''){
+        html+='<td class="val empty">—</td>';
+      } else {
+        html+='<td class="val">'+escH(String(val))+'</td>';
+      }
+    });
+    html+='</tr>';
+  }
+  html+='</tbody></table></div></div>';
+
+  // store raw buffer for download
+  window._lastExcelBuf=rawBuf;
+  window._lastExcelName=label+'.xlsx';
+  area.innerHTML=html;
+}
+
+function downloadOriginalExcel(label, proj){
+  if(!window._lastExcelBuf){alert('請先載入結果。');return;}
+  var blob=new Blob([window._lastExcelBuf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=label+'.xlsx';a.click();
+}
+
+// ── Compare Dashboard ─────────────────────────────────────────────────────────
+function onComparePLChange(){
+  var pl=document.getElementById('c-product-line').value;
+  buildSelect('c-sub-series',getSubSeries(pl),'--- 請先選擇 Chipset ---');
+  buildSelect('c-proj-name',[],'--- 請先選擇 Chipset ---');
+  buildSelect('c-file-sel',[],'--- ---');
+}
+function onCompareSSChange(){
+  var pl=document.getElementById('c-product-line').value;
+  var ss=document.getElementById('c-sub-series').value;
+  buildSelect('c-proj-name',getProjects(pl,ss),'--- 選擇專案 ---');
+  buildSelect('c-file-sel',[],'--- ---');
+  document.getElementById('c-proj-name').onchange=function(){
+    var proj=this.value;
+    var files=RESULT_INDEX[proj]||[];
+    buildSelect('c-file-sel',files.map(function(f){return f.label;}),'--- 選擇版本 ---');
+  };
+}
+
+function addCompareItem(){
+  var proj=document.getElementById('c-proj-name').value;
+  var label=document.getElementById('c-file-sel').value;
+  if(!proj||!label){alert('請選擇專案與版本。');return;}
+  if(compareItems.length>=5){alert('最多加入 5 個比對項目。');return;}
+  var dup=compareItems.some(function(x){return x.proj===proj&&x.label===label;});
+  if(dup){alert('此版本已加入比對清單。');return;}
+  var files=RESULT_INDEX[proj]||[];
+  var entry=null;
+  for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
+  if(!entry){alert('找不到對應檔案。');return;}
+  compareItems.push({proj:proj,label:label,url:entry.url});
+  renderCompareTags();
+  document.getElementById('compare-btn').disabled=compareItems.length<2;
+}
+
+function removeCompareItem(idx){
+  compareItems.splice(idx,1);
+  renderCompareTags();
+  document.getElementById('compare-btn').disabled=compareItems.length<2;
+  if(compareItems.length<2){
+    document.getElementById('export-btn').style.display='none';
+    document.getElementById('compare-result-area').innerHTML='<div class="empty-state"><div class="ei">📊</div><p>請從上方加入 2~5 個專案版本，再點「執行比對」</p></div>';
+  }
+}
+
+function renderCompareTags(){
+  var box=document.getElementById('compare-tags');
+  box.innerHTML='';
+  compareItems.forEach(function(item,i){
+    var tag=document.createElement('span');
+    tag.className='sel-tag';
+    tag.innerHTML=item.proj+' · '+item.label+' <span class="rm" onclick="removeCompareItem('+i+')">×</span>';
+    box.appendChild(tag);
+  });
+}
+
+function runCompare(){
+  if(compareItems.length<2){alert('請至少加入 2 個比對項目。');return;}
+  var area=document.getElementById('compare-result-area');
+  area.innerHTML='<div class="loading-bar">比對資料讀取中...</div>';
+  var cat=document.getElementById('c-cat-filter').value;
+  var promises=compareItems.map(function(item){
+    return fetch(item.url).then(function(r){return r.arrayBuffer();}).then(function(buf){
+      var wb=XLSX.read(buf,{type:'array'});
+      var ws=wb.Sheets['Performance Test'];
+      if(!ws) throw new Error(item.label+': 找不到 Performance Test sheet');
+      return {item:item,data:XLSX.utils.sheet_to_json(ws,{header:1,defval:null})};
+    });
+  });
+  Promise.all(promises).then(function(results){
+    renderCompareTable(results,cat,area);
+    document.getElementById('export-btn').style.display='inline-flex';
+    window._compareResults=results;
+    window._compareCat=cat;
+  }).catch(function(e){
+    area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>比對失敗：'+e.message+'</p></div>';
+  });
+}
+
+function renderCompareTable(results,cat,area){
+  // Use first result as row template
+  var base=results[0].data;
+  var html='<div class="result-wrap"><div class="table-scroll">';
+  html+='<table class="result-table compare-table"><thead><tr>';
+  html+='<th class="col-item">測試項目</th><th class="col-unit">單位</th>';
+  results.forEach(function(r){
+    html+='<th class="proj-header">'+escH(r.item.proj)+'<div class="sku-sub">'+escH(r.item.label)+'</div></th>';
+  });
+  html+='</tr></thead><tbody>';
+
+  for(var rowIdx=8;rowIdx<base.length-1;rowIdx++){
+    var row=base[rowIdx]||[];
+    var id=row[0],item=row[1],unit=row[2];
+    if(!id&&!item) continue;
+    if(!id&&item){
+      // category row
+      if(cat!=='all'){
+        var catMap={battery:'Battery',bench:'Benchmark',fps:'Gaming'};
+        if(item.toString().toLowerCase().indexOf(catMap[cat].toLowerCase())<0) continue;
+      }
+      html+='<tr class="cat-header"><td colspan="'+(2+results.length)+'">'+escH(String(item))+'</td></tr>';
+      continue;
+    }
+    // filter by category
+    if(cat!=='all'){
+      var prefix=String(id||'').substring(0,3).toLowerCase();
+      if(cat==='battery'&&prefix!=='bat') continue;
+      if(cat==='bench'&&prefix!=='bmk') continue;
+      if(cat==='fps'&&prefix!=='fps') continue;
+    }
+    // gather values from all results
+    var vals=results.map(function(r){
+      var rr=r.data[rowIdx]||[];
+      // find first SKU value (col 3+)
+      for(var c=3;c<rr.length;c++){
+        if(rr[c]!==null&&rr[c]!==undefined&&rr[c]!=='') return parseFloat(rr[c]);
+      }
+      return null;
+    });
+    var numVals=vals.filter(function(v){return v!==null&&!isNaN(v);});
+    var maxVal=numVals.length?Math.max.apply(null,numVals):null;
+    var minVal=numVals.length?Math.min.apply(null,numVals):null;
+
+    html+='<tr>';
+    html+='<td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(id))+'</span>'+escH(String(item||''))+'</td>';
+    html+='<td class="col-unit">'+escH(String(unit||''))+'</td>';
+    vals.forEach(function(v){
+      if(v===null||isNaN(v)){html+='<td class="val empty">—</td>';}
+      else if(numVals.length>1&&v===maxVal){html+='<td class="val best">'+v+'</td>';}
+      else if(numVals.length>1&&v===minVal){html+='<td class="val worst">'+v+'</td>';}
+      else{html+='<td class="val">'+v+'</td>';}
+    });
+    html+='</tr>';
+  }
+  html+='</tbody></table></div></div>';
+  area.innerHTML=html;
+}
+
+function exportCompareCSV(){
+  if(!window._compareResults) return;
+  var BOM='\uFEFF';
+  var lines=[];
+  var header=['測試項目','單位'].concat(window._compareResults.map(function(r){return r.item.proj+' ('+r.item.label+')';}));
+  lines.push(header.map(function(h){return '"'+h+'"';}).join(','));
+  var base=window._compareResults[0].data;
+  var cat=window._compareCat||'all';
+  for(var rowIdx=8;rowIdx<base.length-1;rowIdx++){
+    var row=base[rowIdx]||[];
+    var id=row[0],item=row[1],unit=row[2];
+    if(!id||!item) continue;
+    if(cat!=='all'){
+      var prefix=String(id).substring(0,3).toLowerCase();
+      if(cat==='battery'&&prefix!=='bat') continue;
+      if(cat==='bench'&&prefix!=='bmk') continue;
+      if(cat==='fps'&&prefix!=='fps') continue;
+    }
+    var vals=window._compareResults.map(function(r){
+      var rr=r.data[rowIdx]||[];
+      for(var c=3;c<rr.length;c++){if(rr[c]!==null&&rr[c]!==undefined&&rr[c]!=='') return rr[c];}
+      return '';
+    });
+    lines.push(['"'+id+' '+item+'"','"'+(unit||'')+'"'].concat(vals.map(function(v){return '"'+v+'"';})).join(','));
+  }
+  var blob=new Blob([BOM+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='GameLab_Compare_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+// ── Admin / Upload ─────────────────────────────────────────────────────────
+var _adminAuth=false;
+function openAdmin(){
+  if(_adminAuth){showUploadModal();return;}
+  var pw=prompt('🔒 後台管理\n請輸入密碼：');
+  if(pw===null) return;
+  if(pw==='GL#31#'){_adminAuth=true;showUploadModal();}
+  else{alert('❌ 密碼錯誤，請重新輸入。');}
+}
+function showUploadModal(){document.getElementById('upload-modal').classList.add('show');}
+function closeUploadModal(){document.getElementById('upload-modal').classList.remove('show');}
+
+var _uploadFile=null;
+function onDragOver(e){e.preventDefault();document.getElementById('upload-area').classList.add('drag');}
+function onDrop(e){
+  e.preventDefault();document.getElementById('upload-area').classList.remove('drag');
+  var f=e.dataTransfer.files[0];if(f) setUploadFile(f);
+}
+function onFileSelect(input){if(input.files[0]) setUploadFile(input.files[0]);}
+function setUploadFile(f){
+  _uploadFile=f;
+  var p=document.getElementById('upload-preview');
+  p.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)';
+  p.style.display='block';
+}
+
+function submitUpload(){
+  if(!_uploadFile){alert('請先選擇要上傳的 Excel 檔案。');return;}
+  var fname=_uploadFile.name.toUpperCase();
+  // validate filename format
+  if(!fname.endsWith('.XLSX')&&!fname.endsWith('.XLS')){
+    alert('請上傳 .xlsx 或 .xls 格式的檔案。');return;
+  }
+  var uploader=document.getElementById('uploader-name').value;
+  var note=document.getElementById('upload-note').value;
+  var btn=document.getElementById('upload-submit-btn');
+  btn.disabled=true;btn.textContent='上傳中...';
+  var bar=document.getElementById('upload-progress-bar');
+  var fill=document.getElementById('upload-progress-fill');
+  bar.style.display='block';fill.style.width='30%';
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    fill.style.width='60%';
+    var base64=e.target.result.split(',')[1];
+    var PA_UPLOAD='YOUR_PA_RESULT_UPLOAD_URL_HERE';
+    fetch(PA_UPLOAD,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        FileName:fname,
+        FileBase64:base64,
+        Uploader:uploader,
+        Note:note,
+        UploadedAt:new Date().toISOString()
+      })
+    })
+    .then(function(r){
+      fill.style.width='100%';
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(){
+      btn.disabled=false;btn.textContent='確認上傳';
+      bar.style.display='none';fill.style.width='0%';
+      alert('✅ 上傳成功！\n\n檔案：'+fname+'\n通知信已自動發送給申請人。');
+      closeUploadModal();
+      _uploadFile=null;
+      document.getElementById('upload-preview').style.display='none';
+      document.getElementById('result-file-input').value='';
+      loadResultIndex(); // refresh index
+    })
+    .catch(function(err){
+      btn.disabled=false;btn.textContent='確認上傳';
+      bar.style.display='none';fill.style.width='0%';
+      alert('上傳失敗：'+err.message);
+    });
+  };
+  reader.readAsDataURL(_uploadFile);
+}
+
+// ── Load Result Index from SharePoint ────────────────────────────────────────
+var PA_QUERY_RESULTS='YOUR_PA_QUERY_RESULTS_URL_HERE';
+function loadResultIndex(){
+  fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var items=data.value||data.d&&data.d.results||[];
+    RESULT_INDEX={};
+    items.forEach(function(item){
+      var proj=item.ProjectName||item.Title||'';
+      var fname=item.FileName||'';
+      var url=item.FileUrl||'';
+      if(!proj||!fname||!url) return;
+      if(!RESULT_INDEX[proj]) RESULT_INDEX[proj]=[];
+      // derive label from filename
+      var label=fname.replace(/\.XLSX$/i,'').replace(/\.XLS$/i,'');
+      RESULT_INDEX[proj].push({label:label,filename:fname,url:url});
+    });
+  })
+  .catch(function(){
+    // silent fail - user will see empty dropdowns
+  });
+}
+
+// ── Helper ───────────────────────────────────────────────────────────────────
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+loadResultIndex();
+
+</script>
+</body>
+</html>
