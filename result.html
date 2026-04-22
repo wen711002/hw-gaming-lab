@@ -191,7 +191,7 @@ table.compare-table td.worst{color:var(--red);}
   <div class="mode-wrap" id="mode-wrap">
     <div class="mode-card single" onclick="enterMode('single')">
       <div class="mc-icon">📄</div>
-      <div class="mc-title">Single Project Result</div>
+      <div class="mc-title">單一專案結果</div>
       <div class="mc-desc">查看單一專案的完整測試報告，顯示所有 SKU 測試數據，可下載 Excel。</div>
       <div class="mc-tags">
         <span class="mc-tag">單一專案</span>
@@ -202,7 +202,7 @@ table.compare-table td.worst{color:var(--red);}
     </div>
     <div class="mode-card compare" onclick="enterMode('compare')">
       <div class="mc-icon">📊</div>
-      <div class="mc-title">Compare Dashboard</div>
+      <div class="mc-title">比對看板</div>
       <div class="mc-desc">跨專案、跨 Phase、複測前後比對，選取特定測項並排比較數據。</div>
       <div class="mc-tags">
         <span class="mc-tag">跨專案比對</span>
@@ -243,7 +243,7 @@ table.compare-table td.worst{color:var(--red);}
       </div>
       <div class="filter-row" id="s-file-row" style="display:none;">
         <div class="filter-field">
-          <label>版本 / 檔案</label>
+          <label>版本（NEW=首版 / R1=複測1 / R2=複測2）</label>
           <select id="s-file-sel">
             <option value="">--- 選擇版本 ---</option>
           </select>
@@ -334,7 +334,7 @@ table.compare-table td.worst{color:var(--red);}
     <div class="upload-area" id="upload-area" onclick="document.getElementById('result-file-input').click()" ondragover="onDragOver(event)" ondrop="onDrop(event)">
       <div class="ui">📊</div>
       <p>點擊選擇或拖曳 Excel 檔案至此</p>
-      <div class="hint">// 格式：PROJECTNAME_PHASE_RESULT_NEW.XLSX 或 _R1.XLSX</div>
+      <div class="hint">// 格式：PROJECTNAME_PHASE_RESULT_NEW_YYMMDD.XLSX 或 _R1_YYMMDD.XLSX</div>
       <input type="file" id="result-file-input" accept=".xlsx,.xls" style="display:none;" onchange="onFileSelect(this)"/>
     </div>
     <div class="upload-preview" id="upload-preview"></div>
@@ -420,7 +420,7 @@ function onSinglePLChange(){
 function onSingleSSChange(){
   var pl=document.getElementById('s-product-line').value;
   var ss=document.getElementById('s-sub-series').value;
-  buildSelect('s-proj-name',getProjects(pl,ss),'--- 選擇專案 ---');
+  buildSelect('s-proj-name',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
   buildSelect('s-file-sel',[],'--- 選擇版本 ---');
   document.getElementById('s-file-row').style.display='none';
 }
@@ -551,7 +551,7 @@ function onComparePLChange(){
 function onCompareSSChange(){
   var pl=document.getElementById('c-product-line').value;
   var ss=document.getElementById('c-sub-series').value;
-  buildSelect('c-proj-name',getProjects(pl,ss),'--- 選擇專案 ---');
+  buildSelect('c-proj-name',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
   buildSelect('c-file-sel',[],'--- ---');
   document.getElementById('c-proj-name').onchange=function(){
     var proj=this.value;
@@ -712,10 +712,10 @@ function exportCompareCSV(){
 // ── Admin / Upload ─────────────────────────────────────────────────────────
 var _adminAuth=false;
 function openAdmin(){
-  if(_adminAuth){showUploadModal();return;}
+  if(_adminAuth){sessionStorage.setItem('adminAuth','1');window.location.href='form.html#admin';return;}
   var pw=prompt('🔒 後台管理\n請輸入密碼：');
   if(pw===null) return;
-  if(pw==='GL#31#'){_adminAuth=true;showUploadModal();}
+  if(pw==='GL#31#'){_adminAuth=true;sessionStorage.setItem('adminAuth','1');window.location.href='form.html#admin';}
   else{alert('❌ 密碼錯誤，請重新輸入。');}
 }
 function showUploadModal(){document.getElementById('upload-modal').classList.add('show');}

@@ -556,9 +556,8 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
           </div>
           <div class="field" style="margin-bottom:12px;">
             <label>專案名稱<span class="req">*</span></label>
-            <select id="pl-proj-code" onchange="onProjCodeChange('new')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
-              <option value="">--- 請先選擇 Chipset / Sub-series ---</option>
-            </select>
+            <input type="text" id="pl-proj-name-input" oninput="onNewProjNameInput()" placeholder="請手動填入專案名稱，例：G814JV_EVT" style="width:100%;"/>
+            <span class="hint">專案名稱由申請人自行填入，將作為 Result 查詢依據</span>
             <input type="hidden" id="proj_name"/>
             <input type="hidden" id="proj_code"/>
             <input type="hidden" id="prod_line"/>
@@ -900,7 +899,27 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
       <div id="admin-list"></div>
     </div>
     <div class="btab-panel" id="btab-result">
-      <p style="font-size:16px;color:var(--text2);">Result 上傳功能開發中...</p>
+      <div id="admin-upload-area" onclick="document.getElementById('admin-result-file').click()" ondragover="event.preventDefault()" ondrop="adminOnDrop(event)" style="border:2px dashed var(--border2);border-radius:var(--r8);padding:24px;text-align:center;background:var(--bg3);cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;">
+        <div style="font-size:32px;margin-bottom:8px;">📊</div>
+        <p style="color:var(--text2);font-size:16px;margin-bottom:4px;">點擊選擇或拖曳 Excel 檔案至此</p>
+        <div style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 格式：PROJECTNAME_PHASE_RESULT_NEW_YYMMDD.XLSX 或 _R1_YYMMDD.XLSX</div>
+        <input type="file" id="admin-result-file" accept=".xlsx,.xls" style="display:none;" onchange="adminOnFileSelect(this)"/>
+      </div>
+      <div id="admin-upload-preview" style="display:none;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);margin-bottom:12px;font-family:var(--font-mono);font-size:15px;color:var(--green);"></div>
+      <div class="field" style="margin-bottom:12px;">
+        <label style="font-size:15px;color:var(--text2);">上傳者</label>
+        <select id="admin-uploader" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;">
+          <option value="Sandra">Yu.Sandra</option>
+          <option value="Allen">Allen</option>
+          <option value="Sally">Sally</option>
+          <option value="Enya">Enya</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label style="font-size:15px;color:var(--text2);">備註（選填）</label>
+        <input type="text" id="admin-upload-note" placeholder="例：新增 BD2 資料、修正 FPS 數值…" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;"/>
+      </div>
+      <button class="btn btn-pri" onclick="adminSubmitUpload()" style="width:100%;">確認上傳</button>
     </div>
   </div>
 </div>
@@ -1187,7 +1206,13 @@ function goPage(n){
     var el=document.getElementById(id);var sn=document.getElementById('sn'+(i+1));
     el.classList.remove('active','done');
     if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');sn.innerHTML='✓';}else{sn.innerHTML=String(i+1);}
-  });window.scrollTo(0,0);
+  });
+  if(n===2){
+    ['battery','bench','fps'].forEach(function(name){
+      if(!selTests[name]){togTest(name,{battery:'bat',bench:'bench',fps:'fps'}[name]);}
+    });
+  }
+  window.scrollTo(0,0);
 }
 function handleFileSelect(input){
   var file=input.files[0];
@@ -1278,18 +1303,31 @@ function buildSelect(id, options, placeholder){
 function onProductLineChange(src){
   var pl=document.getElementById(src==='retest'?'rt-product-line':'pl-product-line').value;
   var ssId=src==='retest'?'rt-sub-series':'pl-sub-series';
-  var codeId=src==='retest'?'rt-proj-code':'pl-proj-code';
   buildSelect(ssId, getSubSeries(pl), '--- 選擇 Chipset / Sub-series ---');
-  buildSelect(codeId, [], '--- 請先選擇上層 ---');
-  if(src!=='retest'){ document.getElementById('proj_name').value=''; document.getElementById('proj_code').value=''; }
+  if(src==='retest'){
+    buildSelect('rt-proj-code', [], '--- 請先選擇上層 ---');
+  } else {
+    var inp=document.getElementById('pl-proj-name-input');
+    if(inp) inp.value='';
+    document.getElementById('proj_name').value='';
+    document.getElementById('proj_code').value='';
+  }
 }
 
 function onSubSeriesChange(src){
   var pl=document.getElementById(src==='retest'?'rt-product-line':'pl-product-line').value;
   var ss=document.getElementById(src==='retest'?'rt-sub-series':'pl-sub-series').value;
-  var codeId=src==='retest'?'rt-proj-code':'pl-proj-code';
-  buildSelect(codeId, getProjects(pl,ss), '--- 選擇專案 ---');
-  if(src!=='retest'){ document.getElementById('proj_name').value=''; document.getElementById('proj_code').value=''; }
+  if(src==='retest'){
+    buildSelect('rt-proj-code', getProjects(pl,ss), '--- 選擇專案 ---');
+  }
+}
+
+function onNewProjNameInput(){
+  var val=document.getElementById('pl-proj-name-input').value.trim();
+  document.getElementById('proj_name').value=val;
+  document.getElementById('proj_code').value=val;
+  document.getElementById('prod_line').value=document.getElementById('pl-product-line').value;
+  document.getElementById('sub_series').value=document.getElementById('pl-sub-series').value;
 }
 
 function onProjCodeChange(src){
@@ -1314,7 +1352,6 @@ function submitForm(){
   if(!isRetest&&!document.getElementById('pl-sub-series').value)miss.push('Chipset / Sub-series');
   if(!v('req-email'))miss.push('需求人Email');
   if(!v('proj_name'))miss.push('專案名稱');
-  if(!v('proj_code'))miss.push('專案代號');
   if(!selPhaseVal)miss.push('Phase');
   if(!selFanVal)miss.push('FanMode');
   if(!v('sch_start'))miss.push('測試時段');
@@ -1547,6 +1584,46 @@ function acceptItem(btn){
     btn.disabled=false;btn.textContent='✓ 接單';
     alert('接單失敗：'+err.message);
   });
+}
+
+// ── Admin Result Upload ────────────────────────────────────────────────
+var _adminUploadFile=null;
+function adminOnFileSelect(input){
+  var f=input.files[0];if(!f)return;
+  _adminUploadFile=f;
+  var prev=document.getElementById('admin-upload-preview');
+  prev.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)';
+  prev.style.display='block';
+}
+function adminOnDrop(e){
+  e.preventDefault();
+  var f=e.dataTransfer.files[0];
+  if(!f)return;
+  _adminUploadFile=f;
+  var prev=document.getElementById('admin-upload-preview');
+  prev.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)';
+  prev.style.display='block';
+}
+function adminSubmitUpload(){
+  var PA_UPLOAD='YOUR_PA_RESULT_UPLOAD_URL_HERE';
+  if(!_adminUploadFile){alert('請先選擇 Excel 檔案。');return;}
+  if(PA_UPLOAD.indexOf('YOUR_PA')>-1){alert('⚠️ PA_UPLOAD URL 尚未設定，請聯絡系統管理員。');return;}
+  var uploader=document.getElementById('admin-uploader').value;
+  var note=document.getElementById('admin-upload-note').value.trim();
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var b64=e.target.result.split(',')[1];
+    fetch(PA_UPLOAD,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      FileName:_adminUploadFile.name.toUpperCase(),
+      FileBase64:b64,
+      Uploader:uploader,
+      Note:note,
+      UploadedAt:new Date().toISOString()
+    })})
+    .then(function(r){if(!r.ok)throw new Error('Error '+r.status);alert('✅ Result 上傳成功！\n檔案：'+_adminUploadFile.name);_adminUploadFile=null;document.getElementById('admin-upload-preview').style.display='none';document.getElementById('admin-result-file').value='';})
+    .catch(function(err){alert('上傳失敗：'+err.message);});
+  };
+  reader.readAsDataURL(_adminUploadFile);
 }
 </script>
 </body>
