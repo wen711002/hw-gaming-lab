@@ -470,13 +470,13 @@ function fetchAndRenderSingle(entry, proj, label, area){
 
 function renderSingleTable(ws, proj, label, area, rawBuf){
   var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-  // Row 0-7: header info, Row 8+: data
-  // Find SKU columns (col 3 onwards in row 3 = index 3)
-  var headerRow=data[3]||[];
+  // Template layout: row5(data[4])=SKU headers, row6-9(data[5-8])=BD/CPU/Panel/DDR
+  // Category headers at rows 11/20/40: merged cell → id=catName, item=null
+  var headerRow=data[4]||[];
   var skuCols=[];
   for(var c=3;c<headerRow.length;c++){
     if(headerRow[c]!=null){
-      skuCols.push({col:c,sku:headerRow[c],bd:(data[4]||[])[c]||'',cpu:(data[5]||[])[c]||'',panel:(data[6]||[])[c]||'',ddr:(data[7]||[])[c]||''});
+      skuCols.push({col:c,sku:headerRow[c],bd:(data[5]||[])[c]||'',cpu:(data[6]||[])[c]||'',panel:(data[7]||[])[c]||'',ddr:(data[8]||[])[c]||''});
     }
   }
   // extract meta
@@ -510,12 +510,17 @@ function renderSingleTable(ws, proj, label, area, rawBuf){
   });
   html+='</tr></thead><tbody>';
 
-  for(var r=8;r<data.length-1;r++){
+  for(var r=10;r<data.length-1;r++){
     var row=data[r]||[];
     var id=row[0],item=row[1],unit=row[2];
     if(!id&&!item) continue;
-    if(!id&&item){
-      // category header
+    // Category header: merged cell → id has text, item is null (real template)
+    // or legacy format: id null, item has text
+    if(!item){
+      html+='<tr class="cat-header"><td colspan="'+(2+skuCols.length)+'">'+escH(String(id||''))+'</td></tr>';
+      continue;
+    }
+    if(!id){
       html+='<tr class="cat-header"><td colspan="'+(2+skuCols.length)+'">'+escH(String(item))+'</td></tr>';
       continue;
     }
@@ -636,17 +641,17 @@ function renderCompareTable(results,cat,area){
   });
   html+='</tr></thead><tbody>';
 
-  for(var rowIdx=8;rowIdx<base.length-1;rowIdx++){
+  for(var rowIdx=10;rowIdx<base.length-1;rowIdx++){
     var row=base[rowIdx]||[];
     var id=row[0],item=row[1],unit=row[2];
     if(!id&&!item) continue;
-    if(!id&&item){
-      // category row
+    if(!item||!id){
+      var catText=String(id||item||'');
       if(cat!=='all'){
         var catMap={battery:'Battery',bench:'Benchmark',fps:'Gaming'};
-        if(item.toString().toLowerCase().indexOf(catMap[cat].toLowerCase())<0) continue;
+        if(catText.toLowerCase().indexOf(catMap[cat].toLowerCase())<0) continue;
       }
-      html+='<tr class="cat-header"><td colspan="'+(2+results.length)+'">'+escH(String(item))+'</td></tr>';
+      html+='<tr class="cat-header"><td colspan="'+(2+results.length)+'">'+escH(catText)+'</td></tr>';
       continue;
     }
     // filter by category
@@ -692,7 +697,7 @@ function exportCompareCSV(){
   lines.push(header.map(function(h){return '"'+h+'"';}).join(','));
   var base=window._compareResults[0].data;
   var cat=window._compareCat||'all';
-  for(var rowIdx=8;rowIdx<base.length-1;rowIdx++){
+  for(var rowIdx=10;rowIdx<base.length-1;rowIdx++){
     var row=base[rowIdx]||[];
     var id=row[0],item=row[1],unit=row[2];
     if(!id||!item) continue;
