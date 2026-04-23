@@ -916,6 +916,11 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
           <option value="Enya">Enya</option>
         </select>
       </div>
+      <div class="field" style="margin-bottom:12px;">
+        <label style="font-size:15px;color:var(--text2);">通知 Email<span class="req">*</span></label>
+        <input type="email" id="admin-req-email" placeholder="需求人信箱，上傳後自動發送通知" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;"/>
+        <span class="hint">Result 上傳完成後，系統將自動寄送通知至此信箱</span>
+      </div>
       <div class="field" style="margin-bottom:16px;">
         <label style="font-size:15px;color:var(--text2);">備註（選填）</label>
         <input type="text" id="admin-upload-note" placeholder="例：新增 BD2 資料、修正 FPS 數值…" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;"/>
@@ -1610,6 +1615,8 @@ function adminSubmitUpload(){
   if(!_adminUploadFile){alert('請先選擇 Excel 檔案。');return;}
   if(PA_UPLOAD.indexOf('YOUR_PA')>-1){alert('⚠️ PA_UPLOAD URL 尚未設定，請聯絡系統管理員。');return;}
   var uploader=document.getElementById('admin-uploader').value;
+  var reqEmail=document.getElementById('admin-req-email').value.trim();
+  if(!reqEmail){alert('請填寫通知 Email。');return;}
   var note=document.getElementById('admin-upload-note').value.trim();
   var reader=new FileReader();
   reader.onload=function(e){
@@ -1618,6 +1625,7 @@ function adminSubmitUpload(){
       FileName:_adminUploadFile.name.toUpperCase(),
       FileBase64:b64,
       Uploader:uploader,
+      ReqEmail:reqEmail,
       Note:note,
       UploadedAt:new Date().toISOString()
     })})

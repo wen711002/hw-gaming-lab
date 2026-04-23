@@ -348,6 +348,11 @@ table.compare-table td.worst{color:var(--red);}
       </select>
     </div>
     <div class="field">
+      <label>通知 Email<span style="color:var(--red);">*</span></label>
+      <input type="email" id="upload-req-email" placeholder="需求人信箱，上傳後自動發送通知"/>
+      <span style="font-size:12px;color:var(--text3);font-family:var(--font-mono);">// Result 上傳完成後，系統將自動寄送通知至此信箱</span>
+    </div>
+    <div class="field">
       <label>備註（選填）</label>
       <input type="text" id="upload-note" placeholder="例：新增 BD2 資料、修正 FPS 數值…"/>
     </div>
@@ -743,6 +748,8 @@ function submitUpload(){
     alert('請上傳 .xlsx 或 .xls 格式的檔案。');return;
   }
   var uploader=document.getElementById('uploader-name').value;
+  var reqEmail=document.getElementById('upload-req-email').value.trim();
+  if(!reqEmail){alert('請填寫通知 Email。');return;}
   var note=document.getElementById('upload-note').value;
   var btn=document.getElementById('upload-submit-btn');
   btn.disabled=true;btn.textContent='上傳中...';
@@ -762,6 +769,7 @@ function submitUpload(){
         FileName:fname,
         FileBase64:base64,
         Uploader:uploader,
+        ReqEmail:reqEmail,
         Note:note,
         UploadedAt:new Date().toISOString()
       })
