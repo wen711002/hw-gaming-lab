@@ -1606,7 +1606,7 @@ function adminOnDrop(e){
   prev.style.display='block';
 }
 function adminSubmitUpload(){
-  var PA_UPLOAD='YOUR_PA_RESULT_UPLOAD_URL_HERE';
+  var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
   if(!_adminUploadFile){alert('請先選擇 Excel 檔案。');return;}
   if(PA_UPLOAD.indexOf('YOUR_PA')>-1){alert('⚠️ PA_UPLOAD URL 尚未設定，請聯絡系統管理員。');return;}
   var uploader=document.getElementById('admin-uploader').value;
