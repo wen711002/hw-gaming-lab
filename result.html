@@ -475,9 +475,26 @@ function loadSingleResult(){
   fetchAndRenderSingle(entry, proj, label, area);
 }
 
+// Fetch Excel via PA proxy (bypasses SharePoint CORS/auth restrictions)
+function fetchFileViaPA(filename){
+  return fetch(PA_GET_FILE,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({FileName:filename})
+  })
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(data){
+    if(!data.FileBase64) throw new Error('回應中缺少 FileBase64');
+    var b64=data.FileBase64;
+    var bin=atob(b64);
+    var bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    return bytes.buffer;
+  });
+}
+
 function fetchAndRenderSingle(entry, proj, label, area){
-  fetch(entry.url)
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();})
+  fetchFileViaPA(entry.filename)
   .then(function(buf){
     var wb=XLSX.read(buf,{type:'array'});
     var ws=wb.Sheets['Performance Test'];
@@ -634,7 +651,7 @@ function runCompare(){
   area.innerHTML='<div class="loading-bar">比對資料讀取中...</div>';
   var cat=document.getElementById('c-cat-filter').value;
   var promises=compareItems.map(function(item){
-    return fetch(item.url).then(function(r){return r.arrayBuffer();}).then(function(buf){
+    return fetchFileViaPA(item.filename).then(function(buf){
       var wb=XLSX.read(buf,{type:'array'});
       var ws=wb.Sheets['Performance Test'];
       if(!ws) throw new Error(item.label+': 找不到 Performance Test sheet');
@@ -876,6 +893,7 @@ function submitUpload(){
 
 // ── Load Result Index from SharePoint ────────────────────────────────────────
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
+var PA_GET_FILE='YOUR_PA_GET_FILE_URL'; // GameLab-GetFile flow URL
 function loadResultIndex(){
   fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){return r.json();})
