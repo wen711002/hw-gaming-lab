@@ -780,10 +780,11 @@ function readMetaFromExcel(file){
       var ws=wb.Sheets['SKU Table'];
       if(!ws) return;
       var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-      // Row 9 (0-index 8): C9=ProductLine(col2), F9=SubSeries(col5), I9=ProjectName(col8)
-      var pl=String((data[8]||[])[2]||'').trim();
-      var ss=String((data[8]||[])[5]||'').trim();
-      var proj=String((data[8]||[])[8]||'').trim();
+      // Row 9  (0-index 8): F9=ProductLine(col5)
+      // Row 10 (0-index 9): C10=SubSeries(col2), F10=ProjectName(col5)
+      var pl=String((data[8]||[])[5]||'').trim();
+      var ss=String((data[9]||[])[2]||'').trim();
+      var proj=String((data[9]||[])[5]||'').trim();
       if(!pl) return;
       var plSel=document.getElementById('upload-pl');
       plSel.value=pl;
