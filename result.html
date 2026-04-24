@@ -339,6 +339,27 @@ table.compare-table td.worst{color:var(--red);}
     </div>
     <div class="upload-preview" id="upload-preview"></div>
     <div class="field">
+      <label>PRODUCT LINE<span style="color:var(--red);">*</span></label>
+      <select id="upload-pl" onchange="onUploadPLChange()">
+        <option value="">--- 選擇 Product Line ---</option>
+        <option value="Strix">Strix</option>
+        <option value="TUF">TUF</option>
+        <option value="Consumer">Consumer</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>CHIPSET / SUB-SERIES<span style="color:var(--red);">*</span></label>
+      <select id="upload-ss" onchange="onUploadSSChange()">
+        <option value="">--- 請先選擇 Product Line ---</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>專案名稱<span style="color:var(--red);">*</span></label>
+      <select id="upload-proj">
+        <option value="">--- 請先選擇 Chipset ---</option>
+      </select>
+    </div>
+    <div class="field">
       <label>上傳者</label>
       <select id="uploader-name">
         <option value="Sandra">Yu.Sandra</option>
@@ -729,7 +750,12 @@ function openAdmin(){
   else{alert('❌ 密碼錯誤，請重新輸入。');}
 }
 function showUploadModal(){document.getElementById('upload-modal').classList.add('show');}
-function closeUploadModal(){document.getElementById('upload-modal').classList.remove('show');}
+function closeUploadModal(){
+  document.getElementById('upload-modal').classList.remove('show');
+  document.getElementById('upload-pl').value='';
+  buildSelect('upload-ss',[],'--- 請先選擇 Product Line ---');
+  buildSelect('upload-proj',[],'--- 請先選擇 Chipset ---');
+}
 
 var _uploadFile=null;
 function onDragOver(e){e.preventDefault();document.getElementById('upload-area').classList.add('drag');}
@@ -745,13 +771,27 @@ function setUploadFile(f){
   p.style.display='block';
 }
 
+function onUploadPLChange(){
+  var pl=document.getElementById('upload-pl').value;
+  buildSelect('upload-ss',getSubSeries(pl),'--- 請先選擇 Chipset ---');
+  buildSelect('upload-proj',[],'--- 請先選擇 Chipset ---');
+}
+function onUploadSSChange(){
+  var pl=document.getElementById('upload-pl').value;
+  var ss=document.getElementById('upload-ss').value;
+  buildSelect('upload-proj',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
+}
+
 function submitUpload(){
   if(!_uploadFile){alert('請先選擇要上傳的 Excel 檔案。');return;}
   var fname=_uploadFile.name.toUpperCase();
-  // validate filename format
   if(!fname.endsWith('.XLSX')&&!fname.endsWith('.XLS')){
     alert('請上傳 .xlsx 或 .xls 格式的檔案。');return;
   }
+  var pl=document.getElementById('upload-pl').value;
+  var ss=document.getElementById('upload-ss').value;
+  var projName=document.getElementById('upload-proj').value;
+  if(!pl||!ss||!projName){alert('請選擇 Product Line、Chipset 與專案名稱。');return;}
   var uploader=document.getElementById('uploader-name').value;
   var reqEmail=document.getElementById('upload-req-email').value.trim();
   if(!reqEmail){alert('請填寫通知 Email。');return;}
@@ -776,7 +816,10 @@ function submitUpload(){
         Uploader:uploader,
         ReqEmail:reqEmail,
         Note:note,
-        UploadedAt:new Date().toISOString()
+        UploadedAt:new Date().toISOString(),
+        ProductLine:pl,
+        SubSeries:ss,
+        ProjectName:projName
       })
     })
     .then(function(r){
@@ -812,12 +855,13 @@ function loadResultIndex(){
     var items=data.value||data.d&&data.d.results||[];
     RESULT_INDEX={};
     items.forEach(function(item){
-      var proj=item.ProjectName||item.Title||'';
+      // ProjectName = long descriptive name matching PROJECT_DATA keys
+      // Title = project code (F607BA) — not used for lookup
+      var proj=item.ProjectName||'';
       var fname=item.FileName||'';
       var url=item.FileUrl||'';
       if(!proj||!fname||!url) return;
       if(!RESULT_INDEX[proj]) RESULT_INDEX[proj]=[];
-      // derive label from filename
       var label=fname.replace(/\.XLSX$/i,'').replace(/\.XLS$/i,'');
       RESULT_INDEX[proj].push({label:label,filename:fname,url:url});
     });
