@@ -769,6 +769,33 @@ function setUploadFile(f){
   var p=document.getElementById('upload-preview');
   p.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)';
   p.style.display='block';
+  readMetaFromExcel(f);
+}
+
+function readMetaFromExcel(file){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      var ws=wb.Sheets['SKU Table'];
+      if(!ws) return;
+      var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+      // Row 9 (0-index 8): C9=ProductLine(col2), F9=SubSeries(col5), I9=ProjectName(col8)
+      var pl=String((data[8]||[])[2]||'').trim();
+      var ss=String((data[8]||[])[5]||'').trim();
+      var proj=String((data[8]||[])[8]||'').trim();
+      if(!pl) return;
+      var plSel=document.getElementById('upload-pl');
+      plSel.value=pl;
+      onUploadPLChange();
+      if(!ss) return;
+      var ssSel=document.getElementById('upload-ss');
+      ssSel.value=ss;
+      onUploadSSChange();
+      if(proj) document.getElementById('upload-proj').value=proj;
+    }catch(ex){}
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function onUploadPLChange(){
