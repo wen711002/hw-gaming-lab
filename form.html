@@ -965,43 +965,41 @@ var testSelMap={battery:'sel-bat',bench:'sel-bench',fps:'sel-fps'};
 var selTests={};
 
 function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');}
+var _rtAllData=[];
 function startRetest(){
   isRetest=true;
   document.getElementById('mode-screen').style.display='none';
   document.getElementById('retest-lookup').classList.remove('hidden');
-  // hide cascading dropdowns, load flat project list from SharePoint
   ['rt-product-line','rt-sub-series'].forEach(function(id){
     var f=document.getElementById(id);
-    if(f&&f.closest('.field')) f.closest('.field').style.display='none';
+    if(f&&f.closest('.field')) f.closest('.field').style.display='';
   });
-  loadRetestProjectList();
+  loadRetestFromSP();
 }
-function loadRetestProjectList(){
-  var sel=document.getElementById('rt-proj-code');
-  sel.innerHTML='<option value="">載入中...</option>';
-  sel.disabled=true;
+function loadRetestFromSP(){
+  var plSel=document.getElementById('rt-product-line');
+  plSel.innerHTML='<option value="">載入中...</option>';
+  plSel.disabled=true;
+  buildSelect('rt-sub-series',[],'--- 請先選擇 Product Line ---');
+  buildSelect('rt-proj-code',[],'--- 請先選擇 Chipset ---');
+  document.getElementById('lookup-result').classList.add('hidden');
   var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
   fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    var items=data.value||data.d&&data.d.results||[];
-    sel.innerHTML='<option value="">--- 選擇專案 ---</option>';
-    var seen={};
-    items.forEach(function(item){
-      var name=item.ProjectName||item.Title||'';
-      if(name&&!seen[name]){
-        seen[name]=true;
-        var opt=document.createElement('option');
-        opt.value=name;
-        opt.textContent=name+(item.Phase?' ['+item.Phase+']':'');
-        sel.appendChild(opt);
-      }
+    _rtAllData=data.value||data.d&&data.d.results||[];
+    var seen={};var pls=[];
+    _rtAllData.forEach(function(item){
+      var pl=item.ProductLine||'';
+      if(pl&&!seen[pl]){seen[pl]=true;pls.push(pl);}
     });
-    sel.disabled=false;
+    plSel.innerHTML='<option value="">--- 選擇 Product Line ---</option>';
+    pls.forEach(function(pl){var o=document.createElement('option');o.value=pl;o.textContent=pl;plSel.appendChild(o);});
+    plSel.disabled=false;
   })
   .catch(function(err){
-    sel.innerHTML='<option value="">載入失敗：'+err.message+'</option>';
-    sel.disabled=false;
+    plSel.innerHTML='<option value="">載入失敗：'+err.message+'</option>';
+    plSel.disabled=false;
   });
 }
 function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
@@ -1348,10 +1346,17 @@ function buildSelect(id, options, placeholder){
 function onProductLineChange(src){
   var pl=document.getElementById(src==='retest'?'rt-product-line':'pl-product-line').value;
   var ssId=src==='retest'?'rt-sub-series':'pl-sub-series';
-  buildSelect(ssId, getSubSeries(pl), '--- 選擇 Chipset / Sub-series ---');
   if(src==='retest'){
-    buildSelect('rt-proj-code', [], '--- 請先選擇上層 ---');
+    var seen={};var ssList=[];
+    _rtAllData.forEach(function(item){
+      var ss=item.SubSeries||'';
+      if(item.ProductLine===pl&&ss&&!seen[ss]){seen[ss]=true;ssList.push(ss);}
+    });
+    buildSelect(ssId,ssList,'--- 選擇 Chipset / Sub-series ---');
+    buildSelect('rt-proj-code',[],'--- 請先選擇 Chipset ---');
+    document.getElementById('lookup-result').classList.add('hidden');
   } else {
+    buildSelect(ssId, getSubSeries(pl), '--- 選擇 Chipset / Sub-series ---');
     var inp=document.getElementById('pl-proj-name-input');
     if(inp) inp.value='';
     document.getElementById('proj_name').value='';
@@ -1363,6 +1368,14 @@ function onSubSeriesChange(src){
   var pl=document.getElementById(src==='retest'?'rt-product-line':'pl-product-line').value;
   var ss=document.getElementById(src==='retest'?'rt-sub-series':'pl-sub-series').value;
   if(src==='retest'){
+    var seen={};var projList=[];
+    _rtAllData.forEach(function(item){
+      var name=item.ProjectName||item.Title||'';
+      if(item.ProductLine===pl&&item.SubSeries===ss&&name&&!seen[name]){seen[name]=true;projList.push(name);}
+    });
+    buildSelect('rt-proj-code',projList,'--- 選擇專案 ---');
+    document.getElementById('lookup-result').classList.add('hidden');
+  } else {
     buildSelect('rt-proj-code', getProjects(pl,ss), '--- 選擇專案 ---');
   }
 }
