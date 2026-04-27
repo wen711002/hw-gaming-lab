@@ -965,7 +965,45 @@ var testSelMap={battery:'sel-bat',bench:'sel-bench',fps:'sel-fps'};
 var selTests={};
 
 function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');}
-function startRetest(){isRetest=true;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.remove('hidden');}
+function startRetest(){
+  isRetest=true;
+  document.getElementById('mode-screen').style.display='none';
+  document.getElementById('retest-lookup').classList.remove('hidden');
+  // hide cascading dropdowns, load flat project list from SharePoint
+  ['rt-product-line','rt-sub-series'].forEach(function(id){
+    var f=document.getElementById(id);
+    if(f&&f.closest('.field')) f.closest('.field').style.display='none';
+  });
+  loadRetestProjectList();
+}
+function loadRetestProjectList(){
+  var sel=document.getElementById('rt-proj-code');
+  sel.innerHTML='<option value="">載入中...</option>';
+  sel.disabled=true;
+  var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
+  fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(data){
+    var items=data.value||data.d&&data.d.results||[];
+    sel.innerHTML='<option value="">--- 選擇專案 ---</option>';
+    var seen={};
+    items.forEach(function(item){
+      var name=item.ProjectName||item.Title||'';
+      if(name&&!seen[name]){
+        seen[name]=true;
+        var opt=document.createElement('option');
+        opt.value=name;
+        opt.textContent=name+(item.Phase?' ['+item.Phase+']':'');
+        sel.appendChild(opt);
+      }
+    });
+    sel.disabled=false;
+  })
+  .catch(function(err){
+    sel.innerHTML='<option value="">載入失敗：'+err.message+'</option>';
+    sel.disabled=false;
+  });
+}
 function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
 function lookupFormByName(projName){
   if(!projName) return;
