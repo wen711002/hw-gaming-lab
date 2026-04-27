@@ -619,7 +619,7 @@ function addCompareItem(){
   var entry=null;
   for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
   if(!entry){alert('找不到對應檔案。');return;}
-  compareItems.push({proj:proj,label:label,url:entry.url});
+  compareItems.push({proj:proj,label:label,filename:entry.filename,url:entry.url});
   renderCompareTags();
   document.getElementById('compare-btn').disabled=compareItems.length<2;
 }
