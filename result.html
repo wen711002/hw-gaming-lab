@@ -893,7 +893,7 @@ function submitUpload(){
 
 // ── Load Result Index from SharePoint ────────────────────────────────────────
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
-var PA_GET_FILE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/23e9150f0a204c568ffb06a5e152d465/triggers/manual/paths/invoke?api-version=1';
+var PA_GET_FILE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/30ae0af6532742de8324b0c1cab152d7/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=8hbfVKWko1G2kztMukuO9McyNqb5sYX8a9vPHosjmV0';
 function loadResultIndex(){
   fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){return r.json();})
