@@ -72,18 +72,24 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .page-header h1 span{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow);}
 .page-header p{font-size:17px;color:var(--text2);}
 
-/* METRIC CARDS */
-.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;animation:fadeUp 0.5s 0.1s ease both;}
-.mcard{border-radius:var(--r12);padding:20px 22px;position:relative;overflow:hidden;cursor:default;}
-.mcard::before{content:'';position:absolute;inset:0;opacity:0.9;}
-.mcard-blue::before{background:linear-gradient(135deg,#1565c0,#1a9fd4);}
-.mcard-orange::before{background:linear-gradient(135deg,#c0392b,#e67e22);}
-.mcard-purple::before{background:linear-gradient(135deg,#6a1a9a,#a855f7);}
-.mcard-content{position:relative;z-index:1;}
-.mcard-label{font-family:var(--font-head);font-size:16px;font-weight:600;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:8px;}
-.mcard-val{font-family:var(--font-head);font-size:24px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:0.02em;}
-.mcard-sub{font-size:16px;color:rgba(255,255,255,0.6);}
-.mcard-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:48px;opacity:0.15;z-index:1;}
+/* SCHEDULE SECTION */
+.schedule-section{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:20px 24px;margin-bottom:24px;animation:fadeUp 0.5s 0.1s ease both;}
+.schedule-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.schedule-title{font-family:var(--font-head);font-size:18px;font-weight:700;letter-spacing:0.06em;color:var(--cyan);text-transform:uppercase;}
+.schedule-stats{display:flex;gap:20px;font-size:15px;color:var(--text2);}
+.schedule-stats strong{color:var(--text);font-weight:700;}
+.schedule-timeline{position:relative;margin-bottom:6px;}
+.schedule-months{display:flex;font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:4px;}
+.schedule-month-label{flex:1;text-align:center;}
+.schedule-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.schedule-proj{width:160px;font-size:14px;font-family:var(--font-mono);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.schedule-track{flex:1;height:22px;background:var(--bg3);border-radius:4px;position:relative;}
+.schedule-bar{position:absolute;top:0;height:100%;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:12px;font-family:var(--font-mono);color:#fff;white-space:nowrap;overflow:hidden;}
+.schedule-bar.status-pending{background:rgba(255,179,71,0.7);}
+.schedule-bar.status-active{background:rgba(0,212,255,0.7);}
+.schedule-bar.status-done{background:rgba(100,200,100,0.5);}
+.schedule-note{font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-top:10px;text-align:right;}
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,80,80,0.7);z-index:2;}
 
 /* STEPS BAR */
 .steps-bar{display:flex;align-items:center;margin-bottom:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r8);padding:4px;animation:fadeUp 0.5s 0.15s ease both;}
@@ -332,7 +338,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 @media(max-width:860px){
   .sidebar{display:none;}
   .main{padding:20px 16px 40px;}
-  .g2,.g3,.test-grid,.cg2,.cg3,.mode-cards,.metric-row{grid-template-columns:1fr;}
+  .g2,.g3,.test-grid,.cg2,.cg3,.mode-cards{grid-template-columns:1fr;}
 }
 @media print{
   .sidebar,.admin-bar,.modal-overlay,.btn-row{display:none!important;}
@@ -344,6 +350,23 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+<div id="pw-modal" style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#141824;border:1px solid rgba(0,212,255,0.3);border-radius:12px;padding:40px 48px;text-align:center;min-width:320px;">
+    <div style="font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:#00d4ff;letter-spacing:0.1em;margin-bottom:8px;">HW GAMING LAB</div>
+    <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:28px;">請輸入存取密碼</div>
+    <input id="pw-input" type="password" placeholder="Password" style="width:100%;padding:10px 14px;background:#1e2635;border:1px solid rgba(0,212,255,0.3);border-radius:6px;color:#fff;font-size:16px;text-align:center;letter-spacing:0.2em;outline:none;margin-bottom:12px;" onkeydown="if(event.key==='Enter')checkPW()"/>
+    <div id="pw-err" style="color:#ff6b6b;font-size:13px;min-height:18px;margin-bottom:12px;"></div>
+    <button onclick="checkPW()" style="width:100%;padding:10px;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);border-radius:6px;color:#00d4ff;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;cursor:pointer;">ENTER</button>
+  </div>
+</div>
+<script>
+function checkPW(){
+  var v=document.getElementById('pw-input').value;
+  if(v==='IECGL666666'){document.getElementById('pw-modal').style.display='none';}
+  else{document.getElementById('pw-err').textContent='密碼錯誤，請重新輸入';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
+}
+document.getElementById('pw-input').focus();
+</script>
 <div class="outer">
 
 <!-- SIDEBAR -->
@@ -382,32 +405,17 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
     <p>請依序填寫各項資訊，完成後點擊「確認送出」提交至實驗室排程系統</p>
   </div>
 
-  <!-- METRIC CARDS -->
-  <div class="metric-row">
-    <div class="mcard mcard-blue">
-      <div class="mcard-content">
-        <div class="mcard-label">本月受理需求</div>
-        <div class="mcard-val">n 件</div>
-        <div class="mcard-sub">— 待連結資料庫</div>
-      </div>
-      <div class="mcard-icon">📋</div>
+  <!-- SCHEDULE SECTION -->
+  <div class="schedule-section">
+    <div class="schedule-header">
+      <div class="schedule-title">目前接單狀態</div>
+      <div class="schedule-stats">共 <strong id="sch-total">3</strong> 個案子 &nbsp;|&nbsp; 共 <strong id="sch-sku">7</strong> 台 SKU 機台</div>
     </div>
-    <div class="mcard mcard-orange">
-      <div class="mcard-content">
-        <div class="mcard-label">進行中測試</div>
-        <div class="mcard-val">n 件</div>
-        <div class="mcard-sub">— 待連結資料庫</div>
-      </div>
-      <div class="mcard-icon">⚡</div>
+    <div class="schedule-timeline" id="schedule-chart">
+      <div class="schedule-months" id="schedule-months"></div>
+      <div id="schedule-rows"></div>
     </div>
-    <div class="mcard mcard-purple">
-      <div class="mcard-content">
-        <div class="mcard-label">本月完成報告</div>
-        <div class="mcard-val">n 件</div>
-        <div class="mcard-sub">— 待連結資料庫</div>
-      </div>
-      <div class="mcard-icon">🎮</div>
-    </div>
+    <div class="schedule-note">* 模擬資料，系統上線後將根據表單自動顯示</div>
   </div>
 
   <!-- ADMIN BAR -->
@@ -527,11 +535,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
             <input type="email" id="req-email" placeholder="例：Yu.Sandra@inventec.com"/>
             <span class="hint">審核結果與通知將寄送至此信箱</span>
           </div>
-          <div class="g3">
-            <div class="field"><label>EE 對接窗口</label><input type="text" id="ee" placeholder="例：Yu.Sandra"/></div>
-            <div class="field"><label>PL 對接窗口</label><input type="text" id="pl" placeholder="例：Chen.Kevin"/></div>
-            <div class="field"><label>QA 對接窗口</label><input type="text" id="qa" placeholder="例：Lin.Amy"/></div>
-          </div>
+          <div class="field"><label>對接窗口</label><input type="text" id="contact" placeholder="例：Yu.Sandra"/></div>
         </div>
       </div>
 
@@ -567,27 +571,16 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
           <div class="g2">
           <div class="field">
             <label>Phase<span class="req">*</span></label>
-            <div class="chips" id="phase-chips">
-              <span class="chip" onclick="selPhase(this,'ER1')">ER1</span>
-              <span class="chip" onclick="selPhase(this,'ER2')">ER2</span>
-              <span class="chip" onclick="selPhase(this,'PR')">PR</span>
-              <span class="chip" onclick="selPhase(this,'MP')">MP</span>
-              <span class="chip" onclick="selPhase(this,'其他')">其他</span>
-            </div>
-            <input type="hidden" id="phase"/>
+            <input type="text" id="phase" placeholder="例：ER1、ER2、PR、MP..."/>
           </div>
           <div class="g2">
             <div class="field">
-              <label>測試時段 (Schedule)<span class="req">*</span></label>
-              <div class="hint-info">請填入本次機台可供測試的時間區段</div>
+              <label>測試開始日期<span class="req">*</span></label>
               <input type="date" id="sch_start" style="margin-top:6px;font-family:var(--font-mono);"/>
-              <span class="hint">開始日期</span>
-              <input type="date" id="sch_end" style="margin-top:8px;font-family:var(--font-mono);"/>
-              <span class="hint">結束日期</span>
+              <span class="hint">請填入機台可供測試的開始日</span>
             </div>
             <div class="field">
-              <label>Expected Report Deadline<span class="req">*</span></label>
-              <div class="hint-info" style="visibility:hidden;font-size:0;">spacer</div>
+              <label>報告需求日<span class="req">*</span></label>
               <input type="date" id="report_due" style="margin-top:6px;font-family:var(--font-mono);"/>
               <span class="hint">最少為今日起第 6 天</span>
             </div>
@@ -853,9 +846,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
         <div class="srow"><span class="sl">DEPT</span><span class="sv" id="s-dept">—</span></div>
         <div class="srow"><span class="sl">NAME</span><span class="sv" id="s-req">—</span></div>
         <div class="srow"><span class="sl">EMAIL</span><span class="sv" id="s-email">—</span></div>
-        <div class="srow"><span class="sl">EE_CONTACT</span><span class="sv" id="s-ee">—</span></div>
-        <div class="srow"><span class="sl">PL_CONTACT</span><span class="sv" id="s-pl">—</span></div>
-        <div class="srow"><span class="sl">QA_CONTACT</span><span class="sv" id="s-qa">—</span></div>
+        <div class="srow"><span class="sl">CONTACT</span><span class="sv" id="s-contact">—</span></div>
       </div>
       <div class="scard">
         <h3>Project</h3>
@@ -1100,14 +1091,8 @@ function loadRetestData(){
     set('dept',      data.dept);
     set('requester', data.requester);
     set('req-email', data.email);
-    set('ee',        data.ee);
-    set('pl',        data.pl);
-    set('qa',        data.qa);
-    // phase chips
-    document.querySelectorAll('#phase-chips .chip').forEach(function(c){c.classList.remove('sel-blue','sel-cyan','sel-green');});
-    document.querySelectorAll('#phase-chips .chip').forEach(function(c){
-      if(c.textContent===data.phase){c.classList.add('sel-blue');selPhaseVal=data.phase;}
-    });
+    set('contact',   data.ee||data.pl||data.qa||'');
+    set('phase', data.phase||'');
     // fan mode
     if(data.fanMode){
       document.querySelectorAll('.fan-chip').forEach(function(fc){fc.classList.remove('sel');});
@@ -1120,7 +1105,6 @@ function loadRetestData(){
     }
     // schedule dates (pre-fill but leave editable)
     set('sch_start', data.schedStart?data.schedStart.slice(0,10):'');
-    set('sch_end',   data.schedEnd?data.schedEnd.slice(0,10):'');
     // notes
     set('extra_notes', data.notes);
     // restore ProductLine / SubSeries hidden fields
@@ -1150,10 +1134,7 @@ function toggleRetestOther(){
   document.getElementById('retest-gap-field').classList.toggle('hidden',v!=='data-gap');
   document.getElementById('retest-other-field').classList.toggle('hidden',v!=='other');
 }
-function selPhase(el,val){
-  document.querySelectorAll('#phase-chips .chip').forEach(function(c){c.classList.remove('sel-blue','sel-cyan','sel-green');});
-  el.classList.add('sel-blue');selPhaseVal=val;
-}
+function selPhase(el,val){}
 function selFan(el,val){
   document.querySelectorAll('.fan-chip').forEach(function(c){c.classList.remove('sel');});
   el.classList.add('sel');selFanVal=val;document.getElementById('fan_mode').value=val;
@@ -1222,14 +1203,12 @@ function buildSummary(){
   document.getElementById('s-dept').textContent=v('dept')||'—';
   document.getElementById('s-req').textContent=v('requester')||'—';
   document.getElementById('s-email').textContent=v('req-email')||'—';
-  document.getElementById('s-ee').textContent=v('ee')||'—';
-  document.getElementById('s-pl').textContent=v('pl')||'—';
-  document.getElementById('s-qa').textContent=v('qa')||'—';
+  document.getElementById('s-contact').textContent=v('contact')||'—';
   document.getElementById('s-pname').textContent=v('proj_name')||'—';
   document.getElementById('s-pcode').textContent=v('proj_code')||'—';
-  document.getElementById('s-phase').textContent=selPhaseVal||'—';
+  document.getElementById('s-phase').textContent=v('phase')||'—';
   document.getElementById('s-fan').textContent=selFanVal||'—';
-  var ss=v('sch_start'),se=v('sch_end');document.getElementById('s-sched').textContent=ss&&se?ss+' ~ '+se:(ss||'—');
+  document.getElementById('s-sched').textContent=v('sch_start')||'—';
   document.getElementById('s-due').textContent=v('report_due')||'—';
   var rows=document.querySelectorAll('#sku-tbody tr');document.getElementById('s-sku-count').textContent=rows.length;
   var sh='';rows.forEach(function(r,i){var inp=r.querySelectorAll('input');sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);">'+
@@ -1410,7 +1389,7 @@ function submitForm(){
   if(!isRetest&&!document.getElementById('pl-sub-series').value)miss.push('Chipset / Sub-series');
   if(!v('req-email'))miss.push('需求人Email');
   if(!v('proj_name'))miss.push('專案名稱');
-  if(!selPhaseVal)miss.push('Phase');
+  if(!v('phase'))miss.push('Phase');
   if(!selFanVal)miss.push('FanMode');
   if(!v('sch_start'))miss.push('測試時段');
   if(!v('report_due'))miss.push('截止日');
@@ -1456,15 +1435,15 @@ function paSubmit(){
     Dept:v('dept'),
     Requester:v('requester'),
     RequesterEmail:v('req-email'),
-    EEContact:v('ee'),
-    PLContact:v('pl'),
-    QAContact:v('qa'),
+    EEContact:v('contact'),
+    PLContact:'',
+    QAContact:'',
     ProjectName:v('proj_name'),
     ProjectCode:v('proj_code'),
-    Phase:selPhaseVal,
+    Phase:v('phase'),
     FanMode:selFanVal,
     ScheduleStart:v('sch_start')||'',
-    ScheduleEnd:v('sch_end')||'',
+    ScheduleEnd:'',
     ReportDeadline:v('report_due')||'',
     SKUList:sku,
     BatteryItems:getItems('battery'),
@@ -1518,6 +1497,43 @@ function paSubmit(){
     doSubmit(null, null);
   }
 }
+(function renderSchedule(){
+  var today=new Date();
+  var mocks=[
+    {proj:'G814JV EVT',sku:2,start:new Date(today.getFullYear(),today.getMonth(),-5),end:new Date(today.getFullYear(),today.getMonth(),15),status:'active'},
+    {proj:'F607BA PR',sku:3,start:new Date(today.getFullYear(),today.getMonth(),5),end:new Date(today.getFullYear(),today.getMonth(),25),status:'pending'},
+    {proj:'G634JY ER2',sku:2,start:new Date(today.getFullYear(),today.getMonth(),12),end:new Date(today.getFullYear(),today.getMonth()+1,5),status:'pending'},
+  ];
+  var totalSku=mocks.reduce(function(a,m){return a+m.sku;},0);
+  document.getElementById('sch-total').textContent=mocks.length;
+  document.getElementById('sch-sku').textContent=totalSku;
+  // Timeline spans from start of current month to end of next month
+  var tStart=new Date(today.getFullYear(),today.getMonth(),1);
+  var tEnd=new Date(today.getFullYear(),today.getMonth()+2,0);
+  var tRange=tEnd-tStart;
+  function pct(d){return Math.max(0,Math.min(100,(d-tStart)/tRange*100));}
+  // Month labels
+  var mLabels='';
+  for(var m=0;m<2;m++){
+    var md=new Date(today.getFullYear(),today.getMonth()+m,1);
+    mLabels+='<div class="schedule-month-label">'+md.getFullYear()+'/'+(md.getMonth()+1)+'</div>';
+  }
+  document.getElementById('schedule-months').innerHTML=mLabels;
+  // Today line
+  var todayPct=pct(today);
+  // Rows
+  var rows='<div class="schedule-timeline" style="position:relative;">';
+  rows+='<div class="today-line" style="left:'+todayPct+'%;"></div>';
+  mocks.forEach(function(m){
+    var left=pct(m.start);var right=pct(m.end);var width=right-left;
+    rows+='<div class="schedule-row">';
+    rows+='<div class="schedule-proj">'+m.proj+' ('+m.sku+'台)</div>';
+    rows+='<div class="schedule-track"><div class="schedule-bar status-'+m.status+'" style="left:'+left+'%;width:'+width+'%;">'+m.proj+'</div></div>';
+    rows+='</div>';
+  });
+  rows+='</div>';
+  document.getElementById('schedule-rows').innerHTML=rows;
+})();
 var _adminAuth=false;
 // Auto-open admin if arriving from result page after password auth
 document.addEventListener('DOMContentLoaded',function(){
