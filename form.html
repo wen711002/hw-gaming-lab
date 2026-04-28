@@ -1126,6 +1126,23 @@ function loadRetestData(){
     // restore ProductLine / SubSeries hidden fields
     set('prod_line', data.prodLine||'');
     set('sub_series', data.subSeries||'');
+    // fill visible dropdowns for product line / sub-series
+    var plSel=document.getElementById('pl-product-line');
+    if(plSel&&data.prodLine){
+      if(!Array.from(plSel.options).some(function(o){return o.value===data.prodLine;})){
+        var o=document.createElement('option');o.value=data.prodLine;o.textContent=data.prodLine;plSel.appendChild(o);
+      }
+      plSel.value=data.prodLine;
+    }
+    var ssSel=document.getElementById('pl-sub-series');
+    if(ssSel&&data.subSeries){
+      if(!Array.from(ssSel.options).some(function(o){return o.value===data.subSeries;})){
+        var o=document.createElement('option');o.value=data.subSeries;o.textContent=data.subSeries;ssSel.appendChild(o);
+      }
+      ssSel.value=data.subSeries;
+    }
+    var nameInp=document.getElementById('pl-proj-name-input');
+    if(nameInp) nameInp.value=data.name||'';
   }
 }
 function toggleRetestOther(){
