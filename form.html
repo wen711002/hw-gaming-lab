@@ -1005,56 +1005,38 @@ function loadRetestFromSP(){
 function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
 function lookupFormByName(projName){
   if(!projName) return;
-  var loadingEl=document.getElementById('rt-loading');
-  var resultEl=document.getElementById('lookup-result');
-  if(loadingEl) loadingEl.classList.remove('hidden');
-  if(resultEl) resultEl.classList.add('hidden');
-  var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
-  fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryCode:projName,allStatus:true,queryAll:true})})
-  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
-  .then(function(data){
-    if(loadingEl) loadingEl.classList.add('hidden');
-    var items=data.value||data.d&&data.d.results||[];
-    var match=null;
-    for(var i=0;i<items.length;i++){
-      var pc=items[i].ProjectName||items[i].ProjectCode||items[i].Title||'';
-      if(typeof pc==='object') pc=pc.Title||pc.Value||'';
-      if(pc===projName){match=items[i];break;}
-    }
-    if(!match&&items.length>0) match=items[0];
-    if(!match){
-      alert('此專案尚未有表單記錄，請確認是否已提交過申請。');
-      return;
-    }
-    var proj={
-      name:match.ProjectName||match.Title||projName,
-      phase:match.Phase||'',
-      date:(match.SubmittedDate||match.Created||'').slice(0,10),
-      requester:match.Requester||'',
-      dept:match.Dept||'',
-      email:match.RequesterEmail||'',
-      ee:match.EEContact||'',
-      pl:match.PLContact||'',
-      qa:match.QAContact||'',
-      fanMode:match.FanMode||'',
-      schedStart:match.ScheduleStart||'',
-      schedEnd:match.ScheduleEnd||'',
-      notes:match.Notes||'',
-      prodLine:match.ProductLine||'',
-      subSeries:match.SubSeries||''
-    };
-    document.getElementById('fc-title').textContent=proj.name||'—';
-    document.getElementById('fc-code').textContent=projName;
-    document.getElementById('fc-phase').textContent=proj.phase||'—';
-    document.getElementById('fc-date').textContent=proj.date||'—';
-    document.getElementById('fc-req').textContent=proj.requester||'—';
-    document.getElementById('lookup-result').classList.remove('hidden');
-    formDb['current']=proj;
-  })
-  .catch(function(err){
-    if(loadingEl) loadingEl.classList.add('hidden');
-    alert('查詢失敗：'+err.message);
-  });
+  document.getElementById('lookup-result').classList.add('hidden');
+  var match=null;
+  for(var i=0;i<_rtAllData.length;i++){
+    var name=_rtAllData[i].ProjectName||_rtAllData[i].Title||'';
+    if(name===projName){match=_rtAllData[i];break;}
+  }
+  if(!match) return;
+  var proj={
+    name:match.ProjectName||match.Title||projName,
+    code:match.ProjectCode||match.Title||projName,
+    phase:match.Phase||'',
+    date:(match.SubmittedDate||match.Created||'').slice(0,10),
+    requester:match.Requester||'',
+    dept:match.Dept||'',
+    email:match.RequesterEmail||'',
+    ee:match.EEContact||'',
+    pl:match.PLContact||'',
+    qa:match.QAContact||'',
+    fanMode:match.FanMode||'',
+    schedStart:match.ScheduleStart||'',
+    schedEnd:match.ScheduleEnd||'',
+    notes:match.Notes||'',
+    prodLine:match.ProductLine||'',
+    subSeries:match.SubSeries||''
+  };
+  document.getElementById('fc-title').textContent=proj.name||'—';
+  document.getElementById('fc-code').textContent=proj.code||projName;
+  document.getElementById('fc-phase').textContent=proj.phase||'—';
+  document.getElementById('fc-date').textContent=proj.date||'—';
+  document.getElementById('fc-req').textContent=proj.requester||'—';
+  document.getElementById('lookup-result').classList.remove('hidden');
+  formDb['current']=proj;
 }
 function lookupForm(){
   var code=document.getElementById('lookup-code').value.trim();
@@ -1108,7 +1090,8 @@ function loadRetestData(){
   document.getElementById('retest-lookup').classList.add('hidden');
   document.getElementById('main-form').classList.remove('hidden');
   document.getElementById('retest-block').classList.remove('hidden');
-  var code=document.getElementById('lookup-code').value.trim().toUpperCase();
+  var rtSel=document.getElementById('rt-proj-code');
+  var code=((data&&data.code)||(rtSel&&rtSel.value)||'').trim().toUpperCase();
   // fill all fields from previous form
   if(data){
     var set=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
