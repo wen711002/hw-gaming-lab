@@ -407,15 +407,20 @@ document.getElementById('pw-input').focus();
 
   <!-- SCHEDULE SECTION -->
   <div class="schedule-section">
-    <div class="schedule-header">
-      <div class="schedule-title">目前接單狀態</div>
-      <div class="schedule-stats">共 <strong id="sch-total">3</strong> 個案子 &nbsp;|&nbsp; 共 <strong id="sch-sku">7</strong> 台 SKU 機台</div>
+    <div class="schedule-header" onclick="toggleSchedule()" style="cursor:pointer;">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div class="schedule-title">目前接單狀態</div>
+        <div class="schedule-stats">共 <strong id="sch-total">3</strong> 個案子 &nbsp;|&nbsp; 共 <strong id="sch-sku">7</strong> 台 SKU 機台</div>
+      </div>
+      <button id="sch-toggle" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:4px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:4px 12px;cursor:pointer;">展開排程 ↓</button>
     </div>
-    <div class="schedule-timeline" id="schedule-chart">
-      <div class="schedule-months" id="schedule-months"></div>
-      <div id="schedule-rows"></div>
+    <div id="schedule-body" style="display:none;margin-top:14px;">
+      <div class="schedule-timeline" id="schedule-chart">
+        <div class="schedule-months" id="schedule-months"></div>
+        <div id="schedule-rows"></div>
+      </div>
+      <div class="schedule-note">* 模擬資料，系統上線後將根據表單自動顯示</div>
     </div>
-    <div class="schedule-note">* 模擬資料，系統上線後將根據表單自動顯示</div>
   </div>
 
   <!-- ADMIN BAR -->
@@ -576,12 +581,12 @@ document.getElementById('pw-input').focus();
           <div class="g2">
             <div class="field">
               <label>測試開始日期<span class="req">*</span></label>
-              <input type="date" id="sch_start" style="margin-top:6px;font-family:var(--font-mono);"/>
+              <input type="text" id="sch_start" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"/>
               <span class="hint">請填入機台可供測試的開始日</span>
             </div>
             <div class="field">
               <label>報告需求日<span class="req">*</span></label>
-              <input type="date" id="report_due" style="margin-top:6px;font-family:var(--font-mono);"/>
+              <input type="text" id="report_due" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"/>
               <span class="hint">最少為今日起第 6 天</span>
             </div>
           </div>
@@ -992,6 +997,12 @@ function loadRetestFromSP(){
     plSel.innerHTML='<option value="">載入失敗：'+err.message+'</option>';
     plSel.disabled=false;
   });
+}
+function toggleSchedule(){
+  var body=document.getElementById('schedule-body');
+  var btn=document.getElementById('sch-toggle');
+  if(body.style.display==='none'){body.style.display='block';btn.textContent='收合排程 ↑';}
+  else{body.style.display='none';btn.textContent='展開排程 ↓';}
 }
 function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
 function lookupFormByName(projName){
