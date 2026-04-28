@@ -911,6 +911,21 @@ function loadResultIndex(){
       var label=fname.replace(/\.XLSX$/i,'').replace(/\.XLS$/i,'');
       RESULT_INDEX[proj].push({label:label,filename:fname,url:url});
     });
+    // Rebuild dropdowns to only show projects with uploaded results
+    var filtered={};
+    Object.keys(PROJECT_DATA).forEach(function(pl){
+      Object.keys(PROJECT_DATA[pl]).forEach(function(ss){
+        var valid=PROJECT_DATA[pl][ss].filter(function(p){return RESULT_INDEX[p]&&RESULT_INDEX[p].length>0;});
+        if(valid.length>0){if(!filtered[pl])filtered[pl]={};filtered[pl][ss]=valid;}
+      });
+    });
+    PROJECT_DATA=filtered;
+    var pls=Object.keys(PROJECT_DATA);
+    ['s-product-line','c-product-line'].forEach(function(id){
+      var sel=document.getElementById(id);if(!sel)return;
+      sel.innerHTML='<option value="">--- 選擇 Product Line ---</option>';
+      pls.forEach(function(pl){var o=document.createElement('option');o.value=pl;o.textContent=pl;sel.appendChild(o);});
+    });
   })
   .catch(function(){
     // silent fail - user will see empty dropdowns
