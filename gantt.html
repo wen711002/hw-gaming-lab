@@ -161,6 +161,25 @@ select option{background:var(--bg3);}
 </style>
 </head>
 <body>
+<!-- Password Modal -->
+<div id="pw-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#111827;border:1px solid #ffffff20;border-radius:12px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.6);">
+    <div style="font-family:'Rajdhani','Segoe UI',sans-serif;font-size:22px;font-weight:700;color:#4c9ef5;letter-spacing:0.06em;margin-bottom:6px;">HW Gaming Lab</div>
+    <div style="font-size:14px;color:#8fa0bb;margin-bottom:24px;">請輸入密碼以繼續</div>
+    <input id="pw-input" type="password" placeholder="密碼" onkeydown="if(event.key==='Enter')checkPw()"
+      style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ffffff30;background:#1e2a40;color:#e8edf5;font-size:15px;outline:none;margin-bottom:12px;"/>
+    <div id="pw-err" style="color:#ff5c7a;font-size:13px;min-height:18px;margin-bottom:10px;"></div>
+    <button onclick="checkPw()"
+      style="width:100%;padding:10px;border-radius:8px;background:#4c9ef5;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">進入</button>
+  </div>
+</div>
+<script>
+function checkPw(){
+  var v=document.getElementById('pw-input').value;
+  if(v==='GL#31#'){document.getElementById('pw-overlay').style.display='none';}
+  else{document.getElementById('pw-err').textContent='密碼錯誤，請重試';document.getElementById('pw-input').value='';}
+}
+</script>
 <div class="outer">
 <div class="topnav">
   <div class="nav-logo">HW Gaming <span>Lab</span></div>
