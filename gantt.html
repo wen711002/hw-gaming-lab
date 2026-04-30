@@ -4,323 +4,421 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<title>HW Gaming Lab — 排程甘特圖</title>
+<title>HW Gaming Lab — Schedule</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+</style>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg0:#0b0e17;--bg1:#111827;--bg2:#161d2e;--bg3:#1e2a40;
-  --text:#e8edf5;--text2:#8fa0bb;--text3:#4f6180;
-  --border:#ffffff10;--border2:#ffffff20;--border3:#ffffff35;
-  --blue:#4c9ef5;--blue-d:#1a6fd4;
-  --cyan:#00d4ff;--green:#00e5a0;--amber:#ffb347;--red:#ff5c7a;--purple:#a855f7;--teal:#2dd4bf;
+  --bg0:#0b0e17;
+  --bg1:#111827;
+  --bg2:#161d2e;
+  --bg3:#1e2a40;
+  --bg4:#243047;
+  --border:#ffffff10;
+  --border2:#ffffff20;
+  --border3:#ffffff35;
+  --text:#e8edf5;
+  --text2:#8fa0bb;
+  --text3:#4f6180;
+  --blue:#4c9ef5;
+  --blue2:#1a6fd4;
+  --blue-glow:rgba(76,158,245,0.25);
+  --cyan:#00d4ff;
+  --cyan-glow:rgba(0,212,255,0.2);
+  --green:#00e5a0;
+  --green-glow:rgba(0,229,160,0.2);
+  --amber:#ffb347;
+  --amber-glow:rgba(255,179,71,0.2);
+  --red:#ff5c7a;
+  --red-glow:rgba(255,92,122,0.2);
+  --purple:#a855f7;
+  --purple-glow:rgba(168,85,247,0.2);
+  --teal:#2dd4bf;
   --font-head:'Rajdhani','Segoe UI','Microsoft JhengHei',sans-serif;
   --font-body:'Noto Sans TC','Segoe UI','Microsoft JhengHei',sans-serif;
-  --font-mono:'Share Tech Mono','Courier New',monospace;
+  --font-mono:'Share Tech Mono','Consolas','Courier New',monospace;
+  --r4:4px;--r6:6px;--r8:8px;--r12:12px;
 }
-body{font-family:var(--font-body);background:var(--bg0);color:var(--text);min-height:100vh;font-size:22px;line-height:1.6;}
+body{font-family:var(--font-body);background:var(--bg0);color:var(--text);min-height:100vh;font-size:19px;line-height:1.7;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(76,158,245,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,158,245,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
-.outer{position:relative;z-index:1;padding:0 0 60px;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(76,158,245,0.07),transparent);pointer-events:none;z-index:0;}
+.outer{position:relative;z-index:1;display:flex;min-height:100vh;}
 
-.topnav{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;height:52px;margin-bottom:0;}
-.nav-logo{font-family:var(--font-head);font-size:24px;font-weight:700;color:var(--blue);letter-spacing:0.04em;margin-right:28px;}
-.nav-logo span{color:var(--cyan);}
-.nav-tabs{display:flex;height:100%;}
-.nav-tab{display:flex;align-items:center;padding:0 16px;font-family:var(--font-head);font-size:21px;font-weight:600;letter-spacing:0.04em;color:var(--text3);border-bottom:2px solid transparent;text-decoration:none;transition:all 0.15s;}
-.nav-tab:hover{color:var(--text2);}
-.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+/* SIDEBAR */
+.sidebar{width:64px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;position:sticky;top:0;height:100vh;flex-shrink:0;}
+.sidebar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:var(--r8);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;box-shadow:0 0 16px var(--blue-glow);}
+.nav-item{width:44px;height:44px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all 0.2s;font-size:20px;border:1px solid transparent;}
+.nav-item:hover{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
+.nav-item.active{background:var(--blue-glow);color:var(--blue);border-color:rgba(76,158,245,0.4);box-shadow:0 0 12px var(--blue-glow);}
+.nav-sep{width:32px;height:1px;background:var(--border);margin:8px 0;}
+.nav-label{font-size:11px;color:var(--text3);letter-spacing:0.06em;text-align:center;margin-top:2px;font-family:var(--font-head);}
+.sidebar-bottom{margin-top:auto;padding-bottom:8px;}
 
-.inner{padding:24px 28px;}
-.lab-badge{display:inline-block;background:var(--blue);color:#e6f1fb;font-size:20px;font-weight:700;padding:4px 14px;border-radius:4px;letter-spacing:0.05em;margin-bottom:10px;}
-h1{font-family:var(--font-head);font-size:34px;font-weight:700;letter-spacing:0.04em;margin-bottom:4px;}
-h1 span{color:var(--cyan);}
-.subtext{font-size:21px;color:var(--text2);margin-bottom:20px;}
+/* MAIN */
+.main{flex:1;padding:28px 32px 60px;overflow-x:hidden;min-width:0;}
 
-.logic-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
-.panel-title{font-family:var(--font-head);font-size:20px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-.panel-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--cyan);}
-.logic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
-.lcard{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
-.lcard-type{font-family:var(--font-head);font-size:21px;font-weight:700;letter-spacing:0.04em;margin-bottom:8px;}
-.lcard-row{display:flex;justify-content:space-between;font-size:20px;margin-bottom:4px;color:var(--text2);}
-.lcard-row .manual{color:var(--amber);}
-.lcard-row .auto{color:var(--green);}
-.lcard-row .fail{color:var(--red);}
-.cap-row{display:flex;gap:16px;flex-wrap:wrap;}
-.cap-item{font-size:20px;color:var(--text2);display:flex;align-items:center;gap:6px;}
-.cap-badge{font-family:var(--font-mono);font-size:20px;font-weight:700;padding:2px 10px;border-radius:4px;}
+/* PAGE HEADER */
+.page-header{margin-bottom:28px;animation:fadeUp 0.5s ease both;}
+.breadcrumb{font-size:16px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.breadcrumb-sep{color:var(--border3);}
+.page-header h1{font-family:var(--font-head);font-size:30px;font-weight:700;letter-spacing:0.04em;color:var(--text);line-height:1.1;margin-bottom:6px;}
+.page-header h1 span{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow);}
+.page-header p{font-size:17px;color:var(--text2);}
 
-.loading-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+/* PANEL */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);margin-bottom:20px;overflow:hidden;animation:fadeUp 0.4s ease both;}
+.panel-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);}
+.panel-header.clickable{cursor:pointer;user-select:none;}
+.panel-header.clickable:hover{background:rgba(255,255,255,0.03);}
+.panel-title{font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);display:flex;align-items:center;gap:8px;}
+.panel-title::before{content:'';width:3px;height:14px;border-radius:2px;background:var(--blue);box-shadow:0 0 8px var(--blue-glow);}
+.panel-body{padding:20px;}
+.toggle-btn{background:rgba(76,158,245,0.1);border:1px solid rgba(76,158,245,0.3);border-radius:var(--r4);color:var(--blue);font-family:var(--font-mono);font-size:13px;padding:4px 12px;cursor:pointer;white-space:nowrap;}
+.toggle-btn:hover{background:rgba(76,158,245,0.18);}
+
+/* SETTINGS TABLE */
+.cfg-table{width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;}
+.cfg-table th{background:var(--bg3);color:var(--text3);font-family:var(--font-head);font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);}
+.cfg-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.cfg-table tr:last-child td{border-bottom:none;}
+.cfg-table tr:hover td{background:rgba(255,255,255,0.02);}
+.cfg-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:8px;vertical-align:middle;flex-shrink:0;}
+.cfg-type{font-family:var(--font-head);font-size:16px;font-weight:700;display:flex;align-items:center;}
+.cfg-inp{width:72px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r4);color:var(--text);font-size:16px;padding:4px 8px;text-align:center;outline:none;font-family:var(--font-mono);}
+.cfg-inp:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-glow);}
+.cfg-cap{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.cfg-cap-item{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--text2);}
+.cfg-cap-item label{font-family:var(--font-head);font-size:14px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
+.cfg-apply{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.06em;padding:7px 20px;border-radius:var(--r6);cursor:pointer;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;border:none;margin-top:16px;transition:all 0.15s;}
+.cfg-apply:hover{box-shadow:0 4px 14px var(--blue-glow);transform:translateY(-1px);}
+
+/* LOADING BARS */
 .pl-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-.pl-name{font-family:var(--font-head);font-size:21px;font-weight:700;min-width:110px;}
-.pl-bar-bg{flex:1;height:20px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;}
-.pl-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:19px;font-weight:700;color:#000;white-space:nowrap;overflow:hidden;transition:width 0.5s;}
-.pl-pct{font-family:var(--font-mono);font-size:20px;min-width:40px;text-align:right;}
-.pl-hrs{font-size:20px;color:var(--text2);min-width:80px;text-align:right;font-family:var(--font-mono);}
+.pl-row:last-child{margin-bottom:0;}
+.pl-name{font-family:var(--font-head);font-size:17px;font-weight:700;min-width:100px;}
+.pl-bar-bg{flex:1;height:18px;background:rgba(255,255,255,0.05);border-radius:var(--r4);overflow:hidden;}
+.pl-bar{height:100%;border-radius:var(--r4);display:flex;align-items:center;padding-left:8px;font-size:14px;font-weight:700;color:#000;white-space:nowrap;overflow:hidden;transition:width 0.5s;}
+.pl-pct{font-family:var(--font-mono);font-size:16px;min-width:38px;text-align:right;}
+.pl-hrs{font-size:15px;color:var(--text2);min-width:90px;text-align:right;font-family:var(--font-mono);}
 
+/* STATS */
 .stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
-.scard{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;}
-.scard-label{font-family:var(--font-head);font-size:19px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
-.scard-val{font-family:var(--font-head);font-size:28px;font-weight:700;}
-.scard-sub{font-size:20px;color:var(--text2);}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r8);padding:12px 16px;}
+.stat-label{font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.stat-val{font-family:var(--font-head);font-size:26px;font-weight:700;}
+.stat-sub{font-size:14px;color:var(--text2);}
 
-.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
-.tb-btn{font-family:var(--font-head);font-size:20px;font-weight:700;letter-spacing:0.05em;padding:7px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);transition:all 0.15s;}
-.tb-btn:hover{color:var(--text);}
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.tb-btn{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.05em;padding:6px 14px;border-radius:var(--r6);cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);transition:all 0.15s;}
+.tb-btn:hover{color:var(--text);border-color:var(--border3);}
 .tb-btn.active{background:rgba(76,158,245,0.15);color:var(--blue);border-color:rgba(76,158,245,0.4);}
 .tb-sep{width:1px;height:22px;background:var(--border2);}
-.tb-label{font-size:20px;color:var(--text3);font-family:var(--font-mono);}
-.add-btn{font-family:var(--font-head);font-size:20px;font-weight:700;letter-spacing:0.05em;padding:7px 18px;border-radius:6px;cursor:pointer;border:none;background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;margin-left:auto;}
-.add-btn:hover{box-shadow:0 4px 14px rgba(76,158,245,0.3);}
+.tb-label{font-size:15px;color:var(--text3);font-family:var(--font-mono);}
+.add-btn{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.05em;padding:6px 18px;border-radius:var(--r6);cursor:pointer;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;margin-left:auto;transition:all 0.15s;}
+.add-btn:hover{box-shadow:0 4px 14px var(--blue-glow);transform:translateY(-1px);}
 
-.legend{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;align-items:center;font-size:20px;color:var(--text2);}
-.leg-dot{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
-.leg-stripe{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.2),rgba(255,255,255,0.2) 2px,transparent 2px,transparent 6px);}
+/* LEGEND */
+.legend{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;align-items:center;font-size:16px;color:var(--text2);}
+.leg-dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
+.leg-stripe{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.2),rgba(255,255,255,0.2) 2px,transparent 2px,transparent 6px);}
 
-.gantt-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+/* GANTT */
+.gantt-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r12);overflow:hidden;}
 .gantt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .gantt-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
 .gh-label-col{width:260px;flex-shrink:0;padding:8px 16px 4px;border-right:1px solid var(--border2);}
-.gh-label-col span{font-family:var(--font-head);font-size:19px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
+.gh-label-col span{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
 .gh-tl{overflow:hidden;}
 .gh-months{display:flex;}
-.gh-month{font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--blue);padding:6px 10px 2px;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;}
+.gh-month{font-family:var(--font-head);font-size:16px;font-weight:700;color:var(--blue);padding:6px 10px 2px;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;}
 .gh-days{display:flex;}
-.gh-day{font-family:var(--font-mono);font-size:19px;color:var(--text3);padding:2px 0 6px;text-align:center;border-right:1px solid var(--border);flex-shrink:0;}
+.gh-day{font-family:var(--font-mono);font-size:15px;color:var(--text3);padding:2px 0 6px;text-align:center;border-right:1px solid var(--border);flex-shrink:0;}
 .gh-day.today{color:var(--cyan);font-weight:700;}
 .gh-day.weekend{background:rgba(255,255,255,0.015);}
-
 .g-group{border-bottom:1px solid var(--border2);}
 .g-person-row{display:flex;background:var(--bg2);cursor:pointer;user-select:none;}
 .g-person-row:hover{background:var(--bg3);}
 .g-lbl{width:260px;flex-shrink:0;padding:10px 14px;display:flex;align-items:center;gap:10px;border-right:1px solid var(--border2);}
-.g-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:21px;font-weight:700;flex-shrink:0;}
-.g-person-name{font-family:var(--font-head);font-size:22px;font-weight:700;}
-.g-person-sub{font-size:20px;color:var(--text3);}
-.g-toggle{margin-left:auto;font-size:19px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;}
+.g-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:17px;font-weight:700;flex-shrink:0;}
+.g-person-name{font-family:var(--font-head);font-size:18px;font-weight:700;}
+.g-person-sub{font-size:15px;color:var(--text3);}
+.g-toggle{margin-left:auto;font-size:15px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;}
 .g-toggle.open{transform:rotate(90deg);}
 .g-tl{flex:1;position:relative;min-height:52px;overflow:hidden;}
-
-.task-bar{position:absolute;height:28px;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:20px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;transition:filter 0.15s;z-index:2;}
+.task-bar{position:absolute;height:26px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;transition:filter 0.15s;z-index:2;}
 .task-bar:hover{filter:brightness(1.15);}
-.task-auto-stripe{position:absolute;top:0;right:0;height:100%;border-radius:0 5px 5px 0;background:repeating-linear-gradient(45deg,rgba(0,0,0,0.2),rgba(0,0,0,0.2) 3px,transparent 3px,transparent 8px);pointer-events:none;}
-.task-lbl{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis;font-size:20px;}
-.task-badge{position:relative;z-index:1;font-size:18px;background:rgba(0,0,0,0.3);border-radius:3px;padding:1px 5px;margin-left:5px;flex-shrink:0;}
-
-.g-sub-rows{display:none;}
-.g-sub-rows.open{display:block;}
+.task-auto-stripe{position:absolute;top:0;right:0;height:100%;border-radius:0 var(--r4) var(--r4) 0;background:repeating-linear-gradient(45deg,rgba(0,0,0,0.2),rgba(0,0,0,0.2) 3px,transparent 3px,transparent 8px);pointer-events:none;}
+.task-lbl{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis;}
+.task-badge{position:relative;z-index:1;font-size:13px;background:rgba(0,0,0,0.3);border-radius:3px;padding:1px 5px;margin-left:5px;flex-shrink:0;}
+.g-sub-rows{display:none;}.g-sub-rows.open{display:block;}
 .g-proj-row{display:flex;border-top:1px solid var(--border);background:rgba(0,0,0,0.1);cursor:pointer;}
 .g-proj-lbl{width:260px;flex-shrink:0;padding:7px 14px 7px 44px;border-right:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-.g-proj-toggle{font-size:18px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;margin-right:4px;}
+.g-proj-toggle{font-size:15px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;margin-right:4px;}
 .g-proj-toggle.open{transform:rotate(90deg);}
-.proj-code{font-family:var(--font-mono);font-size:20px;color:var(--cyan);}
-.proj-sku{font-size:19px;color:var(--text3);}
+.proj-code{font-family:var(--font-mono);font-size:16px;color:var(--cyan);}
+.proj-sku{font-size:15px;color:var(--text3);}
 .g-proj-tl{flex:1;position:relative;min-height:36px;overflow:hidden;}
-.proj-bar{position:absolute;height:22px;border-radius:4px;top:7px;display:flex;align-items:center;padding:0 7px;font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;}
-.proj-bar:hover{filter:brightness(1.15);}
-
-.g-hour-rows{display:none;}
-.g-hour-rows.open{display:block;}
+.g-hour-rows{display:none;}.g-hour-rows.open{display:block;}
 .g-hour-row{display:flex;border-top:1px solid rgba(255,255,255,0.04);}
-.g-hour-lbl{width:260px;flex-shrink:0;padding:4px 14px 4px 60px;border-right:1px solid var(--border);font-size:20px;color:var(--text3);font-family:var(--font-mono);display:flex;align-items:center;}
+.g-hour-lbl{width:260px;flex-shrink:0;padding:4px 14px 4px 60px;border-right:1px solid var(--border);font-size:15px;color:var(--text3);font-family:var(--font-mono);display:flex;align-items:center;}
 .g-hour-tl{flex:1;position:relative;min-height:26px;background:rgba(0,0,0,0.12);overflow:hidden;}
-.hour-blk{position:absolute;height:18px;border-radius:3px;top:4px;display:flex;align-items:center;padding:0 6px;font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;}
-
+.hour-blk{position:absolute;height:18px;border-radius:3px;top:4px;display:flex;align-items:center;padding:0 6px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;}
 .today-line{position:absolute;top:0;bottom:0;width:2px;background:var(--cyan);opacity:0.5;z-index:15;pointer-events:none;}
-.today-lbl{position:absolute;top:2px;left:4px;font-size:17px;color:var(--cyan);font-family:var(--font-mono);white-space:nowrap;}
+.today-lbl{position:absolute;top:2px;left:4px;font-size:13px;color:var(--cyan);font-family:var(--font-mono);white-space:nowrap;}
 .we-shade{position:absolute;top:0;bottom:0;background:rgba(255,255,255,0.012);pointer-events:none;}
 
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 1rem;overflow-y:auto;backdrop-filter:blur(4px);}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:540px;position:relative;max-height:90vh;overflow-y:auto;}
-.modal h3{font-family:var(--font-head);font-size:26px;font-weight:700;margin-bottom:4px;}
-.modal p{font-size:21px;color:var(--text2);margin-bottom:16px;}
-.mclose{position:absolute;top:14px;right:16px;background:none;border:none;font-size:28px;cursor:pointer;color:var(--text3);}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r12);padding:24px;width:100%;max-width:540px;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.6);}
+.modal h3{font-family:var(--font-head);font-size:22px;font-weight:700;letter-spacing:0.04em;margin-bottom:4px;}
+.modal>p{font-size:17px;color:var(--text2);margin-bottom:16px;}
+.mclose{position:absolute;top:14px;right:16px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--text3);}
 .mclose:hover{color:var(--text);}
 .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
-.field label{font-family:var(--font-head);font-size:19px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);}
-.field-hint{font-size:19px;color:var(--text3);}
-input[type=text],input[type=date],input[type=time],input[type=number],select{font-family:var(--font-body);font-size:21px;color:var(--text);background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;width:100%;outline:none;transition:border-color 0.15s;-webkit-appearance:none;appearance:none;}
-input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(76,158,245,0.15);}
+.field label{font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);}
+.field-hint{font-size:16px;color:var(--text3);}
+input[type=text],input[type=date],input[type=number],select{
+  font-family:var(--font-body);font-size:17px;color:var(--text);
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r6);padding:9px 12px;width:100%;outline:none;
+  transition:all 0.2s;-webkit-appearance:none;appearance:none;
+}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.8;cursor:pointer;}
 select option{background:var(--bg3);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%234f6180' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .mbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
-.btn{font-family:var(--font-head);font-size:21px;font-weight:700;letter-spacing:0.04em;padding:9px 20px;border-radius:6px;cursor:pointer;border:none;transition:all 0.15s;}
+.btn{font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:0.04em;padding:9px 20px;border-radius:var(--r6);cursor:pointer;border:none;transition:all 0.15s;}
 .btn-sec{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
 .btn-sec:hover{color:var(--text);}
-.btn-pri{background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;}
-.btn-pri:hover{box-shadow:0 4px 14px rgba(76,158,245,0.3);}
+.btn-pri{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;}
+.btn-pri:hover{box-shadow:0 4px 14px var(--blue-glow);}
 .btn-del{background:rgba(255,92,122,0.1);border:1px solid rgba(255,92,122,0.25);color:var(--red);}
 .btn-del:hover{background:rgba(255,92,122,0.2);}
-.est-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-top:10px;}
-.est-title{font-size:19px;font-family:var(--font-head);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
-.est-row{display:flex;justify-content:space-between;font-size:20px;margin-bottom:4px;color:var(--text2);}
+.est-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);padding:12px 14px;margin-top:10px;}
+.est-title{font-size:16px;font-family:var(--font-head);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.est-row{display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;color:var(--text2);}
 .est-row span{font-family:var(--font-mono);}
 .em{color:var(--amber);}.ea{color:var(--green);}.eb{color:var(--blue);font-weight:700;}
 
-@media(max-width:768px){.stats-bar{grid-template-columns:repeat(2,1fr);}.logic-grid{grid-template-columns:1fr;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:860px){
+  .sidebar{display:none;}
+  .main{padding:20px 16px 40px;}
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+}
 </style>
 </head>
 <body>
 <!-- Password Modal -->
-<div id="pw-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="background:#111827;border:1px solid #ffffff20;border-radius:12px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.6);">
-    <div style="font-family:'Rajdhani','Segoe UI',sans-serif;font-size:22px;font-weight:700;color:#4c9ef5;letter-spacing:0.06em;margin-bottom:6px;">HW Gaming Lab</div>
-    <div style="font-size:14px;color:#8fa0bb;margin-bottom:24px;">請輸入密碼以繼續</div>
-    <input id="pw-input" type="password" placeholder="密碼" onkeydown="if(event.key==='Enter')checkPw()"
-      style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ffffff30;background:#1e2a40;color:#e8edf5;font-size:15px;outline:none;margin-bottom:12px;"/>
-    <div id="pw-err" style="color:#ff5c7a;font-size:13px;min-height:18px;margin-bottom:10px;"></div>
-    <button onclick="checkPw()"
-      style="width:100%;padding:10px;border-radius:8px;background:#4c9ef5;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">進入</button>
+<div id="pw-modal" style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#141824;border:1px solid rgba(0,212,255,0.3);border-radius:12px;padding:40px 48px;text-align:center;min-width:320px;">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:#00d4ff;letter-spacing:0.1em;margin-bottom:8px;">HW GAMING LAB</div>
+    <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:28px;">請輸入存取密碼</div>
+    <input id="pw-input" type="password" placeholder="Password" style="width:100%;padding:10px 14px;background:#1e2635;border:1px solid rgba(0,212,255,0.3);border-radius:6px;color:#fff;font-size:16px;text-align:center;letter-spacing:0.2em;outline:none;margin-bottom:12px;" onkeydown="if(event.key==='Enter')checkPW()"/>
+    <div id="pw-err" style="color:#ff6b6b;font-size:13px;min-height:18px;margin-bottom:12px;"></div>
+    <button onclick="checkPW()" style="width:100%;padding:10px;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);border-radius:6px;color:#00d4ff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;cursor:pointer;">ENTER</button>
   </div>
 </div>
 <script>
-function checkPw(){
+function checkPW(){
   var v=document.getElementById('pw-input').value;
-  if(v==='GL#31#'){document.getElementById('pw-overlay').style.display='none';}
-  else{document.getElementById('pw-err').textContent='密碼錯誤，請重試';document.getElementById('pw-input').value='';}
+  if(v==='GL#31#'){document.getElementById('pw-modal').style.display='none';}
+  else{document.getElementById('pw-err').textContent='密碼錯誤，請重新輸入';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
 }
+document.getElementById('pw-input').focus();
 </script>
+
 <div class="outer">
-<div class="topnav">
-  <div class="nav-logo">HW Gaming <span>Lab</span></div>
-  <div class="nav-tabs">
-    <a href="form.html" class="nav-tab">需求申請</a>
-    <a href="gantt.html" class="nav-tab active">排程甘特圖</a>
-    <a href="result.html" class="nav-tab">Result 比較</a>
-  </div>
-</div>
-<div class="inner">
-<div><span class="lab-badge">HW Gaming 加速實驗室</span></div>
-<h1>測試排程 — <span>甘特圖</span></h1>
-<p class="subtext">人員 Loading 與機台專案分配，起始日期：2026.06.01 ｜每人每日可用工時：5hr（彈性）</p>
 
-<div class="logic-panel">
-  <div class="panel-title">Loading 運算邏輯</div>
-  <div class="logic-grid">
-    <div class="lcard">
-      <div class="lcard-type" style="color:#4c9ef5;">🔋 Battery Life</div>
-      <div class="lcard-row">手動工時（佔人力）：<span class="manual">5 hr</span></div>
-      <div class="lcard-row">自動工時（不佔人力）：<span class="auto">120 hr ≈ 5天</span></div>
-      <div class="lcard-row">單測項架設：<span class="auto">~10 min</span></div>
-      <div class="lcard-row">Fail 全手動：<span class="fail">最長 5 hr</span></div>
-    </div>
-    <div class="lcard">
-      <div class="lcard-type" style="color:#a855f7;">📊 Benchmark</div>
-      <div class="lcard-row">手動工時（佔人力）：<span class="manual">1 hr</span></div>
-      <div class="lcard-row">自動工時（不佔人力）：<span class="auto">5 hr</span></div>
-      <div class="lcard-row">Fail 全手動：<span class="fail">彈性</span></div>
-    </div>
-    <div class="lcard">
-      <div class="lcard-type" style="color:#00e5a0;">🎮 Gaming FPS</div>
-      <div class="lcard-row">手動工時（佔人力）：<span class="manual">8 hr</span></div>
-      <div class="lcard-row">自動工時（不佔人力）：<span class="auto">20 hr</span></div>
-      <div class="lcard-row">Fail 全手動：<span class="fail">彈性</span></div>
-    </div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">GL</div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Form" onclick="window.location.href='form.html'">📋</div>
+    <div class="nav-label">Form</div>
   </div>
-  <div class="cap-row">
-    <div class="cap-item"><span class="cap-badge" style="background:rgba(76,158,245,0.15);color:#4c9ef5;">4人有效</span> Sandra / Allen / Sally / Enya（人名TBD）</div>
-    <div class="cap-item"><span class="cap-badge" style="background:rgba(0,229,160,0.12);color:#00e5a0;">每日 20hr</span> 最大團隊人力</div>
-    <div class="cap-item"><span class="cap-badge" style="background:rgba(255,179,71,0.12);color:#ffb347;">1人≤10台</span> 同時管理上限</div>
-    <div class="cap-item"><span class="cap-badge" style="background:rgba(76,158,245,0.12);color:#4c9ef5;">1專案≤3台</span> 同時測試上限</div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Result" onclick="window.location.href='result.html'">📊</div>
+    <div class="nav-label">Result</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item active" title="Schedule">📅</div>
+    <div class="nav-label">Schedule</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="sidebar-bottom" style="text-align:center;">
+    <div class="nav-item" title="Guide" onclick="alert('User Guide — coming soon.')">📖</div>
+    <div class="nav-label">Guide</div>
   </div>
 </div>
 
-<div class="loading-panel">
-  <div class="panel-title" style="--cyan:#00d4ff;">人員 Loading 概況（60 天）</div>
-  <div id="loading-bars"></div>
-</div>
+<!-- MAIN -->
+<div class="main">
 
-<div class="stats-bar">
-  <div class="scard"><div class="scard-label">排程任務</div><div class="scard-val" id="st-tasks" style="color:#4c9ef5;">0</div><div class="scard-sub">個任務</div></div>
-  <div class="scard"><div class="scard-label">機台台次</div><div class="scard-val" id="st-machines" style="color:#00d4ff;">0</div><div class="scard-sub">台</div></div>
-  <div class="scard"><div class="scard-label">人力工時</div><div class="scard-val" id="st-manual" style="color:#ffb347;">0hr</div><div class="scard-sub">手動（佔人力）</div></div>
-  <div class="scard"><div class="scard-label">自動工時</div><div class="scard-val" id="st-auto" style="color:#00e5a0;">0hr</div><div class="scard-sub">不佔人力</div></div>
-  <div class="scard"><div class="scard-label">Fail 任務</div><div class="scard-val" id="st-fail" style="color:#ff5c7a;">0</div><div class="scard-sub">需人工介入</div></div>
-</div>
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="breadcrumb">
+      <span>HW GAMING LAB</span>
+      <span class="breadcrumb-sep">›</span>
+      <span>SCHEDULE</span>
+    </div>
+    <h1>Test Schedule — <span>Gantt Chart</span></h1>
+    <p>Member loading &amp; machine assignment ｜ Start: 2026.06.01 ｜ Daily capacity: <span id="hdr-hpd">5</span> hr/person</p>
+  </div>
 
-<div class="toolbar">
-  <span class="tb-label">檢視：</span>
-  <button class="tb-btn active" onclick="setView(60,this)">月（60天）</button>
-  <button class="tb-btn" onclick="setView(14,this)">週（14天）</button>
-  <div class="tb-sep"></div>
-  <span class="tb-label">展開：</span>
-  <button class="tb-btn" onclick="expandAll()">全部展開</button>
-  <button class="tb-btn" onclick="collapseAll()">全部收合</button>
-  <button class="add-btn" onclick="openAddModal()">＋ 新增排程</button>
-</div>
-
-<div class="legend">
-  <span><span class="leg-dot" style="background:#4c9ef5;"></span>Battery Life</span>
-  <span><span class="leg-dot" style="background:#a855f7;"></span>Benchmark</span>
-  <span><span class="leg-dot" style="background:#00e5a0;"></span>Gaming FPS</span>
-  <span><span class="leg-dot" style="background:#ffb347;"></span>混合測試</span>
-  <span><span class="leg-dot" style="background:#ff5c7a;"></span>Fail/待修</span>
-  <span><span class="leg-dot" style="background:#2dd4bf;"></span>複測</span>
-  <span style="color:#4f6180;">|</span>
-  <span><span class="leg-stripe"></span>自動測試段（不佔人力）</span>
-</div>
-
-<div class="gantt-wrap">
-  <div class="gantt-scroll">
-    <div class="gantt-header">
-      <div class="gh-label-col"><span>人員 / 機台</span></div>
-      <div class="gh-tl">
-        <div class="gh-months" id="gh-months"></div>
-        <div class="gh-days" id="gh-days"></div>
+  <!-- SETTINGS PANEL -->
+  <div class="panel">
+    <div class="panel-header clickable" onclick="toggleSettings()">
+      <div class="panel-title">Calculation Settings</div>
+      <button id="cfg-toggle" class="toggle-btn">Expand ↓</button>
+    </div>
+    <div id="cfg-body" style="display:none;">
+      <div class="panel-body">
+        <table class="cfg-table">
+          <thead>
+            <tr>
+              <th>Test Type</th>
+              <th>Manual (hr)</th>
+              <th>Auto (hr)</th>
+              <th>Fail → Full Manual (hr)</th>
+            </tr>
+          </thead>
+          <tbody id="cfg-tbody"></tbody>
+        </table>
+        <div class="cfg-cap">
+          <div class="cfg-cap-item">
+            <label>Daily Hours / Person (HPD)</label>
+            <input type="number" id="cfg-hpd" class="cfg-inp" value="5" min="1" max="24"/>
+          </div>
+          <div class="cfg-cap-item">
+            <label>Max Machines / Project</label>
+            <input type="number" id="cfg-max-proj" class="cfg-inp" value="3" min="1" max="10"/>
+          </div>
+          <div class="cfg-cap-item">
+            <label>Max Machines / Person</label>
+            <input type="number" id="cfg-max-person" class="cfg-inp" value="10" min="1" max="20"/>
+          </div>
+        </div>
+        <button class="cfg-apply" onclick="applyConfig()">Apply Settings</button>
       </div>
     </div>
-    <div id="gantt-body"></div>
   </div>
-</div>
-</div>
-</div>
+
+  <!-- LOADING PANEL -->
+  <div class="panel">
+    <div class="panel-header" style="cursor:default;">
+      <div class="panel-title">Member Loading (<span id="lp-days">60</span>-Day View)</div>
+    </div>
+    <div class="panel-body" id="loading-bars"></div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-label">Tasks</div><div class="stat-val" id="st-tasks" style="color:var(--blue);">0</div><div class="stat-sub">scheduled</div></div>
+    <div class="stat-card"><div class="stat-label">Machines</div><div class="stat-val" id="st-machines" style="color:var(--cyan);">0</div><div class="stat-sub">units</div></div>
+    <div class="stat-card"><div class="stat-label">Manual Hr</div><div class="stat-val" id="st-manual" style="color:var(--amber);">0</div><div class="stat-sub">labor hours</div></div>
+    <div class="stat-card"><div class="stat-label">Auto Hr</div><div class="stat-val" id="st-auto" style="color:var(--green);">0</div><div class="stat-sub">unattended</div></div>
+    <div class="stat-card"><div class="stat-label">Fail Tasks</div><div class="stat-val" id="st-fail" style="color:var(--red);">0</div><div class="stat-sub">need attention</div></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <span class="tb-label">View:</span>
+    <button class="tb-btn active" onclick="setView(60,this)">60 Days</button>
+    <button class="tb-btn" onclick="setView(14,this)">14 Days</button>
+    <div class="tb-sep"></div>
+    <span class="tb-label">Expand:</span>
+    <button class="tb-btn" onclick="expandAll()">All</button>
+    <button class="tb-btn" onclick="collapseAll()">None</button>
+    <button class="add-btn" onclick="openAddModal()">＋ New Task</button>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <span><span class="leg-dot" style="background:#4c9ef5;"></span>Battery Life</span>
+    <span><span class="leg-dot" style="background:#a855f7;"></span>Benchmark</span>
+    <span><span class="leg-dot" style="background:#00e5a0;"></span>Gaming FPS</span>
+    <span><span class="leg-dot" style="background:#ffb347;"></span>Mixed</span>
+    <span><span class="leg-dot" style="background:#ff5c7a;"></span>Fail</span>
+    <span><span class="leg-dot" style="background:#2dd4bf;"></span>Retest</span>
+    <span style="color:var(--text3);">|</span>
+    <span><span class="leg-stripe"></span>Auto-test (no labor)</span>
+  </div>
+
+  <!-- GANTT CHART -->
+  <div class="gantt-wrap">
+    <div class="gantt-scroll">
+      <div class="gantt-header">
+        <div class="gh-label-col"><span>Member / Machine</span></div>
+        <div class="gh-tl">
+          <div class="gh-months" id="gh-months"></div>
+          <div class="gh-days" id="gh-days"></div>
+        </div>
+      </div>
+      <div id="gantt-body"></div>
+    </div>
+  </div>
+
+</div><!-- end .main -->
+</div><!-- end .outer -->
 
 <!-- ADD MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <button class="mclose" onclick="closeM('add-modal')">×</button>
-    <h3>新增排程任務</h3>
-    <p>系統將自動依照工時邏輯計算結束日期</p>
+    <h3>New Task</h3>
+    <p>End date is calculated automatically from work-hour logic.</p>
     <div class="g2">
-      <div class="field"><label>負責人員</label>
+      <div class="field"><label>Assignee</label>
         <select id="m-person"><option>Sandra</option><option>Allen</option><option>Sally</option><option>Enya</option></select>
       </div>
-      <div class="field"><label>測試類別</label>
+      <div class="field"><label>Test Type</label>
         <select id="m-type" onchange="updateEst('m')">
           <option value="battery">Battery Life</option>
           <option value="bench">Benchmark</option>
           <option value="fps">Gaming FPS</option>
-          <option value="mixed">混合測試</option>
-          <option value="retest">複測</option>
-          <option value="fail">Fail/待修</option>
+          <option value="mixed">Mixed</option>
+          <option value="retest">Retest</option>
+          <option value="fail">Fail / Repair</option>
         </select>
       </div>
     </div>
     <div class="g2">
-      <div class="field"><label>專案代號</label><input type="text" id="m-code" placeholder="NB-2025-XX"/></div>
+      <div class="field"><label>Project Code</label><input type="text" id="m-code" placeholder="NB-2025-XX"/></div>
       <div class="field"><label>SKU</label><input type="text" id="m-sku" placeholder="SKU-001"/></div>
     </div>
     <div class="g2">
-      <div class="field"><label>機台數量（1~3）</label>
+      <div class="field"><label>Machines (1–3)</label>
         <input type="number" id="m-machines" value="1" min="1" max="3" oninput="updateEst('m')"/>
-        <span class="field-hint">單一專案最多 3 台同時</span>
+        <span class="field-hint">Max 3 per project</span>
       </div>
-      <div class="field"><label>開始日期</label><input type="date" id="m-start" value="2026-06-01" oninput="updateEst('m')"/></div>
+      <div class="field"><label>Start Date</label><input type="date" id="m-start" value="2026-06-01" oninput="updateEst('m')"/></div>
     </div>
-    <div class="field"><label>Fail 全手動模式</label>
-      <select id="m-fail" onchange="updateEst('m')"><option value="0">否（正常自動化）</option><option value="1">是（Fail → 全手動）</option></select>
+    <div class="field"><label>Fail → Full Manual</label>
+      <select id="m-fail" onchange="updateEst('m')">
+        <option value="0">No (auto mode)</option>
+        <option value="1">Yes (fail → full manual)</option>
+      </select>
     </div>
-    <div class="field"><label>備註</label><input type="text" id="m-note" placeholder="測試說明"/></div>
+    <div class="field"><label>Note</label><input type="text" id="m-note" placeholder="Test description"/></div>
     <div class="est-box">
-      <div class="est-title">工時預估</div>
-      <div class="est-row">手動工時（佔人力）：<span class="em" id="em-manual">—</span></div>
-      <div class="est-row">自動工時（不佔人力）：<span class="ea" id="em-auto">—</span></div>
-      <div class="est-row">人力佔用天數：<span class="eb" id="em-days">—</span></div>
-      <div class="est-row">預計完成日：<span class="eb" id="em-end">—</span></div>
+      <div class="est-title">Estimate</div>
+      <div class="est-row">Manual hours (labor)：<span class="em" id="em-manual">—</span></div>
+      <div class="est-row">Auto hours (unattended)：<span class="ea" id="em-auto">—</span></div>
+      <div class="est-row">Labor days：<span class="eb" id="em-days">—</span></div>
+      <div class="est-row">Est. end date：<span class="eb" id="em-end">—</span></div>
     </div>
     <div class="mbtns">
-      <button class="btn btn-sec" onclick="closeM('add-modal')">取消</button>
-      <button class="btn btn-pri" onclick="addTask()">＋ 新增</button>
+      <button class="btn btn-sec" onclick="closeM('add-modal')">Cancel</button>
+      <button class="btn btn-pri" onclick="addTask()">＋ Add</button>
     </div>
   </div>
 </div>
@@ -329,55 +427,58 @@ function checkPw(){
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <button class="mclose" onclick="closeM('edit-modal')">×</button>
-    <h3>編輯排程任務</h3>
-    <p id="edit-sub" style="color:#00d4ff;font-family:monospace;font-size:21px;"></p>
+    <h3>Edit Task</h3>
+    <p id="edit-sub" style="color:var(--cyan);font-family:var(--font-mono);font-size:17px;"></p>
     <div class="g2">
-      <div class="field"><label>測試類別</label>
+      <div class="field"><label>Test Type</label>
         <select id="e-type" onchange="updateEst('e')">
           <option value="battery">Battery Life</option>
           <option value="bench">Benchmark</option>
           <option value="fps">Gaming FPS</option>
-          <option value="mixed">混合測試</option>
-          <option value="retest">複測</option>
-          <option value="fail">Fail/待修</option>
+          <option value="mixed">Mixed</option>
+          <option value="retest">Retest</option>
+          <option value="fail">Fail / Repair</option>
         </select>
       </div>
-      <div class="field"><label>機台數量</label><input type="number" id="e-machines" min="1" max="3" oninput="updateEst('e')"/></div>
+      <div class="field"><label>Machines</label><input type="number" id="e-machines" min="1" max="3" oninput="updateEst('e')"/></div>
     </div>
     <div class="g2">
-      <div class="field"><label>開始日期</label><input type="date" id="e-start" oninput="updateEst('e')"/></div>
-      <div class="field"><label>Fail 全手動</label>
-        <select id="e-fail" onchange="updateEst('e')"><option value="0">否</option><option value="1">是</option></select>
+      <div class="field"><label>Start Date</label><input type="date" id="e-start" oninput="updateEst('e')"/></div>
+      <div class="field"><label>Fail → Full Manual</label>
+        <select id="e-fail" onchange="updateEst('e')">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
       </div>
     </div>
-    <div class="field"><label>備註</label><input type="text" id="e-note"/></div>
+    <div class="field"><label>Note</label><input type="text" id="e-note"/></div>
     <div class="est-box">
-      <div class="est-title">工時預估</div>
-      <div class="est-row">手動工時：<span class="em" id="ee-manual">—</span></div>
-      <div class="est-row">自動工時：<span class="ea" id="ee-auto">—</span></div>
-      <div class="est-row">預計完成日：<span class="eb" id="ee-end">—</span></div>
+      <div class="est-title">Estimate</div>
+      <div class="est-row">Manual hours：<span class="em" id="ee-manual">—</span></div>
+      <div class="est-row">Auto hours：<span class="ea" id="ee-auto">—</span></div>
+      <div class="est-row">Est. end date：<span class="eb" id="ee-end">—</span></div>
     </div>
     <div class="mbtns">
-      <button class="btn btn-del" onclick="deleteTask()">刪除</button>
-      <button class="btn btn-sec" onclick="closeM('edit-modal')">取消</button>
-      <button class="btn btn-pri" onclick="saveEdit()">儲存</button>
+      <button class="btn btn-del" onclick="deleteTask()">Delete</button>
+      <button class="btn btn-sec" onclick="closeM('edit-modal')">Cancel</button>
+      <button class="btn btn-pri" onclick="saveEdit()">Save</button>
     </div>
   </div>
 </div>
 
 <script>
 var START = new Date('2026-06-01');
-var DAY_W = 34;
-var DAYS = 60;
-var HPD = 5;
+var DAY_W = 32;
+var DAYS  = 60;
+var HPD   = 5;
 
 var TCFG = {
   battery:{m:5,  a:120, f:5,  c:'#4c9ef5', lbl:'Battery Life'},
   bench:  {m:1,  a:5,   f:4,  c:'#a855f7', lbl:'Benchmark'},
   fps:    {m:8,  a:20,  f:16, c:'#00e5a0', lbl:'Gaming FPS'},
-  mixed:  {m:14, a:145, f:21, c:'#ffb347', lbl:'混合測試'},
-  retest: {m:5,  a:20,  f:10, c:'#2dd4bf', lbl:'複測'},
-  fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/待修'}
+  mixed:  {m:14, a:145, f:21, c:'#ffb347', lbl:'Mixed'},
+  retest: {m:5,  a:20,  f:10, c:'#2dd4bf', lbl:'Retest'},
+  fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/Repair'}
 };
 var PERSONS = [
   {id:'Sandra',name:'Sandra',    init:'SA',c:'#4c9ef5',active:true},
@@ -396,6 +497,47 @@ var tasks=[
 ];
 var nextId=8, editTask=null, expanded={}, hourExp={};
 
+/* ---------- SETTINGS ---------- */
+function buildCfgTable(){
+  var tbody=document.getElementById('cfg-tbody'); tbody.innerHTML='';
+  var rows=[
+    {key:'battery',lbl:'Battery Life',c:'#4c9ef5'},
+    {key:'bench',  lbl:'Benchmark',   c:'#a855f7'},
+    {key:'fps',    lbl:'Gaming FPS',  c:'#00e5a0'},
+    {key:'mixed',  lbl:'Mixed',       c:'#ffb347'},
+    {key:'retest', lbl:'Retest',      c:'#2dd4bf'},
+    {key:'fail',   lbl:'Fail/Repair', c:'#ff5c7a'}
+  ];
+  rows.forEach(function(r){
+    var cfg=TCFG[r.key];
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td><span class="cfg-type"><span class="cfg-dot" style="background:'+r.c+'"></span>'+r.lbl+'</span></td>'+
+      '<td><input type="number" class="cfg-inp" id="cfg-'+r.key+'-m" value="'+cfg.m+'" min="0" step="0.5"/></td>'+
+      '<td><input type="number" class="cfg-inp" id="cfg-'+r.key+'-a" value="'+cfg.a+'" min="0" step="1"/></td>'+
+      '<td><input type="number" class="cfg-inp" id="cfg-'+r.key+'-f" value="'+cfg.f+'" min="0" step="0.5"/></td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('cfg-hpd').value=HPD;
+}
+function toggleSettings(){
+  var body=document.getElementById('cfg-body');
+  var btn=document.getElementById('cfg-toggle');
+  var open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  btn.textContent=open?'Collapse ↑':'Expand ↓';
+}
+function applyConfig(){
+  ['battery','bench','fps','mixed','retest','fail'].forEach(function(k){
+    TCFG[k].m=parseFloat(document.getElementById('cfg-'+k+'-m').value)||0;
+    TCFG[k].a=parseFloat(document.getElementById('cfg-'+k+'-a').value)||0;
+    TCFG[k].f=parseFloat(document.getElementById('cfg-'+k+'-f').value)||0;
+  });
+  HPD=parseFloat(document.getElementById('cfg-hpd').value)||5;
+  document.getElementById('hdr-hpd').textContent=HPD;
+  buildGantt();
+}
+
+/* ---------- CORE ---------- */
 function calc(t){
   var cfg=TCFG[t.type]||TCFG.battery;
   var mh=t.failMode?cfg.f:cfg.m;
@@ -416,7 +558,7 @@ function buildHeader(){
   for(var i=0;i<DAYS;i++){
     var d=new Date(START);d.setDate(d.getDate()+i);
     var k=(d.getMonth()+1)+'/'+d.getFullYear();
-    if(!mm[k])mm[k]={lbl:(d.getMonth()+1)+'月 '+d.getFullYear(),n:0};
+    if(!mm[k])mm[k]={lbl:(d.getMonth()+1)+'/'+d.getFullYear(),n:0};
     mm[k].n++;
     var we=d.getDay()===0||d.getDay()===6;
     var td=fmt(d)===fmt(new Date());
@@ -429,6 +571,7 @@ function buildHeader(){
     var el=document.createElement('div');el.className='gh-month';
     el.style.width=(m.n*DAY_W)+'px';el.textContent=m.lbl;mi.appendChild(el);
   });
+  document.getElementById('lp-days').textContent=DAYS;
 }
 
 function buildGantt(){
@@ -443,8 +586,8 @@ function buildGantt(){
     av.style.cssText='background:rgba('+hexRgb(p.c)+',0.18);color:'+p.c+';border:1px solid '+p.c+'55;';
     av.textContent=p.init;
     var inf=document.createElement('div');
-    inf.innerHTML='<div class="g-person-name" style="color:'+p.c+'">'+p.name+(p.active?'':'<span style="font-size:18px;color:#ffb347;margin-left:6px;">TBD</span>')+'</div>'+
-      '<div class="g-person-sub">'+pt.length+' 個任務 · '+(p.active?'有效人力':'待確認')+'</div>';
+    inf.innerHTML='<div class="g-person-name" style="color:'+p.c+'">'+p.name+'</div>'+
+      '<div class="g-person-sub">'+pt.length+' tasks · '+(p.active?'active':'TBD')+'</div>';
     var tog=document.createElement('div');tog.className='g-toggle'+(expanded[p.id]?' open':'');tog.textContent='▶';
     lbl.appendChild(av);lbl.appendChild(inf);lbl.appendChild(tog);
     var tl=document.createElement('div');tl.className='g-tl';
@@ -456,9 +599,9 @@ function buildGantt(){
       var c=calc(t),off=dayOff(t.start),slot=0;
       while(used.some(function(s){return s.slot===slot&&s.e>off&&s.s<off+c.total;}))slot++;
       used.push({slot:slot,s:off,e:off+c.total});
-      renderBar(t,c,tl,26,slot*34+10,false);
+      renderBar(t,c,tl,26,slot*32+10,false);
     });
-    tl.style.minHeight=Math.max(52,(used.length||1)*34+12)+'px';
+    tl.style.minHeight=Math.max(52,(used.length||1)*32+12)+'px';
     var subs=document.createElement('div');subs.className='g-sub-rows'+(expanded[p.id]?' open':'');
     var pm={};pt.forEach(function(t){var k=t.code+'|'+t.sku;if(!pm[k])pm[k]=[];pm[k].push(t);});
     Object.keys(pm).forEach(function(key){
@@ -475,25 +618,25 @@ function buildGantt(){
       var hrs=document.createElement('div');hrs.className='g-hour-rows'+(hourExp[pkey]?' open':'');
       ptasks2.forEach(function(t){
         var c=calc(t);
-        for(var d=0;d<c.md;d++){
-          var dd=new Date(t.start);dd.setDate(dd.getDate()+d);
+        for(var dd=0;dd<c.md;dd++){
+          var dobj=new Date(t.start);dobj.setDate(dobj.getDate()+dd);
           var hr=document.createElement('div');hr.className='g-hour-row';
-          var hl=document.createElement('div');hl.className='g-hour-lbl';hl.textContent=fmt(dd).slice(5)+' 手動 '+HPD+'hr';
+          var hl=document.createElement('div');hl.className='g-hour-lbl';hl.textContent=fmt(dobj).slice(5)+' manual '+HPD+'hr';
           var ht=document.createElement('div');ht.className='g-hour-tl';ht.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
-          var off=dayOff(fmt(dd));
+          var off=dayOff(fmt(dobj));
           var hb=document.createElement('div');hb.className='hour-blk';
           hb.style.cssText='left:'+(off*DAY_W+2)+'px;width:'+(DAY_W*(HPD/24)-4)+'px;background:'+(TCFG[t.type]||TCFG.battery).c+';color:#000;';
-          hb.textContent='手動 '+HPD+'hr';ht.appendChild(hb);hr.appendChild(hl);hr.appendChild(ht);hrs.appendChild(hr);
+          hb.textContent='manual '+HPD+'hr';ht.appendChild(hb);hr.appendChild(hl);hr.appendChild(ht);hrs.appendChild(hr);
         }
         if(c.ah>0){for(var ad=0;ad<c.ad;ad++){
           var aday=new Date(t.start);aday.setDate(aday.getDate()+c.md+ad);
           var ar=document.createElement('div');ar.className='g-hour-row';
-          var al=document.createElement('div');al.className='g-hour-lbl';al.style.color='#00e5a0';al.textContent=fmt(aday).slice(5)+' 自動（不佔人力）';
+          var al=document.createElement('div');al.className='g-hour-lbl';al.style.color='var(--green)';al.textContent=fmt(aday).slice(5)+' auto (unattended)';
           var at2=document.createElement('div');at2.className='g-hour-tl';at2.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
           var aoff=dayOff(fmt(aday));
           var ab=document.createElement('div');ab.className='hour-blk';
-          ab.style.cssText='left:'+(aoff*DAY_W+2)+'px;width:'+(DAY_W-4)+'px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);color:#00e5a0;font-size:19px;';
-          ab.textContent='自動 24hr';at2.appendChild(ab);ar.appendChild(al);ar.appendChild(at2);hrs.appendChild(ar);
+          ab.style.cssText='left:'+(aoff*DAY_W+2)+'px;width:'+(DAY_W-4)+'px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);color:var(--green);font-size:13px;';
+          ab.textContent='auto 24hr';at2.appendChild(ab);ar.appendChild(al);ar.appendChild(at2);hrs.appendChild(ar);
         }}
       });
       pr.onclick=function(e){e.stopPropagation();hourExp[pkey]=!hourExp[pkey];hrs.classList.toggle('open',hourExp[pkey]);ptog.classList.toggle('open',hourExp[pkey]);};
@@ -511,8 +654,8 @@ function renderBar(t,c,container,h,top,small){
   var bar=document.createElement('div');bar.className='task-bar';
   bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+(c.total*DAY_W-3)+'px;top:'+top+'px;height:'+h+'px;background:'+cfg.c+';color:#000;';
   if(c.ah>0&&!small){var st=document.createElement('div');st.className='task-auto-stripe';st.style.width=(c.ad/c.total*100)+'%';bar.appendChild(st);}
-  var lbl=document.createElement('span');lbl.className='task-lbl';lbl.textContent=(small?t.code:cfg.lbl+' · '+t.code)+(t.failMode?' ⚠':'');lbl.style.fontSize=small?'11px':'12px';bar.appendChild(lbl);
-  if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.mh+'hr人力';bar.appendChild(bdg);}
+  var lbl=document.createElement('span');lbl.className='task-lbl';lbl.textContent=(small?t.code:cfg.lbl+' · '+t.code)+(t.failMode?' ⚠':'');bar.appendChild(lbl);
+  if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.mh+'hr';bar.appendChild(bdg);}
   bar.onclick=function(e){e.stopPropagation();openEditModal(t);};
   container.appendChild(bar);
 }
@@ -551,15 +694,25 @@ function updateEst(p){
   var mh=fail?cfg.f:cfg.m,ah=fail?0:cfg.a;
   var md=Math.ceil(mh/HPD),ad=Math.ceil(ah/24);
   var sfx=p==='m'?'em':'ee';
-  document.getElementById(sfx+'-manual').textContent=mh+' hr（約 '+md+' 天 × '+HPD+'hr）';
-  document.getElementById(sfx+'-auto').textContent=ah>0?(ah+' hr 自動（約 '+ad+' 天 24hr）'):'0（全手動模式）';
-  if(p==='m'){document.getElementById('em-days').textContent=md+' 天 × '+HPD+'hr = '+mh+'hr人力';}
+  document.getElementById(sfx+'-manual').textContent=mh+' hr (≈ '+md+' days × '+HPD+'hr)';
+  document.getElementById(sfx+'-auto').textContent=ah>0?(ah+' hr auto (≈ '+ad+' days 24hr)'):'0 (full manual)';
+  if(p==='m'){document.getElementById('em-days').textContent=md+' days × '+HPD+'hr = '+mh+'hr labor';}
   var endEl=document.getElementById(sfx+'-end');
   if(endEl) endEl.textContent=start?addDays(start,md+ad-1):'—';
 }
 function openAddModal(){updateEst('m');document.getElementById('add-modal').classList.add('show');}
 function addTask(){
-  tasks.push({id:nextId++,person:document.getElementById('m-person').value,code:document.getElementById('m-code').value||'未命名',sku:document.getElementById('m-sku').value||'SKU-???',type:document.getElementById('m-type').value,machines:Math.min(3,Math.max(1,parseInt(document.getElementById('m-machines').value)||1)),start:document.getElementById('m-start').value||'2026-06-01',failMode:document.getElementById('m-fail').value==='1',note:document.getElementById('m-note').value});
+  tasks.push({
+    id:nextId++,
+    person:document.getElementById('m-person').value,
+    code:document.getElementById('m-code').value||'UNNAMED',
+    sku:document.getElementById('m-sku').value||'SKU-???',
+    type:document.getElementById('m-type').value,
+    machines:Math.min(3,Math.max(1,parseInt(document.getElementById('m-machines').value)||1)),
+    start:document.getElementById('m-start').value||'2026-06-01',
+    failMode:document.getElementById('m-fail').value==='1',
+    note:document.getElementById('m-note').value
+  });
   closeM('add-modal');buildGantt();
 }
 function openEditModal(t){
@@ -587,7 +740,10 @@ function closeM(id){document.getElementById(id).classList.remove('show');}
 function expandAll(){PERSONS.forEach(function(p){expanded[p.id]=true;});buildGantt();}
 function collapseAll(){PERSONS.forEach(function(p){expanded[p.id]=false;});Object.keys(hourExp).forEach(function(k){hourExp[k]=false;});buildGantt();}
 function setView(n,btn){DAYS=n;document.querySelectorAll('.tb-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');buildHeader();buildGantt();}
-buildHeader();buildGantt();
+
+buildCfgTable();
+buildHeader();
+buildGantt();
 </script>
 </body>
 </html>
