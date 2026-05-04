@@ -997,7 +997,7 @@ function saveEdit(){
 function deleteTask(){
   if(!editTask)return;
   if(!confirm('確定要刪除這個任務嗎？'))return;
-  var payload={action:'delete',Id:editTask.spId};
+  var payload={action:'delete',id:editTask.spId};
   closeM('edit-modal');
   setBusy(true);
   fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
