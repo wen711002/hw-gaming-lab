@@ -426,6 +426,15 @@ document.getElementById('pw-input').focus();
 </div><!-- end .main -->
 </div><!-- end .outer -->
 
+<!-- BUSY OVERLAY -->
+<div id="busy-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:5000;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+  <div style="background:#141824;border:1px solid rgba(76,158,245,0.35);border-radius:12px;padding:36px 56px;text-align:center;">
+    <div style="width:36px;height:36px;border:3px solid rgba(76,158,245,0.2);border-top-color:#4c9ef5;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:16px;color:#8fa0bb;letter-spacing:0.1em;">SYNCING…</div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+
 <!-- ADD MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
@@ -523,10 +532,17 @@ document.getElementById('pw-input').focus();
 </div>
 
 <script>
+/* ---------- PA FLOW URLs ---------- */
+var PA_READ    = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/ec95713a15c74114ac054f69c2e1c9c2/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hjky61tC6V0im2nUtHrVuMa2UhyMdpqxqzu8i5bgBOU';
+var PA_TASK    = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2d8ce514aa3a49118700bfb72a0c0bfd/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-JYIGJUY5De_Bn2NZ4BId-zOR6G7PHw4pSPlPg8xZdo';
+var PA_MEMBER  = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a0788872751444548b99442bef704a18/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KcT76tjBkF_I9hvaXLHzbx4t0QzD4fr1iVDkhVSCUZM';
+var PA_SETTINGS= 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/8eb310bc23884b108a4017b7d77901a8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9RwEplvL3zQwKQwyzXKy3hg_5z6pfw8hDXPGClI4YRg';
+
 var START = new Date('2026-06-01');
 var DAY_W = 32;
 var DAYS  = 60;
 var HPD   = 5;
+var settingsSpId = 0;
 
 var TCFG = {
   battery:{m:5,  a:120, f:5,  c:'#4c9ef5', lbl:'Battery Life'},
@@ -536,22 +552,17 @@ var TCFG = {
   retest: {m:5,  a:20,  f:10, c:'#2dd4bf', lbl:'Retest'},
   fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/Repair'}
 };
-var PERSONS = [
-  {id:'Sandra',name:'Sandra',    init:'SA',c:'#4c9ef5',active:true},
-  {id:'Allen', name:'Allen',     init:'AL',c:'#a855f7',active:true},
-  {id:'Sally', name:'Sally',     init:'SL',c:'#00e5a0',active:true},
-  {id:'Enya',  name:'Enya (TBD)',init:'EN',c:'#ffb347',active:true}
-];
-var tasks=[
-  {id:1,person:'Sandra',code:'NB-2025-AA',sku:'SKU-001',type:'battery',machines:2,start:'2026-06-02',failMode:false,note:'Full battery suite'},
-  {id:2,person:'Sandra',code:'NB-2025-AA',sku:'SKU-001',type:'bench',  machines:1,start:'2026-06-04',failMode:false,note:'3DMark+CB'},
-  {id:3,person:'Allen', code:'NB-2025-BB',sku:'SKU-002',type:'fps',    machines:2,start:'2026-06-03',failMode:false,note:'Gaming全項'},
-  {id:4,person:'Sally', code:'NB-2025-CC',sku:'SKU-003',type:'battery',machines:3,start:'2026-06-01',failMode:false,note:'Battery全項'},
-  {id:5,person:'Allen', code:'NB-2025-BB',sku:'SKU-004',type:'retest', machines:1,start:'2026-06-10',failMode:false,note:'BIOS update複測'},
-  {id:6,person:'Sandra',code:'NB-2025-DD',sku:'SKU-005',type:'fps',    machines:2,start:'2026-06-12',failMode:false,note:'Gaming FPS全項'},
-  {id:7,person:'Sally', code:'NB-2025-EE',sku:'SKU-006',type:'battery',machines:1,start:'2026-06-08',failMode:true, note:'Auto fail→全手動'}
-];
-var nextId=8, editTask=null, expanded={}, hourExp={};
+var PERSONS = [];
+var tasks = [];
+var nextId=1, editTask=null, expanded={}, hourExp={};
+
+/* TestType SP label → TCFG key */
+var TYPE_MAP={
+  'Battery Life':'battery','Benchmark':'bench','Gaming FPS':'fps',
+  'Mixed':'mixed','Retest':'retest','Fail/Repair':'fail',
+  'battery':'battery','bench':'bench','fps':'fps',
+  'mixed':'mixed','retest':'retest','fail':'fail'
+};
 
 /* ---------- MEMBER COLOURS ---------- */
 var PALETTE=['#4c9ef5','#00d4ff','#00e5a0','#ffb347','#a855f7','#ff5c7a','#2dd4bf','#f97316','#e879f9','#34d399','#fbbf24','#60a5fa','#f43f5e','#a78bfa'];
@@ -598,6 +609,77 @@ function buildMemberList(){
   }
 }
 
+/* ---------- BUSY OVERLAY ---------- */
+function setBusy(v){
+  var ov=document.getElementById('busy-overlay');
+  ov.style.display=v?'flex':'none';
+}
+
+/* ---------- SHAREPOINT LOAD ---------- */
+function loadAllData(){
+  setBusy(true);
+  fetch(PA_READ,{method:'GET',headers:{'Accept':'application/json'}})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    /* Members */
+    PERSONS=[];
+    (d.members||[]).forEach(function(m){
+      PERSONS.push({
+        spId:m.ID,
+        id:m.Title,
+        name:m.Title,
+        init:(m.Initials||m.Title.slice(0,2)).toUpperCase(),
+        c:m.Color||'#4c9ef5',
+        active:m.Active!==false
+      });
+    });
+    /* Settings */
+    var sets=d.settings||[];
+    if(sets.length>0){
+      var s=sets[0];
+      settingsSpId=s.ID||0;
+      HPD=parseFloat(s.HPD)||5;
+      var maxProj=parseInt(s.MaxMachinesProject)||3;
+      var maxPerson=parseInt(s.MaxMachinesPerson)||10;
+      if(s.TCFGJson){try{var tc=JSON.parse(s.TCFGJson);Object.keys(tc).forEach(function(k){if(TCFG[k])Object.assign(TCFG[k],tc[k]);});}catch(e){}}
+      document.getElementById('cfg-hpd').value=HPD;
+      document.getElementById('cfg-max-proj').value=maxProj;
+      document.getElementById('cfg-max-person').value=maxPerson;
+      document.getElementById('hdr-hpd').textContent=HPD;
+    }
+    /* Tasks */
+    tasks=[];nextId=1;
+    (d.tasks||[]).forEach(function(t){
+      var typeKey=TYPE_MAP[t.TestType]||'battery';
+      var person=null;
+      for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].spId===t.PersonId){person=PERSONS[i];break;}}
+      if(!person&&PERSONS.length>0)person=PERSONS[0];
+      var startStr=t.StartDate?(t.StartDate+'').slice(0,10):'2026-06-01';
+      tasks.push({
+        spId:t.ID,
+        id:nextId++,
+        person:person?person.id:'',
+        code:t.ProjectCode||t.Title||'UNNAMED',
+        sku:t.SKU||'SKU-???',
+        type:typeKey,
+        machines:parseInt(t.Machines)||1,
+        start:startStr,
+        failMode:t.FailMode===true||t.FailMode==='true',
+        note:t.Note||''
+      });
+    });
+    buildCfgTable();
+    buildMemberList();
+    buildHeader();
+    buildGantt();
+    setBusy(false);
+  })
+  .catch(function(err){
+    console.error('loadAllData error',err);
+    setBusy(false);
+  });
+}
+
 function toggleTeam(){
   var body=document.getElementById('team-body');
   var btn=document.getElementById('team-toggle');
@@ -616,22 +698,28 @@ function addMember(){
   if(PERSONS.some(function(p){return p.id.toLowerCase()===nameVal.toLowerCase();})){
     errEl.textContent='A member with this name already exists.';return;
   }
-  PERSONS.push({id:nameVal,name:nameVal,init:initVal.slice(0,2),c:selectedColor,active:true});
-  document.getElementById('nm-name').value='';
-  document.getElementById('nm-init').value='';
-  buildMemberList();
-  buildGantt();
+  setBusy(true);
+  fetch(PA_MEMBER,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'add',name:nameVal,initials:initVal.slice(0,2),color:selectedColor,active:true})
+  }).then(function(r){return r.json();}).then(function(){
+    document.getElementById('nm-name').value='';
+    document.getElementById('nm-init').value='';
+    loadAllData();
+  }).catch(function(){setBusy(false);errEl.textContent='儲存失敗，請重試。';});
 }
 
 function removeMember(id){
   if(PERSONS.length<=1){document.getElementById('nm-err').textContent='Cannot remove the last member.';return;}
+  var person=null;
+  for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===id){person=PERSONS[i];break;}}
+  if(!person||!person.spId){document.getElementById('nm-err').textContent='找不到成員 ID，請重新整理頁面。';return;}
   var hasTasks=tasks.some(function(t){return t.person===id;});
-  if(hasTasks){
-    if(!confirm('This member has assigned tasks. Remove anyway?\n(Tasks will remain but show as unassigned.)')){return;}
-  }
-  PERSONS=PERSONS.filter(function(p){return p.id!==id;});
-  buildMemberList();
-  buildGantt();
+  if(hasTasks){if(!confirm('This member has assigned tasks. Remove anyway?')){return;}}
+  setBusy(true);
+  fetch(PA_MEMBER,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'delete',id:person.spId})
+  }).then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);});
 }
 
 /* ---------- SETTINGS ---------- */
@@ -670,8 +758,20 @@ function applyConfig(){
     TCFG[k].f=parseFloat(document.getElementById('cfg-'+k+'-f').value)||0;
   });
   HPD=parseFloat(document.getElementById('cfg-hpd').value)||5;
+  var maxProj=parseInt(document.getElementById('cfg-max-proj').value)||3;
+  var maxPerson=parseInt(document.getElementById('cfg-max-person').value)||10;
   document.getElementById('hdr-hpd').textContent=HPD;
-  buildGantt();
+  var payload={
+    id:settingsSpId,
+    hpd:HPD,
+    maxMachinesProject:maxProj,
+    maxMachinesPerson:maxPerson,
+    tcfgJson:JSON.stringify(TCFG)
+  };
+  setBusy(true);
+  fetch(PA_SETTINGS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('設定儲存失敗，請重試。');});
 }
 
 /* ---------- CORE ---------- */
@@ -838,18 +938,30 @@ function updateEst(p){
 }
 function openAddModal(){updateEst('m');document.getElementById('add-modal').classList.add('show');}
 function addTask(){
-  tasks.push({
-    id:nextId++,
-    person:document.getElementById('m-person').value,
-    code:document.getElementById('m-code').value||'UNNAMED',
+  var personName=document.getElementById('m-person').value;
+  var person=null;
+  for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===personName){person=PERSONS[i];break;}}
+  if(!person){alert('請先選擇負責成員。');return;}
+  var typeKey=document.getElementById('m-type').value;
+  var typeLabel=TCFG[typeKey]?TCFG[typeKey].lbl:typeKey;
+  var payload={
+    action:'add',
+    title:document.getElementById('m-code').value||'UNNAMED',
+    personId:person.spId,
+    projectCode:document.getElementById('m-code').value||'UNNAMED',
     sku:document.getElementById('m-sku').value||'SKU-???',
-    type:document.getElementById('m-type').value,
+    testType:typeLabel,
     machines:Math.min(3,Math.max(1,parseInt(document.getElementById('m-machines').value)||1)),
-    start:document.getElementById('m-start').value||'2026-06-01',
+    startDate:document.getElementById('m-start').value||'2026-06-01',
     failMode:document.getElementById('m-fail').value==='1',
-    note:document.getElementById('m-note').value
-  });
-  closeM('add-modal');buildGantt();
+    note:document.getElementById('m-note').value,
+    status:'Planned'
+  };
+  closeM('add-modal');
+  setBusy(true);
+  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('新增任務失敗，請重試。');});
 }
 function openEditModal(t){
   editTask=t;
@@ -864,24 +976,41 @@ function openEditModal(t){
 }
 function saveEdit(){
   if(!editTask)return;
-  editTask.type=document.getElementById('e-type').value;
-  editTask.machines=parseInt(document.getElementById('e-machines').value)||1;
-  editTask.start=document.getElementById('e-start').value;
-  editTask.failMode=document.getElementById('e-fail').value==='1';
-  editTask.note=document.getElementById('e-note').value;
-  closeM('edit-modal');buildGantt();
+  var typeKey=document.getElementById('e-type').value;
+  var typeLabel=TCFG[typeKey]?TCFG[typeKey].lbl:typeKey;
+  var payload={
+    action:'update',
+    id:editTask.spId,
+    testType:typeLabel,
+    machines:parseInt(document.getElementById('e-machines').value)||1,
+    startDate:document.getElementById('e-start').value,
+    failMode:document.getElementById('e-fail').value==='1',
+    note:document.getElementById('e-note').value
+  };
+  closeM('edit-modal');
+  setBusy(true);
+  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('儲存失敗，請重試。');});
 }
-function deleteTask(){if(!editTask)return;tasks=tasks.filter(function(t){return t.id!==editTask.id;});closeM('edit-modal');buildGantt();}
+function deleteTask(){
+  if(!editTask)return;
+  if(!confirm('確定要刪除這個任務嗎？'))return;
+  var payload={action:'delete',id:editTask.spId};
+  closeM('edit-modal');
+  setBusy(true);
+  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('刪除失敗，請重試。');});
+}
 function closeM(id){document.getElementById(id).classList.remove('show');}
 function expandAll(){PERSONS.forEach(function(p){expanded[p.id]=true;});buildGantt();}
 function collapseAll(){PERSONS.forEach(function(p){expanded[p.id]=false;});Object.keys(hourExp).forEach(function(k){hourExp[k]=false;});buildGantt();}
 function setView(n,btn){DAYS=n;document.querySelectorAll('.tb-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');buildHeader();buildGantt();}
 
 buildColorSwatches();
-buildMemberList();
 buildCfgTable();
-buildHeader();
-buildGantt();
+loadAllData();
 </script>
 </body>
 </html>
