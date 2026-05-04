@@ -762,11 +762,11 @@ function applyConfig(){
   var maxPerson=parseInt(document.getElementById('cfg-max-person').value)||10;
   document.getElementById('hdr-hpd').textContent=HPD;
   var payload={
-    id:settingsSpId,
-    hpd:HPD,
-    maxMachinesProject:maxProj,
-    maxMachinesPerson:maxPerson,
-    tcfgJson:JSON.stringify(TCFG)
+    Id:settingsSpId,
+    HPD:HPD,
+    MaxMachinesProject:maxProj,
+    MaxMachinesPerson:maxPerson,
+    TCFGJson:JSON.stringify(TCFG)
   };
   setBusy(true);
   fetch(PA_SETTINGS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
@@ -946,16 +946,17 @@ function addTask(){
   var typeLabel=TCFG[typeKey]?TCFG[typeKey].lbl:typeKey;
   var payload={
     action:'add',
-    title:document.getElementById('m-code').value||'UNNAMED',
-    personId:person.spId,
-    projectCode:document.getElementById('m-code').value||'UNNAMED',
-    sku:document.getElementById('m-sku').value||'SKU-???',
-    testType:typeLabel,
-    machines:Math.min(3,Math.max(1,parseInt(document.getElementById('m-machines').value)||1)),
-    startDate:document.getElementById('m-start').value||'2026-06-01',
-    failMode:document.getElementById('m-fail').value==='1',
-    note:document.getElementById('m-note').value,
-    status:'Planned'
+    PersonId:person.spId,
+    ProjectCode:document.getElementById('m-code').value||'UNNAMED',
+    SKU:document.getElementById('m-sku').value||'SKU-???',
+    TestType:typeLabel,
+    Machines:Math.min(3,Math.max(1,parseInt(document.getElementById('m-machines').value)||1)),
+    StartDate:document.getElementById('m-start').value||'2026-06-01',
+    FailMode:document.getElementById('m-fail').value==='1',
+    Note:document.getElementById('m-note').value,
+    Status:'Planned',
+    ActualHours:0,
+    RetestOf:0
   };
   closeM('add-modal');
   setBusy(true);
@@ -980,12 +981,12 @@ function saveEdit(){
   var typeLabel=TCFG[typeKey]?TCFG[typeKey].lbl:typeKey;
   var payload={
     action:'update',
-    id:editTask.spId,
-    testType:typeLabel,
-    machines:parseInt(document.getElementById('e-machines').value)||1,
-    startDate:document.getElementById('e-start').value,
-    failMode:document.getElementById('e-fail').value==='1',
-    note:document.getElementById('e-note').value
+    Id:editTask.spId,
+    TestType:typeLabel,
+    Machines:parseInt(document.getElementById('e-machines').value)||1,
+    StartDate:document.getElementById('e-start').value,
+    FailMode:document.getElementById('e-fail').value==='1',
+    Note:document.getElementById('e-note').value
   };
   closeM('edit-modal');
   setBusy(true);
@@ -996,7 +997,7 @@ function saveEdit(){
 function deleteTask(){
   if(!editTask)return;
   if(!confirm('確定要刪除這個任務嗎？'))return;
-  var payload={action:'delete',id:editTask.spId};
+  var payload={action:'delete',Id:editTask.spId};
   closeM('edit-modal');
   setBusy(true);
   fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
