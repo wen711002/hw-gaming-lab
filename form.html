@@ -1409,6 +1409,7 @@ function submitForm(){
   if(!selFanVal)miss.push('FanMode');
   if(!v('sch_start'))miss.push('測試時段');
   if(!v('report_due'))miss.push('截止日');
+  if(!Object.keys(selTests).some(function(k){return selTests[k];}))miss.push('測試項目（至少選擇一項）');
   // SKU required check
   var skuFirst=document.querySelector('#sku-tbody tr input');
   if(!skuFirst||!skuFirst.value.trim())miss.push('SKU（至少填寫第一筆）');
