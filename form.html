@@ -1245,11 +1245,6 @@ function goPage(n){
     el.classList.remove('active','done');
     if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');sn.innerHTML='✓';}else{sn.innerHTML=String(i+1);}
   });
-  if(n===2){
-    ['battery','bench','fps'].forEach(function(name){
-      if(!selTests[name]){togTest(name,{battery:'bat',bench:'bench',fps:'fps'}[name]);}
-    });
-  }
   window.scrollTo(0,0);
 }
 function handleFileSelect(input){
