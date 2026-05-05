@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<title>HW Gaming Lab — Schedule</title>
+<title>HW Gaming Lab — 測試排程</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Share+Tech+Mono&display=swap');
 </style>
@@ -265,22 +265,22 @@ document.getElementById('pw-input').focus();
   <div class="sidebar-logo">GL</div>
   <div style="text-align:center;">
     <div class="nav-item" title="Form" onclick="window.location.href='form.html'">📋</div>
-    <div class="nav-label">Form</div>
+    <div class="nav-label">表單</div>
   </div>
   <div class="nav-sep"></div>
   <div style="text-align:center;">
-    <div class="nav-item" title="Result" onclick="window.location.href='result.html'">📊</div>
-    <div class="nav-label">Result</div>
+    <div class="nav-item" title="結果" onclick="window.location.href='result.html'">📊</div>
+    <div class="nav-label">結果</div>
   </div>
   <div class="nav-sep"></div>
   <div style="text-align:center;">
-    <div class="nav-item active" title="Schedule">📅</div>
-    <div class="nav-label">Schedule</div>
+    <div class="nav-item active" title="排程">📅</div>
+    <div class="nav-label">排程</div>
   </div>
   <div class="nav-sep"></div>
   <div class="sidebar-bottom" style="text-align:center;">
-    <div class="nav-item" title="Guide" onclick="alert('User Guide — coming soon.')">📖</div>
-    <div class="nav-label">Guide</div>
+    <div class="nav-item" title="指南" onclick="alert('使用指南 — 即將推出')">📖</div>
+    <div class="nav-label">指南</div>
   </div>
 </div>
 
@@ -292,46 +292,46 @@ document.getElementById('pw-input').focus();
     <div class="breadcrumb">
       <span>HW GAMING LAB</span>
       <span class="breadcrumb-sep">›</span>
-      <span>SCHEDULE</span>
+      <span>測試排程</span>
     </div>
-    <h1>Test Schedule — <span>Gantt Chart</span></h1>
-    <p>Member loading &amp; machine assignment ｜ Start: 2026.06.01 ｜ Daily capacity: <span id="hdr-hpd">5</span> hr/person</p>
+    <h1>測試排程 — <span>甘特圖</span></h1>
+    <p>成員工作量與機台分配 ｜ 起始日：2026.06.01 ｜ 每人每日工時：<span id="hdr-hpd">5</span> hr</p>
   </div>
 
   <!-- SETTINGS PANEL -->
   <div class="panel">
     <div class="panel-header clickable" onclick="toggleSettings()">
-      <div class="panel-title">Calculation Settings</div>
-      <button id="cfg-toggle" class="toggle-btn">Expand ↓</button>
+      <div class="panel-title">運算設定</div>
+      <button id="cfg-toggle" class="toggle-btn">展開 ↓</button>
     </div>
     <div id="cfg-body" style="display:none;">
       <div class="panel-body">
         <table class="cfg-table">
           <thead>
             <tr>
-              <th>Test Type</th>
-              <th>Manual (hr)</th>
-              <th>Auto (hr)</th>
-              <th>Fail → Full Manual (hr)</th>
+              <th>測試類型</th>
+              <th>人工工時 (hr)</th>
+              <th>自動工時 (hr)</th>
+              <th>Fail → 全人工 (hr)</th>
             </tr>
           </thead>
           <tbody id="cfg-tbody"></tbody>
         </table>
         <div class="cfg-cap">
           <div class="cfg-cap-item">
-            <label>Daily Hours / Person (HPD)</label>
+            <label>每人每日工時 (HPD)</label>
             <input type="number" id="cfg-hpd" class="cfg-inp" value="5" min="1" max="24"/>
           </div>
           <div class="cfg-cap-item">
-            <label>Max Machines / Project</label>
+            <label>每專案最多機台數</label>
             <input type="number" id="cfg-max-proj" class="cfg-inp" value="3" min="1" max="10"/>
           </div>
           <div class="cfg-cap-item">
-            <label>Max Machines / Person</label>
+            <label>每人最多機台數</label>
             <input type="number" id="cfg-max-person" class="cfg-inp" value="10" min="1" max="20"/>
           </div>
         </div>
-        <button class="cfg-apply" onclick="applyConfig()">Apply Settings</button>
+        <button class="cfg-apply" onclick="applyConfig()">套用設定</button>
       </div>
     </div>
   </div>
@@ -339,28 +339,28 @@ document.getElementById('pw-input').focus();
   <!-- TEAM MEMBERS PANEL -->
   <div class="panel">
     <div class="panel-header clickable" onclick="toggleTeam()">
-      <div class="panel-title">Team Members</div>
-      <button id="team-toggle" class="toggle-btn">Expand ↓</button>
+      <div class="panel-title">團隊成員</div>
+      <button id="team-toggle" class="toggle-btn">展開 ↓</button>
     </div>
     <div id="team-body" style="display:none;">
       <div class="panel-body">
         <div class="member-list" id="member-list"></div>
         <div class="add-member-form">
-          <div class="add-member-form-title">Add New Member</div>
+          <div class="add-member-form-title">新增成員</div>
           <div class="member-form-row">
             <div class="member-field">
-              <label>Name</label>
-              <input type="text" id="nm-name" class="member-inp" placeholder="e.g. Kevin" style="width:140px;"/>
+              <label>姓名</label>
+              <input type="text" id="nm-name" class="member-inp" placeholder="例：Kevin" style="width:140px;"/>
             </div>
             <div class="member-field">
-              <label>Initials (2 chars)</label>
+              <label>縮寫（2字）</label>
               <input type="text" id="nm-init" class="member-inp" placeholder="KV" maxlength="2" style="width:72px;text-align:center;text-transform:uppercase;"/>
             </div>
             <div class="member-field">
-              <label>Color</label>
+              <label>顏色</label>
               <div class="color-swatches" id="color-swatches"></div>
             </div>
-            <button class="member-add-btn" onclick="addMember()">＋ Add</button>
+            <button class="member-add-btn" onclick="addMember()">＋ 新增</button>
           </div>
           <div class="member-err" id="nm-err"></div>
         </div>
@@ -371,49 +371,49 @@ document.getElementById('pw-input').focus();
   <!-- LOADING PANEL -->
   <div class="panel">
     <div class="panel-header" style="cursor:default;">
-      <div class="panel-title">Member Loading (<span id="lp-days">60</span>-Day View)</div>
+      <div class="panel-title">成員工作量（<span id="lp-days">60</span> 天檢視）</div>
     </div>
     <div class="panel-body" id="loading-bars"></div>
   </div>
 
   <!-- STATS BAR -->
   <div class="stats-bar">
-    <div class="stat-card"><div class="stat-label">Tasks</div><div class="stat-val" id="st-tasks" style="color:var(--blue);">0</div><div class="stat-sub">scheduled</div></div>
-    <div class="stat-card"><div class="stat-label">Machines</div><div class="stat-val" id="st-machines" style="color:var(--cyan);">0</div><div class="stat-sub">units</div></div>
-    <div class="stat-card"><div class="stat-label">Manual Hr</div><div class="stat-val" id="st-manual" style="color:var(--amber);">0</div><div class="stat-sub">labor hours</div></div>
-    <div class="stat-card"><div class="stat-label">Auto Hr</div><div class="stat-val" id="st-auto" style="color:var(--green);">0</div><div class="stat-sub">unattended</div></div>
-    <div class="stat-card"><div class="stat-label">Fail Tasks</div><div class="stat-val" id="st-fail" style="color:var(--red);">0</div><div class="stat-sub">need attention</div></div>
+    <div class="stat-card"><div class="stat-label">任務數</div><div class="stat-val" id="st-tasks" style="color:var(--blue);">0</div><div class="stat-sub">已排程</div></div>
+    <div class="stat-card"><div class="stat-label">機台數</div><div class="stat-val" id="st-machines" style="color:var(--cyan);">0</div><div class="stat-sub">台</div></div>
+    <div class="stat-card"><div class="stat-label">人工工時</div><div class="stat-val" id="st-manual" style="color:var(--amber);">0</div><div class="stat-sub">需人力</div></div>
+    <div class="stat-card"><div class="stat-label">自動工時</div><div class="stat-val" id="st-auto" style="color:var(--green);">0</div><div class="stat-sub">無需人力</div></div>
+    <div class="stat-card"><div class="stat-label">失敗任務</div><div class="stat-val" id="st-fail" style="color:var(--red);">0</div><div class="stat-sub">需要處理</div></div>
   </div>
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <span class="tb-label">View:</span>
-    <button class="tb-btn active" onclick="setView(60,this)">60 Days</button>
-    <button class="tb-btn" onclick="setView(14,this)">14 Days</button>
+    <span class="tb-label">檢視：</span>
+    <button class="tb-btn active" onclick="setView(60,this)">60 天</button>
+    <button class="tb-btn" onclick="setView(14,this)">14 天</button>
     <div class="tb-sep"></div>
-    <span class="tb-label">Expand:</span>
-    <button class="tb-btn" onclick="expandAll()">All</button>
-    <button class="tb-btn" onclick="collapseAll()">None</button>
-    <button class="add-btn" onclick="openAddModal()">＋ New Task</button>
+    <span class="tb-label">展開：</span>
+    <button class="tb-btn" onclick="expandAll()">全部</button>
+    <button class="tb-btn" onclick="collapseAll()">收合</button>
+    <button class="add-btn" onclick="openAddModal()">＋ 新增任務</button>
   </div>
 
   <!-- LEGEND -->
   <div class="legend">
-    <span><span class="leg-dot" style="background:#4c9ef5;"></span>Battery Life</span>
-    <span><span class="leg-dot" style="background:#a855f7;"></span>Benchmark</span>
-    <span><span class="leg-dot" style="background:#00e5a0;"></span>Gaming FPS</span>
-    <span><span class="leg-dot" style="background:#ffb347;"></span>Mixed</span>
-    <span><span class="leg-dot" style="background:#ff5c7a;"></span>Fail</span>
-    <span><span class="leg-dot" style="background:#2dd4bf;"></span>Retest</span>
+    <span><span class="leg-dot" style="background:#4c9ef5;"></span>電池續航</span>
+    <span><span class="leg-dot" style="background:#a855f7;"></span>效能測試</span>
+    <span><span class="leg-dot" style="background:#00e5a0;"></span>遊戲 FPS</span>
+    <span><span class="leg-dot" style="background:#ffb347;"></span>混合測試</span>
+    <span><span class="leg-dot" style="background:#ff5c7a;"></span>失敗</span>
+    <span><span class="leg-dot" style="background:#2dd4bf;"></span>重測</span>
     <span style="color:var(--text3);">|</span>
-    <span><span class="leg-stripe"></span>Auto-test (no labor)</span>
+    <span><span class="leg-stripe"></span>自動測試（無需人力）</span>
   </div>
 
   <!-- GANTT CHART -->
   <div class="gantt-wrap">
     <div class="gantt-scroll">
       <div class="gantt-header">
-        <div class="gh-label-col"><span>Member / Machine</span></div>
+        <div class="gh-label-col"><span>成員 / 機台</span></div>
         <div class="gh-tl">
           <div class="gh-months" id="gh-months"></div>
           <div class="gh-days" id="gh-days"></div>
@@ -439,51 +439,51 @@ document.getElementById('pw-input').focus();
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <button class="mclose" onclick="closeM('add-modal')">×</button>
-    <h3>New Task</h3>
-    <p>End date is calculated automatically from work-hour logic.</p>
+    <h3>新增任務</h3>
+    <p>結束日期將依據工時邏輯自動計算。</p>
     <div class="g2">
-      <div class="field"><label>Assignee</label>
+      <div class="field"><label>負責人</label>
         <select id="m-person"></select>
       </div>
-      <div class="field"><label>Test Type</label>
+      <div class="field"><label>測試類型</label>
         <select id="m-type" onchange="updateEst('m')">
-          <option value="battery">Battery Life</option>
-          <option value="bench">Benchmark</option>
-          <option value="fps">Gaming FPS</option>
-          <option value="mixed">Mixed</option>
-          <option value="retest">Retest</option>
-          <option value="fail">Fail / Repair</option>
+          <option value="battery">電池續航</option>
+          <option value="bench">效能測試</option>
+          <option value="fps">遊戲 FPS</option>
+          <option value="mixed">混合測試</option>
+          <option value="retest">重測</option>
+          <option value="fail">失敗／維修</option>
         </select>
       </div>
     </div>
     <div class="g2">
-      <div class="field"><label>Project Code</label><input type="text" id="m-code" placeholder="NB-2025-XX"/></div>
+      <div class="field"><label>專案代號</label><input type="text" id="m-code" placeholder="NB-2025-XX"/></div>
       <div class="field"><label>SKU</label><input type="text" id="m-sku" placeholder="SKU-001"/></div>
     </div>
     <div class="g2">
-      <div class="field"><label>Machines (1–3)</label>
+      <div class="field"><label>機台數（1–3）</label>
         <input type="number" id="m-machines" value="1" min="1" max="3" oninput="updateEst('m')"/>
-        <span class="field-hint">Max 3 per project</span>
+        <span class="field-hint">每專案最多 3 台</span>
       </div>
-      <div class="field"><label>Start Date</label><input type="date" id="m-start" value="2026-06-01" oninput="updateEst('m')"/></div>
+      <div class="field"><label>開始日期</label><input type="date" id="m-start" value="2026-06-01" oninput="updateEst('m')"/></div>
     </div>
-    <div class="field"><label>Fail → Full Manual</label>
+    <div class="field"><label>Fail → 全人工模式</label>
       <select id="m-fail" onchange="updateEst('m')">
-        <option value="0">No (auto mode)</option>
-        <option value="1">Yes (fail → full manual)</option>
+        <option value="0">否（自動模式）</option>
+        <option value="1">是（Fail → 全人工）</option>
       </select>
     </div>
-    <div class="field"><label>Note</label><input type="text" id="m-note" placeholder="Test description"/></div>
+    <div class="field"><label>備註</label><input type="text" id="m-note" placeholder="測試說明"/></div>
     <div class="est-box">
-      <div class="est-title">Estimate</div>
-      <div class="est-row">Manual hours (labor)：<span class="em" id="em-manual">—</span></div>
-      <div class="est-row">Auto hours (unattended)：<span class="ea" id="em-auto">—</span></div>
-      <div class="est-row">Labor days：<span class="eb" id="em-days">—</span></div>
-      <div class="est-row">Est. end date：<span class="eb" id="em-end">—</span></div>
+      <div class="est-title">預估工時</div>
+      <div class="est-row">人工工時：<span class="em" id="em-manual">—</span></div>
+      <div class="est-row">自動工時（無需人力）：<span class="ea" id="em-auto">—</span></div>
+      <div class="est-row">工作天數：<span class="eb" id="em-days">—</span></div>
+      <div class="est-row">預估結束日：<span class="eb" id="em-end">—</span></div>
     </div>
     <div class="mbtns">
-      <button class="btn btn-sec" onclick="closeM('add-modal')">Cancel</button>
-      <button class="btn btn-pri" onclick="addTask()">＋ Add</button>
+      <button class="btn btn-sec" onclick="closeM('add-modal')">取消</button>
+      <button class="btn btn-pri" onclick="addTask()">＋ 新增</button>
     </div>
   </div>
 </div>
@@ -492,41 +492,41 @@ document.getElementById('pw-input').focus();
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <button class="mclose" onclick="closeM('edit-modal')">×</button>
-    <h3>Edit Task</h3>
+    <h3>編輯任務</h3>
     <p id="edit-sub" style="color:var(--cyan);font-family:var(--font-mono);font-size:17px;"></p>
     <div class="g2">
-      <div class="field"><label>Test Type</label>
+      <div class="field"><label>測試類型</label>
         <select id="e-type" onchange="updateEst('e')">
-          <option value="battery">Battery Life</option>
-          <option value="bench">Benchmark</option>
-          <option value="fps">Gaming FPS</option>
-          <option value="mixed">Mixed</option>
-          <option value="retest">Retest</option>
-          <option value="fail">Fail / Repair</option>
+          <option value="battery">電池續航</option>
+          <option value="bench">效能測試</option>
+          <option value="fps">遊戲 FPS</option>
+          <option value="mixed">混合測試</option>
+          <option value="retest">重測</option>
+          <option value="fail">失敗／維修</option>
         </select>
       </div>
-      <div class="field"><label>Machines</label><input type="number" id="e-machines" min="1" max="3" oninput="updateEst('e')"/></div>
+      <div class="field"><label>機台數</label><input type="number" id="e-machines" min="1" max="3" oninput="updateEst('e')"/></div>
     </div>
     <div class="g2">
-      <div class="field"><label>Start Date</label><input type="date" id="e-start" oninput="updateEst('e')"/></div>
-      <div class="field"><label>Fail → Full Manual</label>
+      <div class="field"><label>開始日期</label><input type="date" id="e-start" oninput="updateEst('e')"/></div>
+      <div class="field"><label>Fail → 全人工模式</label>
         <select id="e-fail" onchange="updateEst('e')">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
+          <option value="0">否</option>
+          <option value="1">是</option>
         </select>
       </div>
     </div>
-    <div class="field"><label>Note</label><input type="text" id="e-note"/></div>
+    <div class="field"><label>備註</label><input type="text" id="e-note"/></div>
     <div class="est-box">
-      <div class="est-title">Estimate</div>
-      <div class="est-row">Manual hours：<span class="em" id="ee-manual">—</span></div>
-      <div class="est-row">Auto hours：<span class="ea" id="ee-auto">—</span></div>
-      <div class="est-row">Est. end date：<span class="eb" id="ee-end">—</span></div>
+      <div class="est-title">預估工時</div>
+      <div class="est-row">人工工時：<span class="em" id="ee-manual">—</span></div>
+      <div class="est-row">自動工時：<span class="ea" id="ee-auto">—</span></div>
+      <div class="est-row">預估結束日：<span class="eb" id="ee-end">—</span></div>
     </div>
     <div class="mbtns">
-      <button class="btn btn-del" onclick="deleteTask()">Delete</button>
-      <button class="btn btn-sec" onclick="closeM('edit-modal')">Cancel</button>
-      <button class="btn btn-pri" onclick="saveEdit()">Save</button>
+      <button class="btn btn-del" onclick="deleteTask()">刪除</button>
+      <button class="btn btn-sec" onclick="closeM('edit-modal')">取消</button>
+      <button class="btn btn-pri" onclick="saveEdit()">儲存</button>
     </div>
   </div>
 </div>
@@ -545,12 +545,12 @@ var HPD   = 5;
 var settingsSpId = 0;
 
 var TCFG = {
-  battery:{m:5,  a:120, f:5,  c:'#4c9ef5', lbl:'Battery Life'},
-  bench:  {m:1,  a:5,   f:4,  c:'#a855f7', lbl:'Benchmark'},
-  fps:    {m:8,  a:20,  f:16, c:'#00e5a0', lbl:'Gaming FPS'},
-  mixed:  {m:14, a:145, f:21, c:'#ffb347', lbl:'Mixed'},
-  retest: {m:5,  a:20,  f:10, c:'#2dd4bf', lbl:'Retest'},
-  fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/Repair'}
+  battery:{m:5,  a:120, f:5,  c:'#4c9ef5', lbl:'Battery Life', lbl2:'電池續航'},
+  bench:  {m:1,  a:5,   f:4,  c:'#a855f7', lbl:'Benchmark',    lbl2:'效能測試'},
+  fps:    {m:8,  a:20,  f:16, c:'#00e5a0', lbl:'Gaming FPS',   lbl2:'遊戲 FPS'},
+  mixed:  {m:14, a:145, f:21, c:'#ffb347', lbl:'Mixed',        lbl2:'混合測試'},
+  retest: {m:5,  a:20,  f:10, c:'#2dd4bf', lbl:'Retest',       lbl2:'重測'},
+  fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/Repair',  lbl2:'失敗／維修'}
 };
 var PERSONS = [];
 var tasks = [];
@@ -594,7 +594,7 @@ function buildMemberList(){
     var info=document.createElement('div');info.className='member-info';
     info.innerHTML='<div class="member-name" style="color:'+p.c+'">'+p.name+'</div>'+
       '<div class="member-meta">'+p.init+' &nbsp;·&nbsp; '+p.id+'</div>';
-    var del=document.createElement('button');del.className='member-del';del.textContent='Remove';
+    var del=document.createElement('button');del.className='member-del';del.textContent='移除';
     (function(pid){
       del.onclick=function(){removeMember(pid);};
     })(p.id);
@@ -685,7 +685,7 @@ function toggleTeam(){
   var btn=document.getElementById('team-toggle');
   var open=body.style.display==='none';
   body.style.display=open?'block':'none';
-  btn.textContent=open?'Collapse ↑':'Expand ↓';
+  btn.textContent=open?'收合 ↑':'展開 ↓';
 }
 
 function addMember(){
@@ -693,10 +693,10 @@ function addMember(){
   var initVal=document.getElementById('nm-init').value.trim().toUpperCase();
   var errEl=document.getElementById('nm-err');
   errEl.textContent='';
-  if(!nameVal){errEl.textContent='Please enter a name.';return;}
-  if(!initVal||initVal.length<1){errEl.textContent='Please enter initials (1–2 characters).';return;}
+  if(!nameVal){errEl.textContent='請輸入姓名。';return;}
+  if(!initVal||initVal.length<1){errEl.textContent='請輸入縮寫（1–2個字元）。';return;}
   if(PERSONS.some(function(p){return p.id.toLowerCase()===nameVal.toLowerCase();})){
-    errEl.textContent='A member with this name already exists.';return;
+    errEl.textContent='已有相同名稱的成員。';return;
   }
   setBusy(true);
   fetch(PA_MEMBER,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -709,12 +709,12 @@ function addMember(){
 }
 
 function removeMember(id){
-  if(PERSONS.length<=1){document.getElementById('nm-err').textContent='Cannot remove the last member.';return;}
+  if(PERSONS.length<=1){document.getElementById('nm-err').textContent='無法移除最後一位成員。';return;}
   var person=null;
   for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===id){person=PERSONS[i];break;}}
   if(!person||!person.spId){document.getElementById('nm-err').textContent='找不到成員 ID，請重新整理頁面。';return;}
   var hasTasks=tasks.some(function(t){return t.person===id;});
-  if(hasTasks){if(!confirm('This member has assigned tasks. Remove anyway?')){return;}}
+  if(hasTasks){if(!confirm('此成員尚有指派的任務，確定要移除嗎？')){return;}}
   setBusy(true);
   fetch(PA_MEMBER,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'delete',id:person.spId})
@@ -726,12 +726,12 @@ function removeMember(id){
 function buildCfgTable(){
   var tbody=document.getElementById('cfg-tbody'); tbody.innerHTML='';
   var rows=[
-    {key:'battery',lbl:'Battery Life',c:'#4c9ef5'},
-    {key:'bench',  lbl:'Benchmark',   c:'#a855f7'},
-    {key:'fps',    lbl:'Gaming FPS',  c:'#00e5a0'},
-    {key:'mixed',  lbl:'Mixed',       c:'#ffb347'},
-    {key:'retest', lbl:'Retest',      c:'#2dd4bf'},
-    {key:'fail',   lbl:'Fail/Repair', c:'#ff5c7a'}
+    {key:'battery',lbl:'電池續航',   c:'#4c9ef5'},
+    {key:'bench',  lbl:'效能測試',   c:'#a855f7'},
+    {key:'fps',    lbl:'遊戲 FPS',   c:'#00e5a0'},
+    {key:'mixed',  lbl:'混合測試',   c:'#ffb347'},
+    {key:'retest', lbl:'重測',       c:'#2dd4bf'},
+    {key:'fail',   lbl:'失敗／維修', c:'#ff5c7a'}
   ];
   rows.forEach(function(r){
     var cfg=TCFG[r.key];
@@ -749,7 +749,7 @@ function toggleSettings(){
   var btn=document.getElementById('cfg-toggle');
   var open=body.style.display==='none';
   body.style.display=open?'block':'none';
-  btn.textContent=open?'Collapse ↑':'Expand ↓';
+  btn.textContent=open?'收合 ↑':'展開 ↓';
 }
 function applyConfig(){
   ['battery','bench','fps','mixed','retest','fail'].forEach(function(k){
@@ -823,13 +823,13 @@ function buildGantt(){
     av.textContent=p.init;
     var inf=document.createElement('div');
     inf.innerHTML='<div class="g-person-name" style="color:'+p.c+'">'+p.name+'</div>'+
-      '<div class="g-person-sub">'+pt.length+' tasks · '+(p.active?'active':'TBD')+'</div>';
+      '<div class="g-person-sub">'+pt.length+' 項任務 · '+(p.active?'進行中':'待定')+'</div>';
     var tog=document.createElement('div');tog.className='g-toggle'+(expanded[p.id]?' open':'');tog.textContent='▶';
     lbl.appendChild(av);lbl.appendChild(inf);lbl.appendChild(tog);
     var tl=document.createElement('div');tl.className='g-tl';
     tl.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
     for(var i=0;i<DAYS;i++){var d=new Date(START);d.setDate(d.getDate()+i);if(d.getDay()===0||d.getDay()===6){var ws=document.createElement('div');ws.className='we-shade';ws.style.cssText='left:'+(i*DAY_W)+'px;width:'+DAY_W+'px;';tl.appendChild(ws);}}
-    if(todOff>=0&&todOff<DAYS){var tml=document.createElement('div');tml.className='today-line';tml.style.left=(todOff*DAY_W)+'px';var tlbl=document.createElement('div');tlbl.className='today-lbl';tlbl.textContent='TODAY';tml.appendChild(tlbl);tl.appendChild(tml);}
+    if(todOff>=0&&todOff<DAYS){var tml=document.createElement('div');tml.className='today-line';tml.style.left=(todOff*DAY_W)+'px';var tlbl=document.createElement('div');tlbl.className='today-lbl';tlbl.textContent='今天';tml.appendChild(tlbl);tl.appendChild(tml);}
     var used=[];
     pt.forEach(function(t){
       var c=calc(t),off=dayOff(t.start),slot=0;
@@ -857,22 +857,22 @@ function buildGantt(){
         for(var dd=0;dd<c.md;dd++){
           var dobj=new Date(t.start);dobj.setDate(dobj.getDate()+dd);
           var hr=document.createElement('div');hr.className='g-hour-row';
-          var hl=document.createElement('div');hl.className='g-hour-lbl';hl.textContent=fmt(dobj).slice(5)+' manual '+HPD+'hr';
+          var hl=document.createElement('div');hl.className='g-hour-lbl';hl.textContent=fmt(dobj).slice(5)+' 人工 '+HPD+'hr';
           var ht=document.createElement('div');ht.className='g-hour-tl';ht.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
           var off=dayOff(fmt(dobj));
           var hb=document.createElement('div');hb.className='hour-blk';
           hb.style.cssText='left:'+(off*DAY_W+2)+'px;width:'+(DAY_W*(HPD/24)-4)+'px;background:'+(TCFG[t.type]||TCFG.battery).c+';color:#000;';
-          hb.textContent='manual '+HPD+'hr';ht.appendChild(hb);hr.appendChild(hl);hr.appendChild(ht);hrs.appendChild(hr);
+          hb.textContent='人工 '+HPD+'hr';ht.appendChild(hb);hr.appendChild(hl);hr.appendChild(ht);hrs.appendChild(hr);
         }
         if(c.ah>0){for(var ad=0;ad<c.ad;ad++){
           var aday=new Date(t.start);aday.setDate(aday.getDate()+c.md+ad);
           var ar=document.createElement('div');ar.className='g-hour-row';
-          var al=document.createElement('div');al.className='g-hour-lbl';al.style.color='var(--green)';al.textContent=fmt(aday).slice(5)+' auto (unattended)';
+          var al=document.createElement('div');al.className='g-hour-lbl';al.style.color='var(--green)';al.textContent=fmt(aday).slice(5)+' 自動（無需人力）';
           var at2=document.createElement('div');at2.className='g-hour-tl';at2.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
           var aoff=dayOff(fmt(aday));
           var ab=document.createElement('div');ab.className='hour-blk';
           ab.style.cssText='left:'+(aoff*DAY_W+2)+'px;width:'+(DAY_W-4)+'px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);color:var(--green);font-size:13px;';
-          ab.textContent='auto 24hr';at2.appendChild(ab);ar.appendChild(al);ar.appendChild(at2);hrs.appendChild(ar);
+          ab.textContent='自動 24hr';at2.appendChild(ab);ar.appendChild(al);ar.appendChild(at2);hrs.appendChild(ar);
         }}
       });
       pr.onclick=function(e){e.stopPropagation();hourExp[pkey]=!hourExp[pkey];hrs.classList.toggle('open',hourExp[pkey]);ptog.classList.toggle('open',hourExp[pkey]);};
@@ -890,7 +890,7 @@ function renderBar(t,c,container,h,top,small){
   var bar=document.createElement('div');bar.className='task-bar';
   bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+(c.total*DAY_W-3)+'px;top:'+top+'px;height:'+h+'px;background:'+cfg.c+';color:#000;';
   if(c.ah>0&&!small){var st=document.createElement('div');st.className='task-auto-stripe';st.style.width=(c.ad/c.total*100)+'%';bar.appendChild(st);}
-  var lbl=document.createElement('span');lbl.className='task-lbl';lbl.textContent=(small?t.code:cfg.lbl+' · '+t.code)+(t.failMode?' ⚠':'');bar.appendChild(lbl);
+  var lbl=document.createElement('span');lbl.className='task-lbl';lbl.textContent=(small?t.code:(cfg.lbl2||cfg.lbl)+' · '+t.code)+(t.failMode?' ⚠':'');bar.appendChild(lbl);
   if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.mh+'hr';bar.appendChild(bdg);}
   bar.onclick=function(e){e.stopPropagation();openEditModal(t);};
   container.appendChild(bar);
@@ -930,9 +930,9 @@ function updateEst(p){
   var mh=fail?cfg.f:cfg.m,ah=fail?0:cfg.a;
   var md=Math.ceil(mh/HPD),ad=Math.ceil(ah/24);
   var sfx=p==='m'?'em':'ee';
-  document.getElementById(sfx+'-manual').textContent=mh+' hr (≈ '+md+' days × '+HPD+'hr)';
-  document.getElementById(sfx+'-auto').textContent=ah>0?(ah+' hr auto (≈ '+ad+' days 24hr)'):'0 (full manual)';
-  if(p==='m'){document.getElementById('em-days').textContent=md+' days × '+HPD+'hr = '+mh+'hr labor';}
+  document.getElementById(sfx+'-manual').textContent=mh+' hr（約 '+md+' 天 × '+HPD+'hr）';
+  document.getElementById(sfx+'-auto').textContent=ah>0?(ah+' hr 自動（約 '+ad+' 天 24hr）'):'0（全人工）';
+  if(p==='m'){document.getElementById('em-days').textContent=md+' 天 × '+HPD+'hr = '+mh+'hr 人工';}
   var endEl=document.getElementById(sfx+'-end');
   if(endEl) endEl.textContent=start?addDays(start,md+ad-1):'—';
 }
