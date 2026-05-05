@@ -222,8 +222,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .tcard.sel-fps .tc-chk{background:var(--purple);border-color:var(--purple);color:#fff;box-shadow:0 0 8px var(--purple-glow);}
 
 /* SUB PANEL */
-.sub-panel{display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:14px;overflow:hidden;}
-.sub-panel.show{display:block;}
+.sub-panel{display:block;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:14px;overflow:hidden;}
 .sph{background:rgba(255,255,255,0.02);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .sph h4{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);}
 .spb{padding:14px 16px;}
@@ -586,13 +585,13 @@ document.getElementById('pw-input').focus();
           <div class="g2">
             <div class="field">
               <label>測試開始日期<span class="req">*</span></label>
-              <input type="text" id="sch_start" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"/>
+              <input type="text" id="sch_start" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" onchange="updReportDueMin()"/>
               <span class="hint">請填入機台可供測試的開始日</span>
             </div>
             <div class="field">
               <label>報告需求日<span class="req">*</span></label>
               <input type="text" id="report_due" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"/>
-              <span class="hint">最少為今日起第 6 天</span>
+              <span class="hint" id="hint-report-due">最少為測試開始日後第 5 天</span>
             </div>
           </div>
         </div>
@@ -701,10 +700,9 @@ document.getElementById('pw-input').focus();
           </div>
 
           <!-- BATTERY -->
-          <div class="sub-panel show" id="sub-battery">
+          <div class="sub-panel" id="sub-battery">
             <div class="sph">
               <h4>BATTERY LIFE — ITEMS <span class="cbadge" id="badge-battery"></span></h4>
-              <button class="sa-btn" onclick="selAll('battery')">ALL / NONE</button>
             </div>
             <div class="spb">
               <div class="cg2">
@@ -726,10 +724,9 @@ document.getElementById('pw-input').focus();
           </div>
 
           <!-- BENCHMARK -->
-          <div class="sub-panel show" id="sub-bench">
+          <div class="sub-panel" id="sub-bench">
             <div class="sph">
               <h4>BENCHMARK — ITEMS <span class="cbadge" id="badge-bench"></span></h4>
-              <button class="sa-btn" onclick="selAll('bench')">ALL / NONE</button>
             </div>
             <div class="spb">
               <div class="cg"><div class="cgt">3DMark</div>
@@ -772,10 +769,9 @@ document.getElementById('pw-input').focus();
           </div>
 
           <!-- GAMING FPS -->
-          <div class="sub-panel show" id="sub-fps">
+          <div class="sub-panel" id="sub-fps">
             <div class="sph">
               <h4>GAMING FPS — ITEMS <span class="cbadge" id="badge-fps"></span></h4>
-              <button class="sa-btn" onclick="selAll('fps')">ALL / NONE</button>
             </div>
             <div class="spb">
               <div class="cg"><div class="cgt">Cyberpunk 2077</div>
@@ -935,26 +931,52 @@ document.getElementById('pw-input').focus();
 <script>
 var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
+function updReportDueMin(){
+  var startVal=document.getElementById('sch_start').value;
+  var inp=document.getElementById('report_due');
+  var hint=document.getElementById('hint-report-due');
+  var minDate;
+  if(startVal){
+    var d=new Date(startVal);
+    d.setDate(d.getDate()+5);
+    var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);
+    var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();
+    minDate=d.getFullYear()+'-'+mm+'-'+dd;
+    if(hint)hint.textContent='最少為測試開始日後第 5 天（'+minDate+'）';
+  } else {
+    var d2=new Date();
+    d2.setDate(d2.getDate()+6);
+    var mm2=d2.getMonth()+1<10?'0'+(d2.getMonth()+1):''+(d2.getMonth()+1);
+    var dd2=d2.getDate()<10?'0'+d2.getDate():''+d2.getDate();
+    minDate=d2.getFullYear()+'-'+mm2+'-'+dd2;
+    if(hint)hint.textContent='最少為測試開始日後第 5 天';
+  }
+  if(inp){
+    inp.min=minDate;
+    if(inp.value && inp.value<minDate){
+      inp.value='';
+      alert('⚠ 報告需求日須至少為測試開始日後第 5 天，已自動清除，請重新選擇。');
+    }
+  }
+}
 (function(){
+  // 初始預設 min = 今日+6
   var d=new Date();
   d.setDate(d.getDate()+6);
   var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);
   var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();
-  var minDate=d.getFullYear()+'-'+mm+'-'+dd;
-  var el=document.getElementById('report_due');
-  if(el){el.min=minDate;}
-  document.addEventListener('DOMContentLoaded',function(){
-    var el2=document.getElementById('report_due');
-    if(el2){el2.min=minDate;}
-  });
-  // block manual keyboard entry below min on change
+  var fallbackMin=d.getFullYear()+'-'+mm+'-'+dd;
   document.addEventListener('DOMContentLoaded',function(){
     var inp=document.getElementById('report_due');
     if(inp){
+      inp.min=fallbackMin;
       inp.addEventListener('change',function(){
-        if(this.value && this.value < minDate){
-          this.value=minDate;
-          alert('⚠ 報告截止日須為今日起第 6 天之後。');
+        var startVal=document.getElementById('sch_start').value;
+        var curMin=this.min||fallbackMin;
+        if(this.value && this.value<curMin){
+          this.value='';
+          if(startVal){alert('⚠ 報告需求日須至少為測試開始日後第 5 天，請重新選擇。');}
+          else{alert('⚠ 報告需求日須為今日起第 6 天之後，請重新選擇。');}
         }
       });
     }
@@ -964,7 +986,17 @@ var saState={battery:false,bench:false,fps:false};
 var custom={battery:[],bench:[],fps:[]};
 var formDb={};
 var testSelMap={battery:'sel-bat',bench:'sel-bench',fps:'sel-fps'};
-var selTests={};
+var selTests={battery:true,bench:true,fps:true};
+document.addEventListener('DOMContentLoaded',function(){
+  ['battery','bench','fps'].forEach(function(name){
+    var selCls=testSelMap[name];
+    document.getElementById('card-'+name).classList.add(selCls);
+    document.getElementById('chk-'+name).innerHTML='✓';
+    document.querySelectorAll('input[data-group="'+name+'"]').forEach(function(cb){cb.checked=true;});
+    saState[name]=true;
+    updCount(name);
+  });
+});
 
 function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');}
 var _rtAllData=[];
@@ -1158,10 +1190,17 @@ function togTest(name,cls){
   selTests[name]=!selTests[name];
   var card=document.getElementById('card-'+name);
   var chk=document.getElementById('chk-'+name);
-  var sub=document.getElementById('sub-'+name);
   var selCls=testSelMap[name];
-  if(selTests[name]){card.classList.add(selCls);chk.innerHTML='✓';sub.classList.add('show');}
-  else{card.classList.remove(selCls);chk.innerHTML='';sub.classList.remove('show');}
+  if(selTests[name]){
+    card.classList.add(selCls);chk.innerHTML='✓';
+    document.querySelectorAll('input[data-group="'+name+'"]').forEach(function(cb){cb.checked=true;});
+    saState[name]=true;
+  } else {
+    card.classList.remove(selCls);chk.innerHTML='';
+    document.querySelectorAll('input[data-group="'+name+'"]').forEach(function(cb){cb.checked=false;});
+    saState[name]=false;
+  }
+  updCount(name);
 }
 function updCount(g){
   var n=document.querySelectorAll('input[data-group="'+g+'"]:checked').length+custom[g].length;
@@ -1420,13 +1459,14 @@ function paSubmit(){
     // Numbered list for SP multi-line field — easy to read, no comma confusion
     return all.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
   }
-  var sku='';
+  var sku='',skuMachineCount=0;
   document.querySelectorAll('#sku-tbody tr').forEach(function(r,i){
     var inp=r.querySelectorAll('input');
     if(inp[0]&&inp[0].value){
       sku+=(i+1)+'. '+inp[0].value+
         (inp[3]&&inp[3].value?' CPU:'+inp[3].value:'')+
         (inp[4]&&inp[4].value?' GPU:'+inp[4].value:'')+' | ';
+      skuMachineCount++;
     }
   });
   var retestTxt='';
@@ -1522,8 +1562,9 @@ function renderSchedule(){
       if(typeof code==='object')code=code.Title||code.Value||'';
       if(code)projSet[code]=true;
       var skuList=item.SKUList||'';
-      var cnt=(skuList.match(/\d+\./g)||[]).length;
-      totalSku+=cnt||0;
+      /* 數 "1." "2." ... 的出現次數 = SKU 台數；找不到就算 1 台 */
+      var cnt=(skuList.match(/\d+\./g)||[]).length||1;
+      totalSku+=cnt;
     });
     document.getElementById('sch-total').textContent=Object.keys(projSet).length;
     document.getElementById('sch-sku').textContent=totalSku;
@@ -1557,8 +1598,7 @@ function renderSchedule(){
       if(typeof code==='object')code=code.Title||code.Value||'—';
       var phase=item.Phase||'';
       if(typeof phase==='object')phase=phase.Title||phase.Value||'';
-      var skuList=item.SKUList||'';
-      var cnt=(skuList.match(/\d+\./g)||[]).length||1;
+      var cnt=((item.SKUList||'').match(/\d+\./g)||[]).length||1;
       var label=code+(phase?' '+phase:'');
       rows+='<div class="schedule-row">';
       rows+='<div class="schedule-proj">'+esc(label)+' ('+cnt+'台)</div>';
