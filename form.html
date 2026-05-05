@@ -424,7 +424,7 @@ document.getElementById('pw-input').focus();
         <div class="schedule-months" id="schedule-months"></div>
         <div id="schedule-rows"></div>
       </div>
-      <div class="schedule-note">* 模擬資料，系統上線後將根據表單自動顯示</div>
+      <div class="schedule-note">* 資料來源：SharePoint 已提交表單 ｜ 顯示本月及下月排程</div>
     </div>
   </div>
 
@@ -571,7 +571,7 @@ document.getElementById('pw-input').focus();
           </div>
           <div class="field" style="margin-bottom:12px;">
             <label>專案名稱<span class="req">*</span></label>
-            <input type="text" id="pl-proj-name-input" oninput="onNewProjNameInput()" placeholder="請手動填入專案名稱，例：G814JV_EVT" style="width:100%;"/>
+            <input type="text" id="pl-proj-name-input" oninput="onNewProjNameInput()" placeholder="請手動填入專案名稱，例：G814JV_ER1" style="width:100%;"/>
             <span class="hint">專案名稱由申請人自行填入，將作為 Result 查詢依據</span>
             <input type="hidden" id="proj_name"/>
             <input type="hidden" id="proj_code"/>
@@ -581,7 +581,20 @@ document.getElementById('pw-input').focus();
           <div class="g2">
           <div class="field">
             <label>Phase<span class="req">*</span></label>
-            <input type="text" id="phase" placeholder="例：ER1、ER2、PR、MP..."/>
+            <select id="phase" style="width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:17px;outline:none;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'6\'%3E%3Cpath fill=\'%234f6180\' d=\'M0 0l5 6 5-6z\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;">
+              <option value="">--- 選擇 Phase ---</option>
+              <optgroup label="ER">
+                <option value="ER1">ER1</option>
+                <option value="ER2">ER2</option>
+                <option value="ER3">ER3</option>
+              </optgroup>
+              <optgroup label="PR">
+                <option value="PR1">PR1</option>
+                <option value="PR2">PR2</option>
+                <option value="PR3">PR3</option>
+              </optgroup>
+              <option value="MP">MP</option>
+            </select>
           </div>
           <div class="g2">
             <div class="field">
@@ -934,6 +947,7 @@ document.getElementById('pw-input').focus();
 
 <script>
 var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
+var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 (function(){
   var d=new Date();
   d.setDate(d.getDate()+6);
@@ -984,8 +998,7 @@ function loadRetestFromSP(){
   buildSelect('rt-sub-series',[],'--- 請先選擇 Product Line ---');
   buildSelect('rt-proj-code',[],'--- 請先選擇 Chipset ---');
   document.getElementById('lookup-result').classList.add('hidden');
-  var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
-  fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
     _rtAllData=data.value||data.d&&data.d.results||[];
@@ -1050,8 +1063,7 @@ function lookupForm(){
   if(!code){alert('請輸入專案代號');return;}
   var btn=document.querySelector('[onclick="lookupForm()"]');
   if(btn){btn.disabled=true;btn.textContent='查詢中...';}
-  var PA_LOOKUP='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
-  fetch(PA_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryCode:code.toUpperCase(),allStatus:true,queryAll:true})})
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryCode:code.toUpperCase(),allStatus:true,queryAll:true})})
   .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
   .then(function(data){
     if(btn){btn.disabled=false;btn.textContent='LOAD';}
@@ -1509,43 +1521,74 @@ function paSubmit(){
     doSubmit(null, null);
   }
 }
-(function renderSchedule(){
-  var today=new Date();
-  var mocks=[
-    {proj:'G814JV EVT',sku:2,start:new Date(today.getFullYear(),today.getMonth(),-5),end:new Date(today.getFullYear(),today.getMonth(),15),status:'active'},
-    {proj:'F607BA PR',sku:3,start:new Date(today.getFullYear(),today.getMonth(),5),end:new Date(today.getFullYear(),today.getMonth(),25),status:'pending'},
-    {proj:'G634JY ER2',sku:2,start:new Date(today.getFullYear(),today.getMonth(),12),end:new Date(today.getFullYear(),today.getMonth()+1,5),status:'pending'},
-  ];
-  var totalSku=mocks.reduce(function(a,m){return a+m.sku;},0);
-  document.getElementById('sch-total').textContent=mocks.length;
-  document.getElementById('sch-sku').textContent=totalSku;
-  // Timeline spans from start of current month to end of next month
-  var tStart=new Date(today.getFullYear(),today.getMonth(),1);
-  var tEnd=new Date(today.getFullYear(),today.getMonth()+2,0);
-  var tRange=tEnd-tStart;
-  function pct(d){return Math.max(0,Math.min(100,(d-tStart)/tRange*100));}
-  // Month labels
-  var mLabels='';
-  for(var m=0;m<2;m++){
-    var md=new Date(today.getFullYear(),today.getMonth()+m,1);
-    mLabels+='<div class="schedule-month-label">'+md.getFullYear()+'/'+(md.getMonth()+1)+'</div>';
-  }
-  document.getElementById('schedule-months').innerHTML=mLabels;
-  // Today line
-  var todayPct=pct(today);
-  // Rows
-  var rows='<div class="schedule-timeline" style="position:relative;">';
-  rows+='<div class="today-line" style="left:'+todayPct+'%;"></div>';
-  mocks.forEach(function(m){
-    var left=pct(m.start);var right=pct(m.end);var width=right-left;
-    rows+='<div class="schedule-row">';
-    rows+='<div class="schedule-proj">'+m.proj+' ('+m.sku+'台)</div>';
-    rows+='<div class="schedule-track"><div class="schedule-bar status-'+m.status+'" style="left:'+left+'%;width:'+width+'%;">'+m.proj+'</div></div>';
+function renderSchedule(){
+  document.getElementById('sch-total').textContent='...';
+  document.getElementById('sch-sku').textContent='...';
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var items=data.value||(data.d&&data.d.results)||[];
+    /* 統計專案數與機台數 */
+    var projSet={},totalSku=0;
+    items.forEach(function(item){
+      var code=item.ProjectCode||item.Title||'';
+      if(typeof code==='object')code=code.Title||code.Value||'';
+      if(code)projSet[code]=true;
+      var skuList=item.SKUList||'';
+      var cnt=(skuList.match(/\d+\./g)||[]).length;
+      totalSku+=cnt||0;
+    });
+    document.getElementById('sch-total').textContent=Object.keys(projSet).length;
+    document.getElementById('sch-sku').textContent=totalSku;
+    /* 時間軸 */
+    var today=new Date();
+    var tStart=new Date(today.getFullYear(),today.getMonth(),1);
+    var tEnd=new Date(today.getFullYear(),today.getMonth()+2,0);
+    var tRange=tEnd-tStart;
+    function pct(d){return Math.max(0,Math.min(100,(d-tStart)/tRange*100));}
+    var mLabels='';
+    for(var mi=0;mi<2;mi++){
+      var md=new Date(today.getFullYear(),today.getMonth()+mi,1);
+      mLabels+='<div class="schedule-month-label">'+md.getFullYear()+'/'+(md.getMonth()+1)+'</div>';
+    }
+    document.getElementById('schedule-months').innerHTML=mLabels;
+    var todayPct=pct(today);
+    var rows='<div class="schedule-timeline" style="position:relative;">';
+    rows+='<div class="today-line" style="left:'+todayPct+'%;"></div>';
+    var hasRows=false;
+    items.forEach(function(item){
+      var startStr=item.ScheduleStart||'';
+      if(!startStr)return;
+      var start=new Date(startStr);
+      if(isNaN(start.getTime()))return;
+      var endStr=item.ReportDeadline||item.ScheduleEnd||'';
+      var end=endStr?new Date(endStr):new Date(start.getTime()+14*864e5);
+      if(isNaN(end.getTime()))end=new Date(start.getTime()+14*864e5);
+      var left=pct(start),right=pct(end),width=Math.max(2,right-left);
+      var status=today<start?'pending':(today<=end?'active':'done');
+      var code=item.ProjectCode||item.Title||'—';
+      if(typeof code==='object')code=code.Title||code.Value||'—';
+      var phase=item.Phase||'';
+      if(typeof phase==='object')phase=phase.Title||phase.Value||'';
+      var skuList=item.SKUList||'';
+      var cnt=(skuList.match(/\d+\./g)||[]).length||1;
+      var label=code+(phase?' '+phase:'');
+      rows+='<div class="schedule-row">';
+      rows+='<div class="schedule-proj">'+esc(label)+' ('+cnt+'台)</div>';
+      rows+='<div class="schedule-track"><div class="schedule-bar status-'+status+'" style="left:'+left+'%;width:'+width+'%;">'+esc(code)+'</div></div>';
+      rows+='</div>';
+      hasRows=true;
+    });
+    if(!hasRows)rows+='<div style="padding:12px 0;color:var(--text3);font-family:var(--font-mono);font-size:14px;">// 目前尚無排程資料</div>';
     rows+='</div>';
+    document.getElementById('schedule-rows').innerHTML=rows;
+  })
+  .catch(function(){
+    document.getElementById('sch-total').textContent='—';
+    document.getElementById('sch-sku').textContent='—';
   });
-  rows+='</div>';
-  document.getElementById('schedule-rows').innerHTML=rows;
-})();
+}
+renderSchedule();
 var _adminAuth=false;
 // Auto-open admin if arriving from result page after password auth
 document.addEventListener('DOMContentLoaded',function(){
@@ -1586,7 +1629,6 @@ function switchTab(id){
   document.getElementById(map[id]).classList.add('active');
 }
 function loadAdminData(){
-  var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
   document.getElementById('admin-loading').style.display='block';
   document.getElementById('admin-list').innerHTML='';
   fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
