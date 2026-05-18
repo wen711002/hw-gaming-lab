@@ -233,6 +233,74 @@ document.getElementById('pw-input').focus();
         <span class="mc-tag">匯出 CSV</span>
       </div>
     </div>
+    <div class="mode-card" style="border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.04);" onclick="enterMode('templates')">
+      <div class="mc-icon">📥</div>
+      <div class="mc-title" style="color:var(--purple);">報告模板下載</div>
+      <div class="mc-desc">下載 GL 測試總表（填寫用）及四份 EE 報告空白模板（ACC / TPR / SOW / HW Info）。</div>
+      <div class="mc-tags">
+        <span class="mc-tag">GL 測試總表</span>
+        <span class="mc-tag">ACC / TPR / SOW</span>
+        <span class="mc-tag">HW Info</span>
+        <span class="mc-tag">空白模板</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE DOWNLOAD PANEL -->
+  <div class="panel-wrap" id="panel-templates" style="display:none;">
+    <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;margin-bottom:20px;">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;letter-spacing:0.06em;color:var(--purple);margin-bottom:6px;">報告模板下載</div>
+      <p style="color:var(--text2);font-size:15px;margin-bottom:20px;">下載 GL 測試總表填寫資料，或下載四份空白報告模板（含原有格式供 EE 使用）。</p>
+
+      <!-- GL 測試總表 -->
+      <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.3);border-radius:10px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--cyan);margin-bottom:4px;">GL 測試總表</div>
+          <div style="font-size:14px;color:var(--text2);">GL 填寫用主表：統一記錄 Battery Life / 3DMark / Cinebench / Gaming FPS 數據，含 Report 對應說明。</div>
+        </div>
+        <a href="templates/GL_測試總表_template.xlsx" download style="flex-shrink:0;">
+          <button style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.06em;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.5);border-radius:6px;color:var(--cyan);padding:10px 20px;cursor:pointer;transition:all 0.15s;">⬇ 下載 GL 測試總表</button>
+        </a>
+      </div>
+
+      <!-- Report templates grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:rgba(76,158,245,0.05);border:1px solid rgba(76,158,245,0.25);border-radius:10px;padding:16px 18px;">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--blue);margin-bottom:3px;"><span style="background:rgba(76,158,245,0.15);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">ACC</span>ACC Report 模板</div>
+          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Cinebench R23 30-loop + 3Dmark Benchmark</div>
+          <a href="templates/ACC_template.xlsx" download>
+            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(76,158,245,0.12);border:1px solid rgba(76,158,245,0.35);border-radius:5px;color:var(--blue);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 ACC 模板</button>
+          </a>
+        </div>
+        <div style="background:rgba(255,179,71,0.05);border:1px solid rgba(255,179,71,0.25);border-radius:10px;padding:16px 18px;">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--amber);margin-bottom:3px;"><span style="background:rgba(255,179,71,0.15);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">TPR</span>TPR Report 模板</div>
+          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Battery life / Performance / iGPU</div>
+          <a href="templates/TPR_template.xlsx" download>
+            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.35);border-radius:5px;color:var(--amber);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 TPR 模板</button>
+          </a>
+        </div>
+        <div style="background:rgba(0,229,160,0.05);border:1px solid rgba(0,229,160,0.25);border-radius:10px;padding:16px 18px;">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--green);margin-bottom:3px;"><span style="background:rgba(0,229,160,0.12);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">SOW</span>SOW Perf 模板</div>
+          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Benchmark + Gaming FPS（All SKUs）</div>
+          <a href="templates/SOWPerf_template.xlsx" download>
+            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:5px;color:var(--green);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 SOW 模板</button>
+          </a>
+        </div>
+        <div style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:16px 18px;">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--purple);margin-bottom:3px;"><span style="background:rgba(168,85,247,0.12);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">HW Info</span>HW Info 模板</div>
+          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Battery life / Gaming FPS / Benchmark（All SKUs）</div>
+          <a href="templates/HWinfo_template.xlsx" download>
+            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:5px;color:var(--purple);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 HW Info 模板</button>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:12px 14px;background:rgba(255,179,71,0.06);border:1px solid rgba(255,179,71,0.2);border-radius:8px;font-size:13px;color:var(--text2);">
+        <strong style="color:var(--amber);">使用流程：</strong>
+        ① 先下載「GL 測試總表」填入所有測試數據　②　依需求方要求，將數據填入對應報告模板（ACC / TPR / SOW / HW Info）　③　上傳完成的報告至 Result 頁面
+      </div>
+    </div>
   </div>
 
   <!-- SINGLE PROJECT PANEL -->
@@ -447,14 +515,19 @@ function getProjects(pl,ss){ return pl&&ss&&PROJECT_DATA[pl]&&PROJECT_DATA[pl][s
 // ── Mode switching ────────────────────────────────────────────────────────────
 function enterMode(mode){
   document.getElementById('mode-wrap').style.display='none';
-  document.getElementById('panel-single').classList.remove('active');
-  document.getElementById('panel-compare').classList.remove('active');
-  document.getElementById('panel-'+mode).classList.add('active');
+  ['single','compare','templates'].forEach(function(m){
+    var el=document.getElementById('panel-'+m);
+    if(el){el.classList.remove('active');el.style.display='none';}
+  });
+  var panel=document.getElementById('panel-'+mode);
+  if(panel){panel.style.display='block';panel.classList.add('active');}
 }
 function backToMode(){
   document.getElementById('mode-wrap').style.display='flex';
-  document.getElementById('panel-single').classList.remove('active');
-  document.getElementById('panel-compare').classList.remove('active');
+  ['single','compare','templates'].forEach(function(m){
+    var el=document.getElementById('panel-'+m);
+    if(el){el.classList.remove('active');el.style.display='none';}
+  });
 }
 
 // ── Single Project ─────────────────────────────────────────────────────────
