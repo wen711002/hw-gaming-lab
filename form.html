@@ -732,24 +732,19 @@ document.getElementById('pw-input').focus();
               <div class="rc-chk" id="rchk-tpr">✓</div>
               <div class="rc-tag rc-tag-amber">TPR</div>
               <div class="rc-title">TPR Report</div>
-              <div class="rc-desc">Battery life<br>Performance / iGPU</div>
+              <div class="rc-desc">Battery life<br>Performance</div>
             </div>
             <div class="rcard rcard-sel-sow" id="rcard-sow" onclick="togReport('sow')">
               <div class="rc-chk" id="rchk-sow">✓</div>
               <div class="rc-tag rc-tag-green">SOW</div>
-              <div class="rc-title">SOW Perf Report</div>
-              <div class="rc-desc">Benchmark<br>Gaming FPS（All SKUs）</div>
+              <div class="rc-title">SOW Performance Report</div>
+              <div class="rc-desc">Benchmark<br>Gaming FPS</div>
             </div>
             <div class="rcard rcard-sel-hwinfo" id="rcard-hwinfo" onclick="togReport('hwinfo')">
               <div class="rc-chk" id="rchk-hwinfo">✓</div>
               <div class="rc-tag rc-tag-purple">HW Info</div>
-              <div class="rc-title">HW Info Report</div>
-              <div class="rc-desc">Battery life / Gaming FPS<br>Benchmark（All SKUs）</div>
-            </div>
-            <div class="rcard rcard-disabled">
-              <div class="rc-tag rc-tag-gray">ADK</div>
-              <div class="rc-title">ADK Report</div>
-              <div class="rc-desc">EE 不需提供 Data<br>（免填）</div>
+              <div class="rc-title">HW Information Report</div>
+              <div class="rc-desc">Battery life / Gaming FPS<br>Benchmark</div>
             </div>
           </div>
 
@@ -774,7 +769,6 @@ document.getElementById('pw-input').focus();
             <div class="ri-body">
               <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery life" checked onchange="buildTPRSkuMatrix()"> Battery life</label>
               <label class="crow"><input type="checkbox" data-rpt="tpr" value="Performance" checked onchange="buildTPRSkuMatrix()"> Performance（Benchmark + Gaming FPS）</label>
-              <label class="crow"><input type="checkbox" data-rpt="tpr" value="iGPU" checked onchange="buildTPRSkuMatrix()"> iGPU（Benchmark + Gaming FPS）</label>
             </div>
             <div id="tpr-sku-map-wrap" style="border-top:1px solid var(--border);margin-top:4px;padding:12px 16px 14px;display:none;">
               <div style="font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">TPR × SKU 對應設定</div>
@@ -786,20 +780,19 @@ document.getElementById('pw-input').focus();
           <!-- SOW items -->
           <div class="report-items show" id="ritems-sow">
             <div class="ri-header">
-              <span class="ri-label ri-label-green">SOW Perf — 測項明細</span>
+              <span class="ri-label ri-label-green">SOW Performance — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('sow')">全選 / 全清</button>
             </div>
             <div class="ri-body">
               <label class="crow"><input type="checkbox" data-rpt="sow" value="Benchmark" checked> Benchmark（3DMark: Fire Strike / Port Royal / Time Spy）</label>
               <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS" checked> Gaming FPS</label>
             </div>
-            <div class="hint-info" style="padding:6px 16px 12px;">◈ 測試範圍：All SKUs</div>
           </div>
 
           <!-- HW Info items -->
           <div class="report-items show" id="ritems-hwinfo">
             <div class="ri-header">
-              <span class="ri-label ri-label-purple">HW Info — 測項明細</span>
+              <span class="ri-label ri-label-purple">HW Information — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('hwinfo')">全選 / 全清</button>
             </div>
             <div class="ri-body">
@@ -807,7 +800,6 @@ document.getElementById('pw-input').focus();
               <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Gaming FPS" checked> Gaming FPS</label>
               <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Benchmark" checked> Benchmark（Cinebench R23）</label>
             </div>
-            <div class="hint-info" style="padding:6px 16px 12px;">◈ 測試範圍：All SKUs</div>
           </div>
         </div>
       </div>
@@ -869,11 +861,11 @@ document.getElementById('pw-input').focus();
         <div id="s-tpr-map" style="margin-top:8px;"></div>
       </div>
       <div class="scard" id="s-card-sow">
-        <h3><span class="rc-tag rc-tag-green" style="margin-right:8px;">SOW</span>SOW Perf Report</h3>
+        <h3><span class="rc-tag rc-tag-green" style="margin-right:8px;">SOW</span>SOW Performance Report</h3>
         <div id="s-sow"></div>
       </div>
       <div class="scard" id="s-card-hwinfo">
-        <h3><span class="rc-tag rc-tag-purple" style="margin-right:8px;">HW Info</span>HW Info Report</h3>
+        <h3><span class="rc-tag rc-tag-purple" style="margin-right:8px;">HW Info</span>HW Information Report</h3>
         <div id="s-hwinfo"></div>
       </div>
       <div class="btn-row">
@@ -1292,7 +1284,7 @@ function buildSummary(){
     '</div>';});
   document.getElementById('s-sku-list').innerHTML=sh||'—';
   var rptColors={acc:'var(--blue)',tpr:'var(--amber)',sow:'var(--green)',hwinfo:'var(--purple)'};
-  var rptNames={acc:'ACC',tpr:'TPR',sow:'SOW Perf',hwinfo:'HW Info'};
+  var rptNames={acc:'ACC',tpr:'TPR',sow:'SOW Performance',hwinfo:'HW Information'};
   var selList=[];
   ['acc','tpr','sow','hwinfo'].forEach(function(rpt){
     var card=document.getElementById('s-card-'+rpt);
