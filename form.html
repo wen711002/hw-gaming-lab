@@ -745,7 +745,15 @@ document.getElementById('pw-input').focus();
             <div class="ri-body" style="gap:8px;">
               <div class="ri-section">
                 <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery life" checked> Battery life <span class="ri-mode-badge">Performance mode</span></label>
+                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery life" checked onchange="togTPRSec('battery',this.checked)"> Battery life</label>
+                </div>
+                <div id="tpr-sec-battery" class="ri-sec-body">
+                  <div class="fan-mode-row">
+                    <span class="fml">Fan mode：</span>
+                    <label><input type="checkbox" data-tpr-fan="battery" value="Silent"> Silent</label>
+                    <label><input type="checkbox" data-tpr-fan="battery" value="Performance" checked> Performance</label>
+                    <label><input type="checkbox" data-tpr-fan="battery" value="Turbo"> Turbo</label>
+                  </div>
                 </div>
               </div>
               <div class="ri-section">
@@ -787,9 +795,15 @@ document.getElementById('pw-input').focus();
               <button class="sa-btn" onclick="togAllRptItems('sow')">全選 / 全清</button>
             </div>
             <div class="ri-body">
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Benchmark" checked> 3DMark Benchmark <span class="ri-mode-badge">Turbo mode</span></label>
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — 2K" checked> Gaming FPS — 2K <span class="ri-mode-badge">Turbo mode</span></label>
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — FHD" checked> Gaming FPS — FHD <span class="ri-mode-badge">Turbo mode</span></label>
+              <div class="fan-mode-row" style="margin-bottom:6px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+                <span class="fml">Fan mode：</span>
+                <label><input type="checkbox" data-sow-fan value="Silent"> Silent</label>
+                <label><input type="checkbox" data-sow-fan value="Performance"> Performance</label>
+                <label><input type="checkbox" data-sow-fan value="Turbo" checked> Turbo</label>
+              </div>
+              <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Benchmark" checked> 3DMark Benchmark</label>
+              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — 2K" checked> Gaming FPS — 2K</label>
+              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — FHD" checked> Gaming FPS — FHD</label>
             </div>
             <div class="ri-note-wrap">
               <input type="text" id="note-sow" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
@@ -803,9 +817,15 @@ document.getElementById('pw-input').focus();
               <button class="sa-btn" onclick="togAllRptItems('hwinfo')">全選 / 全清</button>
             </div>
             <div class="ri-body">
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery life" checked> Battery life <span class="ri-mode-badge">MSHybrid mode</span></label>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Benchmark" checked> 3DMark Benchmark <span class="ri-mode-badge">Discrete GPU</span></label>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Gaming FPS" checked> Gaming FPS <span class="ri-mode-badge">Turbo + Discrete GPU</span></label>
+              <div class="fan-mode-row" style="margin-bottom:6px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+                <span class="fml">Fan mode：</span>
+                <label><input type="checkbox" data-hwinfo-fan value="Silent"> Silent</label>
+                <label><input type="checkbox" data-hwinfo-fan value="Performance"> Performance</label>
+                <label><input type="checkbox" data-hwinfo-fan value="Turbo" checked> Turbo</label>
+              </div>
+              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery life" checked> Battery life</label>
+              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Benchmark" checked> 3DMark Benchmark</label>
+              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Gaming FPS" checked> Gaming FPS</label>
             </div>
             <div class="ri-note-wrap">
               <input type="text" id="note-hwinfo" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
@@ -1238,10 +1258,20 @@ function getReportItems(rpt){
   var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
   var result=items.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
   if(rpt==='tpr'){
+    var batFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="battery"]:checked')).map(function(c){return c.value;});
     var perfFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="perf"]:checked')).map(function(c){return c.value;});
     var igpuFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="igpu"]:checked')).map(function(c){return c.value;});
+    if(batFans.length)result+='\n   Battery life Fan modes: '+batFans.join(', ');
     if(perfFans.length)result+='\n   Performance Fan modes: '+perfFans.join(', ');
     if(igpuFans.length)result+='\n   iGPU Fan modes: '+igpuFans.join(', ');
+  }
+  if(rpt==='sow'){
+    var sowFans=Array.prototype.slice.call(document.querySelectorAll('[data-sow-fan]:checked')).map(function(c){return c.value;});
+    if(sowFans.length)result+='\n   Fan modes: '+sowFans.join(', ');
+  }
+  if(rpt==='hwinfo'){
+    var hwFans=Array.prototype.slice.call(document.querySelectorAll('[data-hwinfo-fan]:checked')).map(function(c){return c.value;});
+    if(hwFans.length)result+='\n   Fan modes: '+hwFans.join(', ');
   }
   var note=v('note-'+rpt);
   if(note)result+='\n※ '+note;
