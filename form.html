@@ -366,6 +366,15 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .ri-label-green{color:var(--green);}
 .ri-label-purple{color:var(--purple);}
 .ri-body{padding:12px 16px;display:flex;flex-direction:column;gap:2px;}
+/* SKU × REPORT MATRIX */
+.srm-table{width:100%;border-collapse:collapse;font-size:15px;}
+.srm-table th{background:var(--bg4);font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:0.06em;padding:9px 14px;text-align:center;border:1px solid var(--border2);color:var(--text2);}
+.srm-table th:first-child{text-align:left;min-width:160px;}
+.srm-table td{padding:8px 14px;border:1px solid var(--border);text-align:center;vertical-align:middle;transition:background 0.1s;}
+.srm-table tbody tr:hover td{background:var(--bg4);}
+.srm-table td:first-child{text-align:left;font-family:var(--font-mono);color:var(--cyan);font-size:14px;}
+.srm-table td input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:var(--blue);}
+.srm-col-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
 /* TPR SKU MATRIX */
 .tpr-matrix{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px;}
 .tpr-matrix th{background:var(--bg4);color:var(--text3);font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;padding:7px 10px;text-align:center;border:1px solid var(--border2);}
@@ -717,39 +726,14 @@ document.getElementById('pw-input').focus();
 
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">測試報告選擇</div>
-          <span style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 預設全選，可取消不需要本次提交的報告</span>
+          <div class="panel-title">SKU × 報告對應</div>
+          <span style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 預設全選，可取消不需要本次提交的組合</span>
         </div>
         <div class="panel-body">
-          <div class="report-grid">
-            <div class="rcard rcard-sel-acc" id="rcard-acc" onclick="togReport('acc')">
-              <div class="rc-chk" id="rchk-acc">✓</div>
-              <div class="rc-tag rc-tag-blue">ACC</div>
-              <div class="rc-title">ACC Report</div>
-              <div class="rc-desc">Cinebench R23 30-loop<br>3Dmark Benchmark</div>
-            </div>
-            <div class="rcard rcard-sel-tpr" id="rcard-tpr" onclick="togReport('tpr')">
-              <div class="rc-chk" id="rchk-tpr">✓</div>
-              <div class="rc-tag rc-tag-amber">TPR</div>
-              <div class="rc-title">TPR Report</div>
-              <div class="rc-desc">Battery life<br>Performance</div>
-            </div>
-            <div class="rcard rcard-sel-sow" id="rcard-sow" onclick="togReport('sow')">
-              <div class="rc-chk" id="rchk-sow">✓</div>
-              <div class="rc-tag rc-tag-green">SOW</div>
-              <div class="rc-title">SOW Performance Report</div>
-              <div class="rc-desc">Benchmark<br>Gaming FPS</div>
-            </div>
-            <div class="rcard rcard-sel-hwinfo" id="rcard-hwinfo" onclick="togReport('hwinfo')">
-              <div class="rc-chk" id="rchk-hwinfo">✓</div>
-              <div class="rc-tag rc-tag-purple">HW Info</div>
-              <div class="rc-title">HW Information Report</div>
-              <div class="rc-desc">Battery life / Gaming FPS<br>Benchmark</div>
-            </div>
-          </div>
+          <div id="sku-report-matrix-wrap" style="overflow-x:auto;margin-bottom:16px;"></div>
 
           <!-- ACC items -->
-          <div class="report-items show" id="ritems-acc">
+          <div class="report-items" id="ritems-acc">
             <div class="ri-header">
               <span class="ri-label ri-label-blue">ACC — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('acc')">全選 / 全清</button>
@@ -761,9 +745,9 @@ document.getElementById('pw-input').focus();
           </div>
 
           <!-- TPR items -->
-          <div class="report-items show" id="ritems-tpr">
+          <div class="report-items" id="ritems-tpr">
             <div class="ri-header">
-              <span class="ri-label ri-label-amber">TPR — 測項明細 <span style="font-weight:400;font-size:13px;color:var(--text3);">（通常要求特定 SKU）</span></span>
+              <span class="ri-label ri-label-amber">TPR — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('tpr')">全選 / 全清</button>
             </div>
             <div class="ri-body">
@@ -771,14 +755,14 @@ document.getElementById('pw-input').focus();
               <label class="crow"><input type="checkbox" data-rpt="tpr" value="Performance" checked onchange="buildTPRSkuMatrix()"> Performance（Benchmark + Gaming FPS）</label>
             </div>
             <div id="tpr-sku-map-wrap" style="border-top:1px solid var(--border);margin-top:4px;padding:12px 16px 14px;display:none;">
-              <div style="font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">TPR × SKU 對應設定</div>
-              <p style="font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:10px;">// 請勾選每個 SKU 需要進行的 TPR 子測項（預設全選，有多台機台時請務必確認）</p>
+              <div style="font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">TPR × SKU 子測項設定</div>
+              <p style="font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:10px;">// 多台 TPR SKU 時，可在此精細控制各 SKU 要進行的子測項</p>
               <div id="tpr-sku-matrix" style="overflow-x:auto;"></div>
             </div>
           </div>
 
           <!-- SOW items -->
-          <div class="report-items show" id="ritems-sow">
+          <div class="report-items" id="ritems-sow">
             <div class="ri-header">
               <span class="ri-label ri-label-green">SOW Performance — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('sow')">全選 / 全清</button>
@@ -789,8 +773,8 @@ document.getElementById('pw-input').focus();
             </div>
           </div>
 
-          <!-- HW Info items -->
-          <div class="report-items show" id="ritems-hwinfo">
+          <!-- HW Information items -->
+          <div class="report-items" id="ritems-hwinfo">
             <div class="ri-header">
               <span class="ri-label ri-label-purple">HW Information — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('hwinfo')">全選 / 全清</button>
@@ -980,7 +964,6 @@ function updReportDueMin(){
     }
   });
 })();
-var selReports={acc:true,tpr:true,sow:true,hwinfo:true};
 var rptAllState={acc:true,tpr:true,sow:true,hwinfo:true};
 var formDb={};
 
@@ -1172,20 +1155,51 @@ function selFan(el,val){
   document.querySelectorAll('.fan-chip').forEach(function(c){c.classList.remove('sel');});
   el.classList.add('sel');selFanVal=val;document.getElementById('fan_mode').value=val;
 }
-function togReport(rpt){
-  selReports[rpt]=!selReports[rpt];
-  var card=document.getElementById('rcard-'+rpt);
-  var items=document.getElementById('ritems-'+rpt);
-  var selCls='rcard-sel-'+rpt;
-  if(selReports[rpt]){
-    card.classList.add(selCls);
-    document.getElementById('rchk-'+rpt).textContent='✓';
-    if(items)items.classList.add('show');
-  } else {
-    card.classList.remove(selCls);
-    document.getElementById('rchk-'+rpt).textContent='';
-    if(items)items.classList.remove('show');
+function buildSkuReportMatrix(){
+  var skus=[];
+  document.querySelectorAll('#sku-tbody tr').forEach(function(r){
+    var inp=r.querySelectorAll('input');
+    if(inp[0]&&inp[0].value.trim())skus.push(inp[0].value.trim());
+  });
+  var wrap=document.getElementById('sku-report-matrix-wrap');
+  if(!wrap)return;
+  if(skus.length===0){
+    wrap.innerHTML='<p style="color:var(--text3);font-size:15px;font-family:var(--font-mono);padding:8px 0;">// 請先在 Step 1 填入 SKU 資訊</p>';
+    ['acc','tpr','sow','hwinfo'].forEach(function(rpt){var p=document.getElementById('ritems-'+rpt);if(p)p.style.display='none';});
+    return;
   }
+  var rpts=[{id:'acc',label:'ACC',cls:'blue'},{id:'tpr',label:'TPR',cls:'amber'},{id:'sow',label:'SOW',cls:'green'},{id:'hwinfo',label:'HW Info',cls:'purple'}];
+  var html='<table class="srm-table"><thead><tr><th>SKU</th>';
+  rpts.forEach(function(r){html+='<th><span class="rc-tag rc-tag-'+r.cls+'">'+r.label+'</span></th>';});
+  html+='</tr></thead><tbody>';
+  skus.forEach(function(sku){
+    html+='<tr><td>'+esc(sku)+'</td>';
+    rpts.forEach(function(r){
+      var id='srm_'+sku.replace(/\W+/g,'_')+'_'+r.id;
+      html+='<td><input type="checkbox" id="'+esc(id)+'" data-srm-sku="'+esc(sku)+'" data-srm-rpt="'+r.id+'" checked onchange="onSrmChange()"></td>';
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table><div class="srm-col-btns">';
+  rpts.forEach(function(r){html+='<button class="sa-btn" onclick="togAllSkusReport(\''+r.id+'\')">'+r.label+' 全選/全清</button>';});
+  html+='</div>';
+  wrap.innerHTML=html;
+  onSrmChange();
+}
+function onSrmChange(){
+  ['acc','tpr','sow','hwinfo'].forEach(function(rpt){
+    var needed=!!document.querySelector('[data-srm-rpt="'+rpt+'"]:checked');
+    var panel=document.getElementById('ritems-'+rpt);
+    if(panel)panel.style.display=needed?'block':'none';
+  });
+  buildTPRSkuMatrix();
+}
+function togAllSkusReport(rpt){
+  var cbs=document.querySelectorAll('[data-srm-rpt="'+rpt+'"]');
+  var allOn=true;
+  cbs.forEach(function(cb){if(!cb.checked)allOn=false;});
+  cbs.forEach(function(cb){cb.checked=!allOn;});
+  onSrmChange();
 }
 function togAllRptItems(rpt){
   rptAllState[rpt]=!rptAllState[rpt];
@@ -1193,23 +1207,19 @@ function togAllRptItems(rpt){
   if(rpt==='tpr')buildTPRSkuMatrix();
 }
 function buildTPRSkuMatrix(){
-  var skuList=[];
-  document.querySelectorAll('#sku-tbody tr').forEach(function(r){
-    var inp=r.querySelectorAll('input');
-    if(inp[0]&&inp[0].value.trim())skuList.push(inp[0].value.trim());
-  });
+  var tprSkus=Array.prototype.slice.call(document.querySelectorAll('[data-srm-rpt="tpr"]:checked')).map(function(cb){return cb.getAttribute('data-srm-sku');});
   var tprItems=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="tpr"]:checked')).map(function(c){return c.value;});
   var wrap=document.getElementById('tpr-sku-map-wrap');
   var matrix=document.getElementById('tpr-sku-matrix');
   if(!wrap||!matrix)return;
-  if(skuList.length<=1||tprItems.length===0){wrap.style.display='none';matrix.innerHTML='';return;}
+  if(tprSkus.length<=1||tprItems.length===0){wrap.style.display='none';matrix.innerHTML='';return;}
   wrap.style.display='block';
   var html='<table class="tpr-matrix"><thead><tr><th>TPR 子測項</th>';
-  skuList.forEach(function(sku){html+='<th>'+esc(sku)+'</th>';});
+  tprSkus.forEach(function(sku){html+='<th>'+esc(sku)+'</th>';});
   html+='</tr></thead><tbody>';
   tprItems.forEach(function(subtest){
     html+='<tr><td>'+esc(subtest)+'</td>';
-    skuList.forEach(function(sku){
+    tprSkus.forEach(function(sku){
       var id='tpr_m_'+subtest.replace(/\W+/g,'_')+'_'+sku.replace(/\W+/g,'_');
       html+='<td><input type="checkbox" id="'+esc(id)+'" data-tpr-sub="'+esc(subtest)+'" data-tpr-sku="'+esc(sku)+'" checked></td>';
     });
@@ -1221,6 +1231,12 @@ function buildTPRSkuMatrix(){
 function getReportItems(rpt){
   var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
   return items.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
+}
+function getSkusForReport(rpt){
+  return Array.prototype.slice.call(document.querySelectorAll('[data-srm-rpt="'+rpt+'"]:checked')).map(function(cb){return cb.getAttribute('data-srm-sku');});
+}
+function reportNeeded(rpt){
+  return !!document.querySelector('[data-srm-rpt="'+rpt+'"]:checked');
 }
 function getTPRSkuMap(){
   var map={};
@@ -1283,44 +1299,55 @@ function buildSummary(){
     (inp[6].value?' &nbsp;|&nbsp; BIOS:'+esc(inp[6].value):'')+
     '</div>';});
   document.getElementById('s-sku-list').innerHTML=sh||'—';
-  var rptColors={acc:'var(--blue)',tpr:'var(--amber)',sow:'var(--green)',hwinfo:'var(--purple)'};
-  var rptNames={acc:'ACC',tpr:'TPR',sow:'SOW Performance',hwinfo:'HW Information'};
-  var selList=[];
-  ['acc','tpr','sow','hwinfo'].forEach(function(rpt){
+  var rpts=['acc','tpr','sow','hwinfo'];
+  var rptCls={acc:'blue',tpr:'amber',sow:'green',hwinfo:'purple'};
+  var rptShort={acc:'ACC',tpr:'TPR',sow:'SOW',hwinfo:'HW Info'};
+  // Build SKU×Report summary matrix
+  var skuNames=[];
+  document.querySelectorAll('#sku-tbody tr').forEach(function(r){var inp=r.querySelectorAll('input');if(inp[0]&&inp[0].value.trim())skuNames.push(inp[0].value.trim());});
+  var mhtml='<div style="overflow-x:auto;"><table class="srm-table" style="margin-bottom:4px;"><thead><tr><th>SKU</th>';
+  rpts.forEach(function(rpt){mhtml+='<th><span class="rc-tag rc-tag-'+rptCls[rpt]+'">'+rptShort[rpt]+'</span></th>';});
+  mhtml+='</tr></thead><tbody>';
+  skuNames.forEach(function(sku){
+    mhtml+='<tr><td>'+esc(sku)+'</td>';
+    rpts.forEach(function(rpt){
+      var on=!!document.querySelector('[data-srm-sku="'+sku+'"][data-srm-rpt="'+rpt+'"]:checked');
+      var col={acc:'var(--blue)',tpr:'var(--amber)',sow:'var(--green)',hwinfo:'var(--purple)'}[rpt];
+      mhtml+='<td style="color:'+(on?col:'var(--text3)')+';">'+(on?'✓':'—')+'</td>';
+    });
+    mhtml+='</tr>';
+  });
+  mhtml+='</tbody></table></div>';
+  document.getElementById('s-reports').innerHTML=mhtml||'<span style="color:var(--red);">未選擇任何報告</span>';
+  // Per-report detail cards
+  rpts.forEach(function(rpt){
     var card=document.getElementById('s-card-'+rpt);
-    if(selReports[rpt]){
-      selList.push('<span class="ttag" style="border-color:'+rptColors[rpt]+';color:'+rptColors[rpt]+'">'+rptNames[rpt]+'</span>');
+    if(reportNeeded(rpt)){
+      var skusForRpt=getSkusForReport(rpt);
       var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
-      var html=items.map(function(it){return '<span class="ttag">'+esc(it)+'</span>';}).join('');
-      document.getElementById('s-'+rpt).innerHTML=html||'<span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">// no items selected</span>';
+      var html='<div style="font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:8px;">SKU：'+skusForRpt.map(function(s){return '<span class="ttag" style="font-size:13px;">'+esc(s)+'</span>';}).join(' ')+'</div>';
+      html+=items.map(function(it){return '<span class="ttag">'+esc(it)+'</span>';}).join('');
+      if(!items.length)html+='<span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">// no items selected</span>';
+      document.getElementById('s-'+rpt).innerHTML=html;
       if(rpt==='tpr'){
         var mapData={};
-        document.querySelectorAll('[data-tpr-sub]').forEach(function(cb){
-          if(cb.checked){
-            var sub=cb.getAttribute('data-tpr-sub');var sku=cb.getAttribute('data-tpr-sku');
-            if(!mapData[sub])mapData[sub]=[];
-            mapData[sub].push(sku);
-          }
-        });
+        document.querySelectorAll('[data-tpr-sub]').forEach(function(cb){if(cb.checked){var sub=cb.getAttribute('data-tpr-sub');var sku=cb.getAttribute('data-tpr-sku');if(!mapData[sub])mapData[sub]=[];mapData[sub].push(sku);}});
         var keys=Object.keys(mapData);
         if(keys.length){
-          var mhtml='<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;"><div style="font-family:var(--font-head);font-size:13px;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">SKU 對應：</div>';
-          keys.forEach(function(sub){mhtml+='<div style="font-size:14px;margin-bottom:4px;"><span style="color:var(--amber);font-family:var(--font-mono);">'+esc(sub)+'</span> → ';mapData[sub].forEach(function(sku){mhtml+='<span class="ttag" style="font-size:13px;">'+esc(sku)+'</span>';});mhtml+='</div>';});
-          mhtml+='</div>';
-          document.getElementById('s-tpr-map').innerHTML=mhtml;
-        } else {
-          document.getElementById('s-tpr-map').innerHTML='';
-        }
+          var thtml='<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;"><div style="font-family:var(--font-head);font-size:13px;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">子測項 × SKU：</div>';
+          keys.forEach(function(sub){thtml+='<div style="font-size:14px;margin-bottom:4px;"><span style="color:var(--amber);font-family:var(--font-mono);">'+esc(sub)+'</span> → ';mapData[sub].forEach(function(sku){thtml+='<span class="ttag" style="font-size:13px;">'+esc(sku)+'</span>';});thtml+='</div>';});
+          thtml+='</div>';
+          document.getElementById('s-tpr-map').innerHTML=thtml;
+        } else {document.getElementById('s-tpr-map').innerHTML='';}
       }
       if(card)card.style.display='';
     } else {
       if(card)card.style.display='none';
     }
   });
-  document.getElementById('s-reports').innerHTML=selList.join(' ')||'<span style="color:var(--red);">未選擇任何報告</span>';
 }
 function goPage(n){
-  if(n===2)buildTPRSkuMatrix();
+  if(n===2)buildSkuReportMatrix();
   if(n===3)buildSummary();
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page'+n).classList.add('active');
@@ -1488,7 +1515,7 @@ function submitForm(){
   if(!selFanVal)miss.push('FanMode');
   if(!v('sch_start'))miss.push('測試時段');
   if(!v('report_due'))miss.push('截止日');
-  if(!Object.keys(selReports).some(function(k){return selReports[k];}))miss.push('測試報告（至少選擇一份）');
+  if(!document.querySelector('[data-srm-rpt]:checked'))miss.push('測試報告（至少選擇一組 SKU × 報告）');
   // SKU required check
   var skuFirst=document.querySelector('#sku-tbody tr input');
   if(!skuFirst||!skuFirst.value.trim())miss.push('SKU（至少填寫第一筆）');
@@ -1536,15 +1563,15 @@ function paSubmit(){
     ScheduleEnd:'',
     ReportDeadline:v('report_due')||'',
     SKUList:sku,
-    ReportACC:selReports.acc?'是':'否',
-    ACCItems:selReports.acc?getReportItems('acc'):'',
-    ReportTPR:selReports.tpr?'是':'否',
-    TPRItems:selReports.tpr?getReportItems('tpr'):'',
-    TPRSkuMap:selReports.tpr?getTPRSkuMap():'',
-    ReportSOW:selReports.sow?'是':'否',
-    SOWItems:selReports.sow?getReportItems('sow'):'',
-    ReportHWInfo:selReports.hwinfo?'是':'否',
-    HWInfoItems:selReports.hwinfo?getReportItems('hwinfo'):'',
+    ReportACC:getSkusForReport('acc').join(', '),
+    ACCItems:reportNeeded('acc')?getReportItems('acc'):'',
+    ReportTPR:getSkusForReport('tpr').join(', '),
+    TPRItems:reportNeeded('tpr')?getReportItems('tpr'):'',
+    TPRSkuMap:reportNeeded('tpr')?getTPRSkuMap():'',
+    ReportSOW:getSkusForReport('sow').join(', '),
+    SOWItems:reportNeeded('sow')?getReportItems('sow'):'',
+    ReportHWInfo:getSkusForReport('hwinfo').join(', '),
+    HWInfoItems:reportNeeded('hwinfo')?getReportItems('hwinfo'):'',
     Notes:v('extra_notes'),
     RetestReason:retestTxt,
     Status:'Pending',
