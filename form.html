@@ -375,13 +375,18 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .srm-table td:first-child{text-align:left;font-family:var(--font-mono);color:var(--cyan);font-size:14px;}
 .srm-table td input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:var(--blue);}
 .srm-col-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-/* TPR SKU MATRIX */
-.tpr-matrix{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px;}
-.tpr-matrix th{background:var(--bg4);color:var(--text3);font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;padding:7px 10px;text-align:center;border:1px solid var(--border2);}
-.tpr-matrix th:first-child{text-align:left;min-width:160px;}
-.tpr-matrix td{padding:6px 10px;border:1px solid var(--border);text-align:center;vertical-align:middle;}
-.tpr-matrix td:first-child{text-align:left;font-family:var(--font-head);font-size:14px;color:var(--text2);}
-.tpr-matrix td input[type=checkbox]{width:15px;height:15px;accent-color:var(--amber);cursor:pointer;}
+/* TPR SUB-SECTIONS */
+.ri-section{border:1px solid var(--border);border-radius:var(--r6);margin-bottom:8px;overflow:hidden;}
+.ri-section-hd{padding:8px 14px;background:rgba(255,255,255,0.025);}
+.ri-sec-body{padding:6px 14px 12px;border-top:1px solid var(--border);}
+.fan-mode-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0;font-size:14px;}
+.fan-mode-row .fml{color:var(--text3);font-family:var(--font-mono);font-size:13px;margin-right:4px;}
+.fan-mode-row label{display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text);}
+.fan-mode-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--amber);}
+.ri-mode-badge{font-size:12px;font-family:var(--font-mono);color:var(--text3);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:3px;margin-left:8px;vertical-align:middle;}
+.ri-note-wrap{padding:8px 16px 14px;border-top:1px solid var(--border);}
+.ri-note-wrap input[type=text]{width:100%;padding:7px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:14px;font-family:var(--font-body);}
+.ri-note-wrap input::placeholder{color:var(--text3);}
 @media(max-width:860px){
   .sidebar{display:none;}
   .main{padding:20px 16px 40px;}
@@ -709,22 +714,6 @@ document.getElementById('pw-input').focus();
     <!-- PAGE 2 -->
     <div class="page" id="page2">
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">Fan Mode</div></div>
-        <div class="panel-body">
-          <div class="field">
-            <label>Fan Mode<span class="req">*</span></label>
-            <div class="chips">
-              <span class="fan-chip" onclick="selFan(this,'Turbo')">TURBO</span>
-              <span class="fan-chip" onclick="selFan(this,'Performance')">PERFORMANCE</span>
-              <span class="fan-chip" onclick="selFan(this,'Silent')">SILENT</span>
-            </div>
-            <input type="hidden" id="fan_mode"/>
-            <span class="hint">Performance / iGPU 測試的 Fan Mode 設定</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
         <div class="panel-header">
           <div class="panel-title">SKU × 報告對應</div>
           <span style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 預設全選，可取消不需要本次提交的組合</span>
@@ -740,7 +729,10 @@ document.getElementById('pw-input').focus();
             </div>
             <div class="ri-body">
               <label class="crow"><input type="checkbox" data-rpt="acc" value="Cinebench R23 30-loop" checked> Cinebench R23 30-loop</label>
-              <label class="crow"><input type="checkbox" data-rpt="acc" value="3Dmark Benchmark" checked> 3Dmark Benchmark</label>
+              <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Benchmark" checked> 3DMark Benchmark <span class="ri-mode-badge">Fire Strike / Port Royal / Time Spy</span></label>
+            </div>
+            <div class="ri-note-wrap">
+              <input type="text" id="note-acc" placeholder="備注：特殊說明（如特定條件或排除項目）…">
             </div>
           </div>
 
@@ -750,26 +742,57 @@ document.getElementById('pw-input').focus();
               <span class="ri-label ri-label-amber">TPR — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('tpr')">全選 / 全清</button>
             </div>
-            <div class="ri-body">
-              <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery life" checked onchange="buildTPRSkuMatrix()"> Battery life</label>
-              <label class="crow"><input type="checkbox" data-rpt="tpr" value="Performance" checked onchange="buildTPRSkuMatrix()"> Performance（Benchmark + Gaming FPS）</label>
+            <div class="ri-body" style="gap:8px;">
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery life" checked> Battery life <span class="ri-mode-badge">Performance mode</span></label>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="Performance" checked onchange="togTPRSec('perf',this.checked)"> Performance <span class="ri-mode-badge">Benchmark + Gaming FPS</span></label>
+                </div>
+                <div id="tpr-sec-perf" class="ri-sec-body">
+                  <div class="fan-mode-row">
+                    <span class="fml">Fan mode：</span>
+                    <label><input type="checkbox" data-tpr-fan="perf" value="Silent" checked> Silent</label>
+                    <label><input type="checkbox" data-tpr-fan="perf" value="Performance" checked> Performance</label>
+                    <label><input type="checkbox" data-tpr-fan="perf" value="Turbo" checked> Turbo</label>
+                  </div>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="iGPU" checked onchange="togTPRSec('igpu',this.checked)"> iGPU <span class="ri-mode-badge">Gaming FPS（R6S / CS2 FHD）</span></label>
+                </div>
+                <div id="tpr-sec-igpu" class="ri-sec-body">
+                  <div class="fan-mode-row">
+                    <span class="fml">Fan mode：</span>
+                    <label><input type="checkbox" data-tpr-fan="igpu" value="Silent" checked> Silent</label>
+                    <label><input type="checkbox" data-tpr-fan="igpu" value="Performance" checked> Performance</label>
+                    <label><input type="checkbox" data-tpr-fan="igpu" value="Turbo" checked> Turbo</label>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div id="tpr-sku-map-wrap" style="border-top:1px solid var(--border);margin-top:4px;padding:12px 16px 14px;display:none;">
-              <div style="font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">TPR × SKU 子測項設定</div>
-              <p style="font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:10px;">// 多台 TPR SKU 時，可在此精細控制各 SKU 要進行的子測項</p>
-              <div id="tpr-sku-matrix" style="overflow-x:auto;"></div>
+            <div class="ri-note-wrap">
+              <input type="text" id="note-tpr" placeholder="備注：特殊說明（如排除特定 Fan mode 或遊戲）…">
             </div>
           </div>
 
-          <!-- SOW items -->
+          <!-- SOW Performance items -->
           <div class="report-items" id="ritems-sow">
             <div class="ri-header">
               <span class="ri-label ri-label-green">SOW Performance — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('sow')">全選 / 全清</button>
             </div>
             <div class="ri-body">
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="Benchmark" checked> Benchmark（3DMark: Fire Strike / Port Royal / Time Spy）</label>
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS" checked> Gaming FPS</label>
+              <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Benchmark" checked> 3DMark Benchmark <span class="ri-mode-badge">Turbo mode</span></label>
+              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — 2K" checked> Gaming FPS — 2K <span class="ri-mode-badge">Turbo mode</span></label>
+              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — FHD" checked> Gaming FPS — FHD <span class="ri-mode-badge">Turbo mode</span></label>
+            </div>
+            <div class="ri-note-wrap">
+              <input type="text" id="note-sow" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
             </div>
           </div>
 
@@ -780,9 +803,12 @@ document.getElementById('pw-input').focus();
               <button class="sa-btn" onclick="togAllRptItems('hwinfo')">全選 / 全清</button>
             </div>
             <div class="ri-body">
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery life" checked> Battery life</label>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Gaming FPS" checked> Gaming FPS</label>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Benchmark" checked> Benchmark（Cinebench R23）</label>
+              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery life" checked> Battery life <span class="ri-mode-badge">MSHybrid mode</span></label>
+              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Benchmark" checked> 3DMark Benchmark <span class="ri-mode-badge">Discrete GPU</span></label>
+              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Gaming FPS" checked> Gaming FPS <span class="ri-mode-badge">Turbo + Discrete GPU</span></label>
+            </div>
+            <div class="ri-note-wrap">
+              <input type="text" id="note-hwinfo" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
             </div>
           </div>
         </div>
@@ -1192,7 +1218,6 @@ function onSrmChange(){
     var panel=document.getElementById('ritems-'+rpt);
     if(panel)panel.style.display=needed?'block':'none';
   });
-  buildTPRSkuMatrix();
 }
 function togAllSkusReport(rpt){
   var cbs=document.querySelectorAll('[data-srm-rpt="'+rpt+'"]');
@@ -1204,51 +1229,29 @@ function togAllSkusReport(rpt){
 function togAllRptItems(rpt){
   rptAllState[rpt]=!rptAllState[rpt];
   document.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=rptAllState[rpt];});
-  if(rpt==='tpr')buildTPRSkuMatrix();
 }
-function buildTPRSkuMatrix(){
-  var tprSkus=Array.prototype.slice.call(document.querySelectorAll('[data-srm-rpt="tpr"]:checked')).map(function(cb){return cb.getAttribute('data-srm-sku');});
-  var tprItems=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="tpr"]:checked')).map(function(c){return c.value;});
-  var wrap=document.getElementById('tpr-sku-map-wrap');
-  var matrix=document.getElementById('tpr-sku-matrix');
-  if(!wrap||!matrix)return;
-  if(tprSkus.length<=1||tprItems.length===0){wrap.style.display='none';matrix.innerHTML='';return;}
-  wrap.style.display='block';
-  var html='<table class="tpr-matrix"><thead><tr><th>TPR 子測項</th>';
-  tprSkus.forEach(function(sku){html+='<th>'+esc(sku)+'</th>';});
-  html+='</tr></thead><tbody>';
-  tprItems.forEach(function(subtest){
-    html+='<tr><td>'+esc(subtest)+'</td>';
-    tprSkus.forEach(function(sku){
-      var id='tpr_m_'+subtest.replace(/\W+/g,'_')+'_'+sku.replace(/\W+/g,'_');
-      html+='<td><input type="checkbox" id="'+esc(id)+'" data-tpr-sub="'+esc(subtest)+'" data-tpr-sku="'+esc(sku)+'" checked></td>';
-    });
-    html+='</tr>';
-  });
-  html+='</tbody></table>';
-  matrix.innerHTML=html;
+function togTPRSec(sec,show){
+  var body=document.getElementById('tpr-sec-'+sec);
+  if(body)body.style.display=show?'':'none';
 }
 function getReportItems(rpt){
   var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
-  return items.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
+  var result=items.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
+  if(rpt==='tpr'){
+    var perfFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="perf"]:checked')).map(function(c){return c.value;});
+    var igpuFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="igpu"]:checked')).map(function(c){return c.value;});
+    if(perfFans.length)result+='\n   Performance Fan modes: '+perfFans.join(', ');
+    if(igpuFans.length)result+='\n   iGPU Fan modes: '+igpuFans.join(', ');
+  }
+  var note=v('note-'+rpt);
+  if(note)result+='\n※ '+note;
+  return result;
 }
 function getSkusForReport(rpt){
   return Array.prototype.slice.call(document.querySelectorAll('[data-srm-rpt="'+rpt+'"]:checked')).map(function(cb){return cb.getAttribute('data-srm-sku');});
 }
 function reportNeeded(rpt){
   return !!document.querySelector('[data-srm-rpt="'+rpt+'"]:checked');
-}
-function getTPRSkuMap(){
-  var map={};
-  document.querySelectorAll('[data-tpr-sub]').forEach(function(cb){
-    if(cb.checked){
-      var sub=cb.getAttribute('data-tpr-sub');
-      var sku=cb.getAttribute('data-tpr-sku');
-      if(!map[sub])map[sub]=[];
-      map[sub].push(sku);
-    }
-  });
-  return JSON.stringify(map);
 }
 function addSkuRow(){
   skuCount++;var tbody=document.getElementById('sku-tbody');var tr=document.createElement('tr');
@@ -1512,7 +1515,6 @@ function submitForm(){
   if(!v('req-email'))miss.push('需求人Email');
   if(!v('proj_name'))miss.push('專案名稱');
   if(!v('phase'))miss.push('Phase');
-  if(!selFanVal)miss.push('FanMode');
   if(!v('sch_start'))miss.push('測試時段');
   if(!v('report_due'))miss.push('截止日');
   if(!document.querySelector('[data-srm-rpt]:checked'))miss.push('測試報告（至少選擇一組 SKU × 報告）');
@@ -1558,7 +1560,7 @@ function paSubmit(){
     ProjectName:v('proj_name'),
     ProjectCode:v('proj_code'),
     Phase:v('phase'),
-    FanMode:selFanVal,
+    FanMode:'',
     ScheduleStart:v('sch_start')||'',
     ScheduleEnd:'',
     ReportDeadline:v('report_due')||'',
@@ -1567,7 +1569,7 @@ function paSubmit(){
     ACCItems:reportNeeded('acc')?getReportItems('acc'):'',
     ReportTPR:getSkusForReport('tpr').join(', '),
     TPRItems:reportNeeded('tpr')?getReportItems('tpr'):'',
-    TPRSkuMap:reportNeeded('tpr')?getTPRSkuMap():'',
+    TPRSkuMap:'',
     ReportSOW:getSkusForReport('sow').join(', '),
     SOWItems:reportNeeded('sow')?getReportItems('sow'):'',
     ReportHWInfo:getSkusForReport('hwinfo').join(', '),
