@@ -623,12 +623,15 @@ document.getElementById('pw-input').focus();
           </div>
           <div class="field" style="margin-bottom:12px;">
             <label>專案名稱<span class="req">*</span></label>
-            <input type="text" id="pl-proj-name-input" oninput="onNewProjNameInput()" placeholder="請手動填入專案名稱，例：G814JV_ER1" style="width:100%;"/>
-            <span class="hint">專案名稱由申請人自行填入，將作為 Result 查詢依據</span>
+            <input type="text" id="pl-proj-name-input" oninput="onNewProjNameInput()" placeholder="例：FX611H" style="width:100%;"/>
             <input type="hidden" id="proj_name"/>
             <input type="hidden" id="proj_code"/>
             <input type="hidden" id="prod_line"/>
             <input type="hidden" id="sub_series"/>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Project Code <span style="color:var(--text3);font-size:14px;font-weight:400;">(PDM project name)</span><span class="req">*</span></label>
+            <input type="text" id="proj-code-input" oninput="document.getElementById('proj_code').value=this.value.trim();" placeholder="例：FX611_27_GM_O" style="width:100%;"/>
           </div>
           <div class="g2">
           <div class="field">
@@ -1150,6 +1153,7 @@ function loadRetestData(){
   if(data){
     var set=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
     set('proj_code', code);
+    set('proj-code-input', code);
     set('proj_name', data.name);
     set('dept',      data.dept);
     set('requester', data.requester);
@@ -1494,6 +1498,8 @@ function onProductLineChange(src){
     buildSelect(ssId, getSubSeries(pl), '--- 選擇 Chipset / Sub-series ---');
     var inp=document.getElementById('pl-proj-name-input');
     if(inp) inp.value='';
+    var codeInp=document.getElementById('proj-code-input');
+    if(codeInp) codeInp.value='';
     document.getElementById('proj_name').value='';
     document.getElementById('proj_code').value='';
   }
@@ -1518,7 +1524,6 @@ function onSubSeriesChange(src){
 function onNewProjNameInput(){
   var val=document.getElementById('pl-proj-name-input').value.trim();
   document.getElementById('proj_name').value=val;
-  document.getElementById('proj_code').value=val;
   document.getElementById('prod_line').value=document.getElementById('pl-product-line').value;
   document.getElementById('sub_series').value=document.getElementById('pl-sub-series').value;
 }
@@ -1545,6 +1550,7 @@ function submitForm(){
   if(!isRetest&&!document.getElementById('pl-sub-series').value)miss.push('Chipset / Sub-series');
   if(!v('req-email'))miss.push('需求人Email');
   if(!v('proj_name'))miss.push('專案名稱');
+  if(!isRetest&&!v('proj_code'))miss.push('Project Code');
   if(!v('phase'))miss.push('Phase');
   if(!v('sch_start'))miss.push('測試時段');
   if(!v('report_due'))miss.push('截止日');
