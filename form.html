@@ -2038,29 +2038,37 @@ function _xTPRSht(wb,info,skus,tpr){
 function downloadTestTemplate(itemId){
   var item=_adminItems[itemId];
   if(!item){alert('找不到表單資料');return;}
-  if(typeof ExcelJS==='undefined'){alert('ExcelJS 尚未載入，請重新整理頁面後再試。');return;}
-  var projCode=_xSs(item.ProjectCode)||item.Title||'';
-  var phase=_xSs(item.Phase)||'';
-  var info={
-    projCode:projCode,projName:_xSs(item.ProjectName)||'',phase:phase,
-    prodLine:item.ProductLine||'',subSeries:item.SubSeries||'',
-    schedStart:(item.ScheduleStart||'').slice(0,10),
-    requester:item.Requester||'',reqEmail:item.RequesterEmail||'',eeContact:item.EEContact||'',
-    skuList:_xSkus(item.SKUList||''),
-    accSkus:_xCsv(item.ReportACC),tprSkus:_xCsv(item.ReportTPR),
-    sowSkus:_xCsv(item.ReportSOW),hwiSkus:_xCsv(item.ReportHWInfo)};
-  var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
-  _xCover(wb,info);
-  if(info.accSkus.length)_xRSht(wb,'ACC',info,info.accSkus,_xParse(item.ACCItems||''),null);
-  if(info.tprSkus.length)_xTPRSht(wb,info,info.tprSkus,_xTPRp(item.TPRItems||''));
-  if(info.sowSkus.length)_xRSht(wb,'SOW',info,info.sowSkus,_xParse(item.SOWItems||''),_xFan(item.SOWItems||''));
-  if(info.hwiSkus.length)_xRSht(wb,'HW Info',info,info.hwiSkus,_xParse(item.HWInfoItems||''),_xFan(item.HWInfoItems||''));
-  wb.xlsx.writeBuffer().then(function(buf){
-    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    var url=URL.createObjectURL(blob);var a=document.createElement('a');
-    a.href=url;a.download=projCode+(phase?'_'+phase:'')+'_Result_Template.xlsx';
-    document.body.appendChild(a);a.click();
-    setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},200);});}
+  var projCode=(item.ProjectCode&&item.ProjectCode.Title?item.ProjectCode.Title:item.ProjectCode)||item.Title||'UNKNOWN';
+  var phase=item.Phase||'';
+  var payload={
+    ProjectCode:projCode,
+    Phase:phase,
+    ProjectName:(item.ProjectName&&item.ProjectName.Title?item.ProjectName.Title:item.ProjectName)||'',
+    ProductLine:item.ProductLine||'',
+    SubSeries:item.SubSeries||'',
+    ScheduleStart:(item.ScheduleStart||'').slice(0,10),
+    Requester:item.Requester||'',
+    RequesterEmail:item.RequesterEmail||'',
+    EEContact:item.EEContact||'',
+    SubmittedDate:(item.SubmittedDate||'').slice(0,10),
+    SKUList:item.SKUList||'',
+    ReportACC:item.ReportACC||'',
+    ACCItems:item.ACCItems||'',
+    ReportTPR:item.ReportTPR||'',
+    TPRItems:item.TPRItems||'',
+    ReportSOW:item.ReportSOW||'',
+    SOWItems:item.SOWItems||'',
+    ReportHWInfo:item.ReportHWInfo||'',
+    HWInfoItems:item.HWInfoItems||''
+  };
+  var json=JSON.stringify(payload,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download=projCode+(phase?'_'+phase:'')+'_form_data.json';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},200);}
 
 function adminSubmitUpload(){
   var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
