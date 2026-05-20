@@ -401,6 +401,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="template_data.js"></script>
 </head>
 <body>
 <div id="pw-modal" style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
@@ -1906,7 +1907,6 @@ function _xVl(c,t){c.value=t||'';_xfi(c,_V5C.dBg);_xfo(c,9,false,_V5C.nv);_xal(c
 function _xSb(c,t){c.value=t;_xfi(c,_V5C.shBg);_xfo(c,8,false,_V5C.wh);_xal(c,'center','middle');c.border=_xb();}
 function _xSs(v){if(!v)return'';if(typeof v==='object')return v.Title||v.Value||v.LookupValue||'';return String(v);}
 function _xCsv(s){if(!s)return[];return s.split(',').map(function(x){return x.trim();}).filter(Boolean);}
-function _xFan(t){if(!t)return'';var m=t.match(/Fan modes?:\s*([^\n]+)/i);return m?m[1].trim():'';}
 function _xSkus(s){
   if(!s)return[];var r=[];
   s.split('|').forEach(function(p){p=p.trim();if(!p)return;var m=p.match(/^\d+\.\s*(\S+)(.*)/);if(!m)return;
@@ -1931,28 +1931,6 @@ function _xTPRp(t){
     var pf=l.match(/Performance Fan modes?:\s*([^\n]+)/i);if(pf)r.perfFan=pf[1];
     var gf=l.match(/iGPU Fan modes?:\s*([^\n]+)/i);if(gf)r.igpuFan=gf[1];
     var nf=l.match(/^※\s*(.+)/);if(nf)r.note=nf[1];});return r;}
-function _xHdr(ws,skus,r,subLabels){
-  var hr=ws.getRow(r);hr.height=20;
-  var ha=hr.getCell(1);ha.value='#';_xfi(ha,_V5C.lBg);_xfo(ha,9,true,_V5C.nv);_xal(ha,'center','middle');ha.border=_xb();
-  var hb=hr.getCell(2);hb.value='測試項目';_xfi(hb,_V5C.lBg);_xfo(hb,10,true,_V5C.nv);_xal(hb,'center','middle');hb.border=_xb();
-  var hc=hr.getCell(3);hc.value='單位';_xfi(hc,_V5C.lBg);_xfo(hc,9,true,_V5C.nv);_xal(hc,'center','middle');hc.border=_xb();
-  skus.forEach(function(sn,si){var c=hr.getCell(4+si);c.value=sn;_xfi(c,_V5SK[si%_V5SK.length]);_xfo(c,9,true,_V5C.wh);_xal(c,'center','middle',true);c.border=_xb();});r++;
-  subLabels.forEach(function(lbl){
-    var sr=ws.getRow(r);sr.height=18;ws.mergeCells(r,1,r,3);_xSb(sr.getCell(1),lbl);
-    skus.forEach(function(_,si){var c=sr.getCell(4+si);_xfi(c,_V5C.dBg);_xal(c,'center','middle');c.border=_xb();});r++;});
-  return r;}
-function _xDataRows(ws,skus,items,startR){
-  var r=startR;
-  items.forEach(function(item,idx){
-    var dr=ws.getRow(r);dr.height=20;var bg=idx%2===0?_V5C.zA:_V5C.zB;
-    var ca=dr.getCell(1);ca.value=String(item.num);_xfi(ca,bg);_xfo(ca,7,false,_V5C.lg,true);_xal(ca,'center','middle');ca.border=_xb();
-    var cb=dr.getCell(2);cb.value=item.name;_xfi(cb,bg);_xfo(cb,9,false,_V5C.nv);_xal(cb,'left','middle');cb.border=_xb();
-    var cc=dr.getCell(3);_xfi(cc,bg);_xfo(cc,8,false,_V5C.gr,true);_xal(cc,'center','middle');cc.border=_xb();
-    skus.forEach(function(_,si){var c=dr.getCell(4+si);_xfi(c,_V5C.dBg);_xal(c,'center','middle');c.border=_xb();});r++;});
-  return r;}
-function _xNote(ws,nc,r,note){
-  ws.mergeCells(r,1,r,nc);var nc2=ws.getCell(r,1);nc2.value='※ '+note;
-  _xfi(nc2,'FFFFFCC0');_xfo(nc2,9,false,'FF5C4400');_xal(nc2,'left','middle');nc2.border=_xb();ws.getRow(r).height=20;}
 function _xCover(wb,info){
   var ws=wb.addWorksheet('Cover');var nc=6;
   ws.getColumn(1).width=3;ws.getColumn(2).width=22;ws.getColumn(3).width=28;
@@ -1991,84 +1969,67 @@ function _xCover(wb,info){
     var c1=ro.getCell(1);c1.value=rpt.n;_xfi(c1,bg);_xfo(c1,9,true,_V5C.nv);_xal(c1,'center','middle');c1.border=_xb();
     var c2=ro.getCell(2);c2.value=rpt.skus.join(', ');_xfi(c2,bg);_xfo(c2,9,false,_V5C.nv);_xal(c2,'left','middle');c2.border=_xb();
     ws.mergeCells(r,3,r,nc);var c3=ro.getCell(3);c3.value='→ 參考 "'+rpt.n+'" 工作表';_xfi(c3,bg);_xfo(c3,9,false,_V5C.nv);_xal(c3,'left','middle');c3.border=_xb();r++;});}
-function _xRSht(wb,name,info,skus,parsed,fanMode){
-  var ws=wb.addWorksheet(name);var nc=3+skus.length;
-  ws.getColumn(1).width=10;ws.getColumn(2).width=34;ws.getColumn(3).width=10;
-  for(var i=0;i<skus.length;i++)ws.getColumn(4+i).width=14;
-  var r=1;
-  _xTitle(ws,'HW Gaming 加速實驗室  |  '+name+' Report  —  '+info.projCode+(info.phase?' '+info.phase:''),nc,r);r++;
-  ws.mergeCells(r,1,r,nc);var ic=ws.getCell(r,1);
-  ic.value='Project Code: '+info.projCode+'  |  Phase: '+info.phase+'  |  Requester: '+info.requester+'  |  EE Contact: '+info.eeContact;
-  _xfi(ic,_V5C.lBg);_xfo(ic,9,false,_V5C.nv);_xal(ic,'left','middle');ic.border=_xb();ws.getRow(r).height=20;r++;
-  _xSp(ws,r,nc);r++;
-  r=_xHdr(ws,skus,r,['BIOS','VGA Driver','OS']);
-  if(fanMode){
-    var fmr=ws.getRow(r);fmr.height=18;ws.mergeCells(r,1,r,3);_xSb(fmr.getCell(1),'Fan Mode');
-    skus.forEach(function(_,si){var c=fmr.getCell(4+si);c.value=fanMode;_xfi(c,_V5C.dBg);_xfo(c,8,false,_V5C.nv);_xal(c,'center','middle');c.border=_xb();});r++;}
-  _xSp(ws,r,nc);r++;
-  r=_xDataRows(ws,skus,parsed.items,r);
-  if(parsed.note){_xSp(ws,r,nc);r++;_xNote(ws,nc,r,parsed.note);}}
-function _xTPRSht(wb,info,skus,tpr){
-  var ws=wb.addWorksheet('TPR');var nc=3+skus.length;
-  ws.getColumn(1).width=10;ws.getColumn(2).width=34;ws.getColumn(3).width=10;
-  for(var i=0;i<skus.length;i++)ws.getColumn(4+i).width=14;
-  var r=1;
-  _xTitle(ws,'HW Gaming 加速實驗室  |  TPR Report  —  '+info.projCode+(info.phase?' '+info.phase:''),nc,r);r++;
-  ws.mergeCells(r,1,r,nc);var ic=ws.getCell(r,1);
-  ic.value='Project Code: '+info.projCode+'  |  Phase: '+info.phase+'  |  Requester: '+info.requester+'  |  TPR SKU: '+skus.join(', ');
-  _xfi(ic,_V5C.lBg);_xfo(ic,9,false,_V5C.nv);_xal(ic,'left','middle');ic.border=_xb();ws.getRow(r).height=20;r++;
-  _xSp(ws,r,nc);r++;
-  r=_xHdr(ws,skus,r,['BIOS','VGA Driver','OS']);
-  _xSp(ws,r,nc);r++;
-  var addSec=function(secName,fanMode,nBlank){
-    _xCat(ws,' ■ '+secName+(fanMode?'   [ Fan Mode: '+fanMode+' ]':''),nc,r);r++;
-    var fmr=ws.getRow(r);fmr.height=18;ws.mergeCells(r,1,r,3);_xSb(fmr.getCell(1),'Fan Mode');
-    skus.forEach(function(_,si){var c=fmr.getCell(4+si);c.value=fanMode||'';_xfi(c,_V5C.dBg);_xfo(c,8,false,_V5C.nv);_xal(c,'center','middle');c.border=_xb();});r++;
-    for(var i=0;i<nBlank;i++){
-      var dr=ws.getRow(r);dr.height=20;var bg=i%2===0?_V5C.zA:_V5C.zB;
-      var ca=dr.getCell(1);ca.value=String(i+1);_xfi(ca,bg);_xfo(ca,7,false,_V5C.lg,true);_xal(ca,'center','middle');ca.border=_xb();
-      var cb=dr.getCell(2);_xfi(cb,bg);_xfo(cb,9,false,_V5C.nv);_xal(cb,'left','middle');cb.border=_xb();
-      var cc=dr.getCell(3);_xfi(cc,bg);_xal(cc,'center','middle');cc.border=_xb();
-      skus.forEach(function(_,si){var c=dr.getCell(4+si);_xfi(c,_V5C.dBg);_xal(c,'center','middle');c.border=_xb();});r++;}
-    _xSp(ws,r,nc);r++;};
-  if(tpr.hasBat)addSec('Battery Life',tpr.batFan,6);
-  if(tpr.hasPerf)addSec('Performance',tpr.perfFan,10);
-  if(tpr.hasIgpu)addSec('iGPU',tpr.igpuFan,4);
-  if(tpr.note){_xNote(ws,nc,r,tpr.note);}}
+function _tmplBdrSide(x){if(!x)return undefined;if(typeof x==='string')return{style:x};return{style:x[0],color:{argb:x[1]}};}
+function _applyTmplSheet(wb,key,title){
+  var tmpl=window.GL_TMPL&&window.GL_TMPL[key];
+  if(!tmpl){console.warn('GL_TMPL missing:',key);return;}
+  var ws=wb.addWorksheet(title);
+  Object.keys(tmpl.cw).forEach(function(col){ws.getColumn(col).width=tmpl.cw[col];});
+  tmpl.mc.forEach(function(rng){try{ws.mergeCells(rng);}catch(e){}});
+  tmpl.cells.forEach(function(cd){
+    var cell=ws.getCell(cd[0],cd[1]);
+    if(cd[2]!==null)cell.value=cd[2];
+    var si=cd[3];if(si<0)return;
+    var s=tmpl.styles[si];
+    if(s[0]){var fo={};if(s[0].n)fo.name=s[0].n;if(s[0].s)fo.size=s[0].s;if(s[0].b)fo.bold=true;if(s[0].i)fo.italic=true;if(s[0].c)fo.color={argb:s[0].c};cell.font=fo;}
+    if(s[1])cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:s[1]}};
+    if(s[2])cell.border={top:_tmplBdrSide(s[2][0]),bottom:_tmplBdrSide(s[2][1]),left:_tmplBdrSide(s[2][2]),right:_tmplBdrSide(s[2][3])};
+    if(s[3]){var al={};if(s[3].h)al.horizontal=s[3].h;if(s[3].v)al.vertical=s[3].v;if(s[3].w)al.wrapText=true;cell.alignment=al;}
+  });
+  Object.keys(tmpl.rh).forEach(function(r){ws.getRow(parseInt(r,10)).height=tmpl.rh[r];});
+  if(tmpl.fp){var fp=tmpl.fp,m=fp.match(/^([A-Z]*)(\d*)$/),xs=0,ys=0;
+    if(m[1]){var cl=m[1];for(var i=0;i<cl.length;i++)xs=xs*26+(cl.charCodeAt(i)-64);}
+    if(m[2])ys=parseInt(m[2],10)-1;
+    ws.views=[{state:'frozen',xSplit:xs,ySplit:ys}];}
+}
 function downloadTestTemplate(itemId){
   var item=_adminItems[itemId];
   if(!item){alert('找不到表單資料');return;}
-  var projCode=(item.ProjectCode&&item.ProjectCode.Title?item.ProjectCode.Title:item.ProjectCode)||item.Title||'UNKNOWN';
+  if(typeof ExcelJS==='undefined'){alert('ExcelJS 尚未載入，請重新整理頁面後再試。');return;}
+  if(!window.GL_TMPL){alert('模板資料尚未載入，請重新整理頁面後再試。');return;}
+  var projCode=_xSs(item.ProjectCode)||item.Title||'';
   var phase=item.Phase||'';
-  var payload={
-    ProjectCode:projCode,
-    Phase:phase,
-    ProjectName:(item.ProjectName&&item.ProjectName.Title?item.ProjectName.Title:item.ProjectName)||'',
-    ProductLine:item.ProductLine||'',
-    SubSeries:item.SubSeries||'',
-    ScheduleStart:(item.ScheduleStart||'').slice(0,10),
-    Requester:item.Requester||'',
-    RequesterEmail:item.RequesterEmail||'',
-    EEContact:item.EEContact||'',
-    SubmittedDate:(item.SubmittedDate||'').slice(0,10),
-    SKUList:item.SKUList||'',
-    ReportACC:item.ReportACC||'',
-    ACCItems:item.ACCItems||'',
-    ReportTPR:item.ReportTPR||'',
-    TPRItems:item.TPRItems||'',
-    ReportSOW:item.ReportSOW||'',
-    SOWItems:item.SOWItems||'',
-    ReportHWInfo:item.ReportHWInfo||'',
-    HWInfoItems:item.HWInfoItems||''
-  };
-  var json=JSON.stringify(payload,null,2);
-  var blob=new Blob([json],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  a.download=projCode+(phase?'_'+phase:'')+'_form_data.json';
-  document.body.appendChild(a);a.click();
-  setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},200);}
+  var info={
+    projCode:projCode,projName:_xSs(item.ProjectName)||'',phase:phase,
+    prodLine:item.ProductLine||'',subSeries:item.SubSeries||'',
+    schedStart:(item.ScheduleStart||'').slice(0,10),
+    requester:item.Requester||'',reqEmail:item.RequesterEmail||'',eeContact:item.EEContact||'',
+    skuList:_xSkus(item.SKUList||''),
+    accSkus:_xCsv(item.ReportACC),tprSkus:_xCsv(item.ReportTPR),
+    sowSkus:_xCsv(item.ReportSOW),hwiSkus:_xCsv(item.ReportHWInfo)};
+  var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
+  _xCover(wb,info);
+  if(info.accSkus.length){
+    _xParse(item.ACCItems||'').items.forEach(function(it){
+      var nm=it.name;
+      if(nm.indexOf('Cinebench')!==-1)_applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
+      else if(nm.indexOf('3D')!==-1)_applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
+    });
+  }
+  if(info.tprSkus.length){
+    var tpr=_xTPRp(item.TPRItems||'');
+    if(tpr.hasBat)_applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
+    if(tpr.hasPerf)_applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
+    if(tpr.hasIgpu)_applyTmplSheet(wb,'tpr_igpu','TPR｜iGPU');
+  }
+  if(info.sowSkus.length)_applyTmplSheet(wb,'sow_performance','SOW｜Performance');
+  if(info.hwiSkus.length)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary');
+  wb.xlsx.writeBuffer().then(function(buf){
+    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');
+    a.href=url;a.download=projCode+(phase?'_'+phase:'')+'_Result_Template.xlsx';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},200);});}
 
 function adminSubmitUpload(){
   var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
