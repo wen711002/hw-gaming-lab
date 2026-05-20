@@ -1035,7 +1035,8 @@ function loadRetestFromSP(){
   fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    _rtAllData=data.value||data.d&&data.d.results||[];
+    var allData=data.value||data.d&&data.d.results||[];
+    _rtAllData=allData.filter(function(i){return i.Status==='Accepted';});
     var seen={};var pls=[];
     _rtAllData.forEach(function(item){
       var pl=item.ProductLine||'';
@@ -1769,7 +1770,7 @@ function loadAdminData(){
   })
   .then(function(data){
     document.getElementById('admin-loading').style.display='none';
-    var items=data.value||data.d&&data.d.results||[];
+    var items=(data.value||data.d&&data.d.results||[]).filter(function(i){return i.Status==='Pending';});
     if(!items.length){
       document.getElementById('admin-list').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有待審核的申請</p>';
       return;
