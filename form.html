@@ -400,6 +400,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
 <div id="pw-modal" style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
@@ -1782,9 +1783,11 @@ function loadAdminData(){
       return;
     }
     var html='';
+    _adminItems={};
     items.forEach(function(item){
       // 兼容 SharePoint 回傳的各種 ID 欄位名稱
       var itemId=item.ID||item.Id||item.id||item.ItemId||'';
+      _adminItems[itemId]=item;
       // 日期＋時間：優先 SubmittedDate，備用 Created
       var rawDt=item.SubmittedDate||item.Created||'';
       var dt='—';
@@ -1814,6 +1817,7 @@ function loadAdminData(){
       html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
       html+='<span class="sbadge sb-pending">PENDING</span>';
       html+='<div style="display:flex;gap:6px;">';
+      html+='<button class="ab" style="background:rgba(0,229,160,0.12);color:var(--green);border-color:rgba(0,229,160,0.3);" onclick="downloadTestTemplate(\''+itemId+'\')">📥 底板</button>';
       html+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
       html+='</div>';
       html+='</div>';
@@ -1886,6 +1890,178 @@ function adminReadMetaFromExcel(file){
   };
   reader.readAsArrayBuffer(file);
 }
+// ── V5 Test Report Template Generator ────────────────────────────────────
+var _adminItems={};
+var _V5C={tBg:'FF1F3864',cBg:'FF2E74B5',lBg:'FFBDD7EE',dBg:'FFFFFDE7',zA:'FFDEEAF1',zB:'FFFFFFFF',shBg:'FF07121F',wh:'FFFFFFFF',nv:'FF1F3864',gr:'FF777777',lg:'FF999999'};
+var _V5SK=['FF1F4E79','FF375623','FF833C00','FF7030A0','FF843C0C','FF006064','FF1B5E20','FF4A148C'];
+function _xb(){var s={style:'thin',color:{argb:'9DC3E6'}};return{top:s,left:s,bottom:s,right:s};}
+function _xfi(c,a){if(a)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:a}};}
+function _xfo(c,sz,bold,a,ital){c.font={name:'Arial',size:sz||9,bold:!!bold,italic:!!ital,color:{argb:a||_V5C.nv}};}
+function _xal(c,h,v,w){c.alignment={horizontal:h||'left',vertical:v||'middle',wrapText:!!w};}
+function _xTitle(ws,txt,nc,r){ws.mergeCells(r,1,r,nc);var c=ws.getCell(r,1);c.value=txt;_xfi(c,_V5C.tBg);_xfo(c,13,true,_V5C.wh);_xal(c,'center','middle');c.border=_xb();ws.getRow(r).height=36;}
+function _xCat(ws,txt,nc,r){ws.mergeCells(r,1,r,nc);var c=ws.getCell(r,1);c.value=txt;_xfi(c,_V5C.cBg);_xfo(c,11,true,_V5C.wh);_xal(c,'left','middle');c.border=_xb();ws.getRow(r).height=22;}
+function _xSp(ws,r,nc){ws.getRow(r).height=5;for(var i=1;i<=nc;i++){var c=ws.getRow(r).getCell(i);_xfi(c,'FFF2F2F2');c.border=_xb();}}
+function _xLb(c,t){c.value=t;_xfi(c,_V5C.lBg);_xfo(c,9,true,_V5C.nv);_xal(c,'right','middle');c.border=_xb();}
+function _xVl(c,t){c.value=t||'';_xfi(c,_V5C.dBg);_xfo(c,9,false,_V5C.nv);_xal(c,'left','middle');c.border=_xb();}
+function _xSb(c,t){c.value=t;_xfi(c,_V5C.shBg);_xfo(c,8,false,_V5C.wh);_xal(c,'center','middle');c.border=_xb();}
+function _xSs(v){if(!v)return'';if(typeof v==='object')return v.Title||v.Value||v.LookupValue||'';return String(v);}
+function _xCsv(s){if(!s)return[];return s.split(',').map(function(x){return x.trim();}).filter(Boolean);}
+function _xFan(t){if(!t)return'';var m=t.match(/Fan modes?:\s*([^\n]+)/i);return m?m[1].trim():'';}
+function _xSkus(s){
+  if(!s)return[];var r=[];
+  s.split('|').forEach(function(p){p=p.trim();if(!p)return;var m=p.match(/^\d+\.\s*(\S+)(.*)/);if(!m)return;
+    var o={name:m[1],cpu:'',gpu:'',panel:'',ddr:''};var rest=m[2];
+    var q=rest.match(/CPU:([^\s|]+)/i);if(q)o.cpu=q[1];q=rest.match(/GPU:([^\s|]+)/i);if(q)o.gpu=q[1];
+    q=rest.match(/Panel:([^\s|]+)/i);if(q)o.panel=q[1];q=rest.match(/DDR:([^\s|]+)/i);if(q)o.ddr=q[1];r.push(o);});return r;}
+function _xParse(t){
+  if(!t)return{items:[],note:''};var items=[],note='';
+  t.split('\n').forEach(function(line){var l=line.trim();if(!l)return;
+    var m=l.match(/^(\d+)\.\s+(.+)/);if(m){items.push({num:parseInt(m[1]),name:m[2]});return;}
+    var nm=l.match(/^※\s*(.+)/);if(nm)note=nm[1];});return{items:items,note:note};}
+function _xTPRp(t){
+  var r={hasBat:false,hasPerf:false,hasIgpu:false,batFan:'',perfFan:'',igpuFan:'',note:''};
+  if(!t)return r;
+  t.split('\n').forEach(function(line){var l=line.trim();if(!l)return;
+    var m=l.match(/^(\d+)\.\s+(.+)/);
+    if(m){var v=m[2].toLowerCase();
+      if(v.indexOf('battery')!==-1)r.hasBat=true;
+      else if(v.indexOf('igpu')!==-1)r.hasIgpu=true;
+      else r.hasPerf=true;return;}
+    var bf=l.match(/Battery life Fan modes?:\s*([^\n]+)/i);if(bf)r.batFan=bf[1];
+    var pf=l.match(/Performance Fan modes?:\s*([^\n]+)/i);if(pf)r.perfFan=pf[1];
+    var gf=l.match(/iGPU Fan modes?:\s*([^\n]+)/i);if(gf)r.igpuFan=gf[1];
+    var nf=l.match(/^※\s*(.+)/);if(nf)r.note=nf[1];});return r;}
+function _xHdr(ws,skus,r,subLabels){
+  var hr=ws.getRow(r);hr.height=20;
+  var ha=hr.getCell(1);ha.value='#';_xfi(ha,_V5C.lBg);_xfo(ha,9,true,_V5C.nv);_xal(ha,'center','middle');ha.border=_xb();
+  var hb=hr.getCell(2);hb.value='測試項目';_xfi(hb,_V5C.lBg);_xfo(hb,10,true,_V5C.nv);_xal(hb,'center','middle');hb.border=_xb();
+  var hc=hr.getCell(3);hc.value='單位';_xfi(hc,_V5C.lBg);_xfo(hc,9,true,_V5C.nv);_xal(hc,'center','middle');hc.border=_xb();
+  skus.forEach(function(sn,si){var c=hr.getCell(4+si);c.value=sn;_xfi(c,_V5SK[si%_V5SK.length]);_xfo(c,9,true,_V5C.wh);_xal(c,'center','middle',true);c.border=_xb();});r++;
+  subLabels.forEach(function(lbl){
+    var sr=ws.getRow(r);sr.height=18;ws.mergeCells(r,1,r,3);_xSb(sr.getCell(1),lbl);
+    skus.forEach(function(_,si){var c=sr.getCell(4+si);_xfi(c,_V5C.dBg);_xal(c,'center','middle');c.border=_xb();});r++;});
+  return r;}
+function _xDataRows(ws,skus,items,startR){
+  var r=startR;
+  items.forEach(function(item,idx){
+    var dr=ws.getRow(r);dr.height=20;var bg=idx%2===0?_V5C.zA:_V5C.zB;
+    var ca=dr.getCell(1);ca.value=String(item.num);_xfi(ca,bg);_xfo(ca,7,false,_V5C.lg,true);_xal(ca,'center','middle');ca.border=_xb();
+    var cb=dr.getCell(2);cb.value=item.name;_xfi(cb,bg);_xfo(cb,9,false,_V5C.nv);_xal(cb,'left','middle');cb.border=_xb();
+    var cc=dr.getCell(3);_xfi(cc,bg);_xfo(cc,8,false,_V5C.gr,true);_xal(cc,'center','middle');cc.border=_xb();
+    skus.forEach(function(_,si){var c=dr.getCell(4+si);_xfi(c,_V5C.dBg);_xal(c,'center','middle');c.border=_xb();});r++;});
+  return r;}
+function _xNote(ws,nc,r,note){
+  ws.mergeCells(r,1,r,nc);var nc2=ws.getCell(r,1);nc2.value='※ '+note;
+  _xfi(nc2,'FFFFFCC0');_xfo(nc2,9,false,'FF5C4400');_xal(nc2,'left','middle');nc2.border=_xb();ws.getRow(r).height=20;}
+function _xCover(wb,info){
+  var ws=wb.addWorksheet('Cover');var nc=6;
+  ws.getColumn(1).width=3;ws.getColumn(2).width=22;ws.getColumn(3).width=28;
+  ws.getColumn(4).width=22;ws.getColumn(5).width=28;ws.getColumn(6).width=3;
+  var r=1;
+  _xTitle(ws,'HW Gaming 加速實驗室  |  Result 報告底板  —  '+info.projCode+(info.phase?' '+info.phase:''),nc,r);r++;
+  _xSp(ws,r,nc);r++;
+  _xCat(ws,' PROJECT INFORMATION',nc,r);r++;
+  [['Project Code',info.projCode,'Phase',info.phase],
+   ['Project Name',info.projName,'Product Line',info.prodLine],
+   ['Sub-series',info.subSeries,'Schedule Start',info.schedStart],
+   ['Requester',info.requester,'Requester Email',info.reqEmail],
+   ['EE Contact',info.eeContact,'','']
+  ].forEach(function(row){
+    var ro=ws.getRow(r);ro.height=20;
+    _xfi(ro.getCell(1),_V5C.lBg);ro.getCell(1).border=_xb();
+    _xLb(ro.getCell(2),row[0]);_xVl(ro.getCell(3),row[1]);
+    if(row[2]){_xLb(ro.getCell(4),row[2]);_xVl(ro.getCell(5),row[3]);}
+    else{_xfi(ro.getCell(4),_V5C.dBg);ro.getCell(4).border=_xb();_xfi(ro.getCell(5),_V5C.dBg);ro.getCell(5).border=_xb();}
+    _xfi(ro.getCell(6),_V5C.lBg);ro.getCell(6).border=_xb();r++;});
+  _xSp(ws,r,nc);r++;
+  _xCat(ws,' SKU 清單',nc,r);r++;
+  ['#','SKU 編號','CPU','GPU','Panel','DDR/SSD'].forEach(function(h,i){var c=ws.getRow(r).getCell(i+1);c.value=h;_xfi(c,_V5C.cBg);_xfo(c,9,true,_V5C.wh);_xal(c,'center','middle');c.border=_xb();});
+  ws.getRow(r).height=20;r++;
+  info.skuList.forEach(function(sku,idx){
+    var ro=ws.getRow(r);ro.height=20;var bg=idx%2===0?_V5C.zA:_V5C.zB;
+    [String(idx+1),sku.name,sku.cpu,sku.gpu,sku.panel,sku.ddr].forEach(function(v,i){var c=ro.getCell(i+1);c.value=v;_xfi(c,bg);_xfo(c,9,i===1,_V5C.nv);_xal(c,'center','middle');c.border=_xb();});r++;});
+  _xSp(ws,r,nc);r++;
+  _xCat(ws,' REPORT SCOPE',nc,r);r++;
+  ['Report','指定 SKU','備注'].forEach(function(h,i){var c=ws.getRow(r).getCell(i+1);c.value=h;_xfi(c,_V5C.lBg);_xfo(c,9,true,_V5C.nv);_xal(c,'center','middle');c.border=_xb();});
+  ws.mergeCells(r,3,r,nc);ws.getRow(r).height=20;r++;
+  [{n:'ACC',skus:info.accSkus},{n:'TPR',skus:info.tprSkus},{n:'SOW',skus:info.sowSkus},{n:'HW Info',skus:info.hwiSkus}
+  ].forEach(function(rpt,idx){
+    if(!rpt.skus.length)return;
+    var ro=ws.getRow(r);ro.height=20;var bg=idx%2===0?_V5C.zA:_V5C.zB;
+    var c1=ro.getCell(1);c1.value=rpt.n;_xfi(c1,bg);_xfo(c1,9,true,_V5C.nv);_xal(c1,'center','middle');c1.border=_xb();
+    var c2=ro.getCell(2);c2.value=rpt.skus.join(', ');_xfi(c2,bg);_xfo(c2,9,false,_V5C.nv);_xal(c2,'left','middle');c2.border=_xb();
+    ws.mergeCells(r,3,r,nc);var c3=ro.getCell(3);c3.value='→ 參考 "'+rpt.n+'" 工作表';_xfi(c3,bg);_xfo(c3,9,false,_V5C.nv);_xal(c3,'left','middle');c3.border=_xb();r++;});}
+function _xRSht(wb,name,info,skus,parsed,fanMode){
+  var ws=wb.addWorksheet(name);var nc=3+skus.length;
+  ws.getColumn(1).width=10;ws.getColumn(2).width=34;ws.getColumn(3).width=10;
+  for(var i=0;i<skus.length;i++)ws.getColumn(4+i).width=14;
+  var r=1;
+  _xTitle(ws,'HW Gaming 加速實驗室  |  '+name+' Report  —  '+info.projCode+(info.phase?' '+info.phase:''),nc,r);r++;
+  ws.mergeCells(r,1,r,nc);var ic=ws.getCell(r,1);
+  ic.value='Project Code: '+info.projCode+'  |  Phase: '+info.phase+'  |  Requester: '+info.requester+'  |  EE Contact: '+info.eeContact;
+  _xfi(ic,_V5C.lBg);_xfo(ic,9,false,_V5C.nv);_xal(ic,'left','middle');ic.border=_xb();ws.getRow(r).height=20;r++;
+  _xSp(ws,r,nc);r++;
+  r=_xHdr(ws,skus,r,['BIOS','VGA Driver','OS']);
+  if(fanMode){
+    var fmr=ws.getRow(r);fmr.height=18;ws.mergeCells(r,1,r,3);_xSb(fmr.getCell(1),'Fan Mode');
+    skus.forEach(function(_,si){var c=fmr.getCell(4+si);c.value=fanMode;_xfi(c,_V5C.dBg);_xfo(c,8,false,_V5C.nv);_xal(c,'center','middle');c.border=_xb();});r++;}
+  _xSp(ws,r,nc);r++;
+  r=_xDataRows(ws,skus,parsed.items,r);
+  if(parsed.note){_xSp(ws,r,nc);r++;_xNote(ws,nc,r,parsed.note);}}
+function _xTPRSht(wb,info,skus,tpr){
+  var ws=wb.addWorksheet('TPR');var nc=3+skus.length;
+  ws.getColumn(1).width=10;ws.getColumn(2).width=34;ws.getColumn(3).width=10;
+  for(var i=0;i<skus.length;i++)ws.getColumn(4+i).width=14;
+  var r=1;
+  _xTitle(ws,'HW Gaming 加速實驗室  |  TPR Report  —  '+info.projCode+(info.phase?' '+info.phase:''),nc,r);r++;
+  ws.mergeCells(r,1,r,nc);var ic=ws.getCell(r,1);
+  ic.value='Project Code: '+info.projCode+'  |  Phase: '+info.phase+'  |  Requester: '+info.requester+'  |  TPR SKU: '+skus.join(', ');
+  _xfi(ic,_V5C.lBg);_xfo(ic,9,false,_V5C.nv);_xal(ic,'left','middle');ic.border=_xb();ws.getRow(r).height=20;r++;
+  _xSp(ws,r,nc);r++;
+  r=_xHdr(ws,skus,r,['BIOS','VGA Driver','OS']);
+  _xSp(ws,r,nc);r++;
+  var addSec=function(secName,fanMode,nBlank){
+    _xCat(ws,' ■ '+secName+(fanMode?'   [ Fan Mode: '+fanMode+' ]':''),nc,r);r++;
+    var fmr=ws.getRow(r);fmr.height=18;ws.mergeCells(r,1,r,3);_xSb(fmr.getCell(1),'Fan Mode');
+    skus.forEach(function(_,si){var c=fmr.getCell(4+si);c.value=fanMode||'';_xfi(c,_V5C.dBg);_xfo(c,8,false,_V5C.nv);_xal(c,'center','middle');c.border=_xb();});r++;
+    for(var i=0;i<nBlank;i++){
+      var dr=ws.getRow(r);dr.height=20;var bg=i%2===0?_V5C.zA:_V5C.zB;
+      var ca=dr.getCell(1);ca.value=String(i+1);_xfi(ca,bg);_xfo(ca,7,false,_V5C.lg,true);_xal(ca,'center','middle');ca.border=_xb();
+      var cb=dr.getCell(2);_xfi(cb,bg);_xfo(cb,9,false,_V5C.nv);_xal(cb,'left','middle');cb.border=_xb();
+      var cc=dr.getCell(3);_xfi(cc,bg);_xal(cc,'center','middle');cc.border=_xb();
+      skus.forEach(function(_,si){var c=dr.getCell(4+si);_xfi(c,_V5C.dBg);_xal(c,'center','middle');c.border=_xb();});r++;}
+    _xSp(ws,r,nc);r++;};
+  if(tpr.hasBat)addSec('Battery Life',tpr.batFan,6);
+  if(tpr.hasPerf)addSec('Performance',tpr.perfFan,10);
+  if(tpr.hasIgpu)addSec('iGPU',tpr.igpuFan,4);
+  if(tpr.note){_xNote(ws,nc,r,tpr.note);}}
+function downloadTestTemplate(itemId){
+  var item=_adminItems[itemId];
+  if(!item){alert('找不到表單資料');return;}
+  if(typeof ExcelJS==='undefined'){alert('ExcelJS 尚未載入，請重新整理頁面後再試。');return;}
+  var projCode=_xSs(item.ProjectCode)||item.Title||'';
+  var phase=_xSs(item.Phase)||'';
+  var info={
+    projCode:projCode,projName:_xSs(item.ProjectName)||'',phase:phase,
+    prodLine:item.ProductLine||'',subSeries:item.SubSeries||'',
+    schedStart:(item.ScheduleStart||'').slice(0,10),
+    requester:item.Requester||'',reqEmail:item.RequesterEmail||'',eeContact:item.EEContact||'',
+    skuList:_xSkus(item.SKUList||''),
+    accSkus:_xCsv(item.ReportACC),tprSkus:_xCsv(item.ReportTPR),
+    sowSkus:_xCsv(item.ReportSOW),hwiSkus:_xCsv(item.ReportHWInfo)};
+  var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
+  _xCover(wb,info);
+  if(info.accSkus.length)_xRSht(wb,'ACC',info,info.accSkus,_xParse(item.ACCItems||''),null);
+  if(info.tprSkus.length)_xTPRSht(wb,info,info.tprSkus,_xTPRp(item.TPRItems||''));
+  if(info.sowSkus.length)_xRSht(wb,'SOW',info,info.sowSkus,_xParse(item.SOWItems||''),_xFan(item.SOWItems||''));
+  if(info.hwiSkus.length)_xRSht(wb,'HW Info',info,info.hwiSkus,_xParse(item.HWInfoItems||''),_xFan(item.HWInfoItems||''));
+  wb.xlsx.writeBuffer().then(function(buf){
+    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');
+    a.href=url;a.download=projCode+(phase?'_'+phase:'')+'_Result_Template.xlsx';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},200);});}
+
 function adminSubmitUpload(){
   var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
   if(!_adminUploadFile){alert('請先選擇 Excel 檔案。');return;}
