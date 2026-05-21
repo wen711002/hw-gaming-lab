@@ -233,74 +233,59 @@ document.getElementById('pw-input').focus();
         <span class="mc-tag">匯出 CSV</span>
       </div>
     </div>
-    <div class="mode-card" style="border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.04);" onclick="enterMode('templates')">
+    <div class="mode-card" style="border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.04);" onclick="enterMode('download')">
       <div class="mc-icon">📥</div>
-      <div class="mc-title" style="color:var(--purple);">報告模板下載</div>
-      <div class="mc-desc">下載 GL 測試總表（填寫用）及四份 EE 報告空白模板（ACC / TPR / SOW / HW Info）。</div>
+      <div class="mc-title" style="color:var(--purple);">報告下載</div>
+      <div class="mc-desc">選擇專案與版本，一鍵下載完整測試結果 Excel，無須先進入檢視模式。</div>
       <div class="mc-tags">
-        <span class="mc-tag">GL 測試總表</span>
-        <span class="mc-tag">ACC / TPR / SOW</span>
-        <span class="mc-tag">HW Info</span>
-        <span class="mc-tag">空白模板</span>
+        <span class="mc-tag">一鍵下載</span>
+        <span class="mc-tag">選版本</span>
+        <span class="mc-tag">Excel 原檔</span>
       </div>
     </div>
   </div>
 
-  <!-- TEMPLATE DOWNLOAD PANEL -->
-  <div class="panel-wrap" id="panel-templates" style="display:none;">
+  <!-- REPORT DOWNLOAD PANEL -->
+  <div class="panel-wrap" id="panel-download" style="display:none;">
     <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;margin-bottom:20px;">
-      <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;letter-spacing:0.06em;color:var(--purple);margin-bottom:6px;">報告模板下載</div>
-      <p style="color:var(--text2);font-size:15px;margin-bottom:20px;">下載 GL 測試總表填寫資料，或下載四份空白報告模板（含原有格式供 EE 使用）。</p>
-
-      <!-- GL 測試總表 -->
-      <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.3);border-radius:10px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-        <div>
-          <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--cyan);margin-bottom:4px;">GL 測試總表</div>
-          <div style="font-size:14px;color:var(--text2);">GL 填寫用主表：統一記錄 Battery Life / 3DMark / Cinebench / Gaming FPS 數據，含 Report 對應說明。</div>
+    <div class="filter-box">
+      <h3>選擇報告並下載</h3>
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>PRODUCT LINE</label>
+          <select id="dl-product-line" onchange="onDlPLChange()">
+            <option value="">--- 選擇 Product Line ---</option>
+            <option value="Strix">Strix</option>
+            <option value="TUF">TUF</option>
+            <option value="Consumer">Consumer</option>
+          </select>
         </div>
-        <a href="templates/GL_測試總表_template.xlsx" download style="flex-shrink:0;">
-          <button style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.06em;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.5);border-radius:6px;color:var(--cyan);padding:10px 20px;cursor:pointer;transition:all 0.15s;">⬇ 下載 GL 測試總表</button>
-        </a>
-      </div>
-
-      <!-- Report templates grid -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="background:rgba(76,158,245,0.05);border:1px solid rgba(76,158,245,0.25);border-radius:10px;padding:16px 18px;">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--blue);margin-bottom:3px;"><span style="background:rgba(76,158,245,0.15);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">ACC</span>ACC Report 模板</div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Cinebench R23 30-loop + 3Dmark Benchmark</div>
-          <a href="templates/ACC_template.xlsx" download>
-            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(76,158,245,0.12);border:1px solid rgba(76,158,245,0.35);border-radius:5px;color:var(--blue);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 ACC 模板</button>
-          </a>
+        <div class="filter-field">
+          <label>CHIPSET / SUB-SERIES</label>
+          <select id="dl-sub-series" onchange="onDlSSChange()">
+            <option value="">--- 請先選擇 Product Line ---</option>
+          </select>
         </div>
-        <div style="background:rgba(255,179,71,0.05);border:1px solid rgba(255,179,71,0.25);border-radius:10px;padding:16px 18px;">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--amber);margin-bottom:3px;"><span style="background:rgba(255,179,71,0.15);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">TPR</span>TPR Report 模板</div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Battery life / Performance / iGPU</div>
-          <a href="templates/TPR_template.xlsx" download>
-            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.35);border-radius:5px;color:var(--amber);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 TPR 模板</button>
-          </a>
-        </div>
-        <div style="background:rgba(0,229,160,0.05);border:1px solid rgba(0,229,160,0.25);border-radius:10px;padding:16px 18px;">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--green);margin-bottom:3px;"><span style="background:rgba(0,229,160,0.12);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">SOW</span>SOW Perf 模板</div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Benchmark + Gaming FPS（All SKUs）</div>
-          <a href="templates/SOWPerf_template.xlsx" download>
-            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:5px;color:var(--green);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 SOW 模板</button>
-          </a>
-        </div>
-        <div style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:16px 18px;">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--purple);margin-bottom:3px;"><span style="background:rgba(168,85,247,0.12);padding:2px 8px;border-radius:3px;font-size:13px;margin-right:8px;">HW Info</span>HW Info 模板</div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Battery life / Gaming FPS / Benchmark（All SKUs）</div>
-          <a href="templates/HWinfo_template.xlsx" download>
-            <button style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:5px;color:var(--purple);padding:7px 16px;cursor:pointer;width:100%;">⬇ 下載 HW Info 模板</button>
-          </a>
+        <div class="filter-field">
+          <label>專案名稱</label>
+          <select id="dl-proj-name" onchange="onDlProjChange()">
+            <option value="">--- 請先選擇 Chipset ---</option>
+          </select>
         </div>
       </div>
-
-      <div style="margin-top:16px;padding:12px 14px;background:rgba(255,179,71,0.06);border:1px solid rgba(255,179,71,0.2);border-radius:8px;font-size:13px;color:var(--text2);">
-        <strong style="color:var(--amber);">使用流程：</strong>
-        ① 先下載「GL 測試總表」填入所有測試數據　②　依需求方要求，將數據填入對應報告模板（ACC / TPR / SOW / HW Info）　③　上傳完成的報告至 Result 頁面
+      <div class="filter-row" id="dl-file-row" style="display:none;">
+        <div class="filter-field">
+          <label>版本</label>
+          <select id="dl-file-sel">
+            <option value="">--- 選擇版本 ---</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button class="btn btn-pri" onclick="downloadReport()" id="dl-btn">⬇ 下載 Excel</button>
+        </div>
       </div>
     </div>
+    <div id="dl-status-area"></div>
   </div>
 
   <!-- SINGLE PROJECT PANEL -->
@@ -338,8 +323,19 @@ document.getElementById('pw-input').focus();
             <option value="">--- 選擇版本 ---</option>
           </select>
         </div>
-        <div style="display:flex;align-items:flex-end;">
+        <div class="filter-field" style="min-width:150px;max-width:180px;">
+          <label>報告類別篩選</label>
+          <select id="s-report-type">
+            <option value="all">全部報告</option>
+            <option value="acc">ACC</option>
+            <option value="tpr">TPR</option>
+            <option value="sow">SOW</option>
+            <option value="hwi">HW Info</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px;">
           <button class="btn btn-pri" onclick="loadSingleResult()">載入結果 →</button>
+          <button class="btn btn-grn" id="s-dl-btn" style="display:none;" onclick="downloadLoadedExcel()">⬇ 下載</button>
         </div>
       </div>
     </div>
@@ -391,12 +387,13 @@ document.getElementById('pw-input').focus();
       <div class="sel-tags" id="compare-tags"></div>
       <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <div class="filter-field" style="max-width:200px;">
-          <label>篩選測試類別</label>
+          <label>篩選報告類別</label>
           <select id="c-cat-filter">
             <option value="all">全部</option>
-            <option value="battery">🔋 Battery Life</option>
-            <option value="bench">📊 Benchmark</option>
-            <option value="fps">🎮 Gaming FPS</option>
+            <option value="acc">ACC</option>
+            <option value="tpr">TPR</option>
+            <option value="sow">SOW</option>
+            <option value="hwi">HW Info</option>
           </select>
         </div>
         <div style="display:flex;align-items:flex-end;gap:8px;">
@@ -479,7 +476,6 @@ document.getElementById('pw-input').focus();
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-
 // ── Project hierarchy data ────────────────────────────────────────────────────
 var PROJECT_DATA = {
   'Strix': {
@@ -515,7 +511,7 @@ function getProjects(pl,ss){ return pl&&ss&&PROJECT_DATA[pl]&&PROJECT_DATA[pl][s
 // ── Mode switching ────────────────────────────────────────────────────────────
 function enterMode(mode){
   document.getElementById('mode-wrap').style.display='none';
-  ['single','compare','templates'].forEach(function(m){
+  ['single','compare','download'].forEach(function(m){
     var el=document.getElementById('panel-'+m);
     if(el){el.classList.remove('active');el.style.display='none';}
   });
@@ -524,7 +520,7 @@ function enterMode(mode){
 }
 function backToMode(){
   document.getElementById('mode-wrap').style.display='flex';
-  ['single','compare','templates'].forEach(function(m){
+  ['single','compare','download'].forEach(function(m){
     var el=document.getElementById('panel-'+m);
     if(el){el.classList.remove('active');el.style.display='none';}
   });
@@ -567,6 +563,7 @@ function loadSingleResult(){
   if(!entry){alert('找不到對應檔案。');return;}
   var area=document.getElementById('single-result-area');
   area.innerHTML='<div class="loading-bar">讀取中，請稍候...</div>';
+  document.getElementById('s-dl-btn').style.display='none';
   fetchAndRenderSingle(entry, proj, label, area);
 }
 
@@ -588,100 +585,91 @@ function fetchFileViaPA(filename){
   });
 }
 
+// ── Sheet type helpers ────────────────────────────────────────────────────────
+function getMatchingSheets(names, rtype){
+  return names.filter(function(n){
+    var nu=n.toUpperCase();
+    if(nu==='COVER'||nu==='_TMP') return false;
+    if(rtype==='all') return true;
+    if(rtype==='acc') return nu.indexOf('ACC')===0;
+    if(rtype==='tpr') return nu.indexOf('TPR')===0;
+    if(rtype==='sow') return nu.indexOf('SOW')===0;
+    if(rtype==='hwi') return nu.indexOf('HW')===0;
+    return false;
+  });
+}
+
 function fetchAndRenderSingle(entry, proj, label, area){
   fetchFileViaPA(entry.filename)
   .then(function(buf){
     var wb=XLSX.read(buf,{type:'array'});
-    var ws=wb.Sheets['Performance Test'];
-    if(!ws){throw new Error('找不到 Performance Test sheet，請確認 Excel 格式正確。');}
-    renderSingleTable(ws, proj, label, area, buf);
+    var rtype=document.getElementById('s-report-type').value;
+    var sheets=getMatchingSheets(wb.SheetNames, rtype);
+    if(!sheets.length){throw new Error('所選報告類別在此檔案中無對應 Sheet');}
+    window._lastExcelBuf=buf;
+    window._lastExcelName=label+'.xlsx';
+    document.getElementById('s-dl-btn').style.display='inline-flex';
+    var html='<div style="display:flex;flex-direction:column;gap:16px;">';
+    sheets.forEach(function(sname){
+      var ws=wb.Sheets[sname];
+      if(!ws) return;
+      var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+      html+=renderSheetSection(sname,data);
+    });
+    html+='</div>';
+    area.innerHTML=html;
   })
   .catch(function(e){
     area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>載入失敗：'+e.message+'</p></div>';
   });
 }
 
-function renderSingleTable(ws, proj, label, area, rawBuf){
-  var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-  // Template layout: row5(data[4])=SKU headers, row6-9(data[5-8])=BD/CPU/Panel/DDR
-  // Category headers at rows 11/20/40: merged cell → id=catName, item=null
-  var headerRow=data[4]||[];
+function renderSheetSection(sname, data){
+  var isHWI=sname.toUpperCase().indexOf('HW')===0;
+  var headerRow=data[1]||[];
   var skuCols=[];
-  for(var c=3;c<headerRow.length;c++){
-    if(headerRow[c]!=null){
-      skuCols.push({col:c,sku:headerRow[c],bd:(data[5]||[])[c]||'',cpu:(data[6]||[])[c]||'',panel:(data[7]||[])[c]||'',ddr:(data[8]||[])[c]||''});
-    }
+  for(var c=2;c<headerRow.length;c++){
+    if(headerRow[c]!==null&&headerRow[c]!==undefined)
+      skuCols.push({ci:c,name:String(headerRow[c])});
   }
-  // extract meta
-  var meta={
-    projCode:(data[1]||[])[1]||proj,
-    os:(data[1]||[])[3]||'',
-    phase:(data[1]||[])[5]||'',
-    bios:(data[1]||[])[7]||'',
-    vbios:(data[2]||[])[1]||'',
-    fanMode:(data[2]||[])[7]||''
-  };
 
   var html='<div class="result-wrap">';
-  html+='<div class="result-meta">';
-  html+='<div class="meta-item">Project: <span>'+escH(String(meta.projCode))+'</span></div>';
-  html+='<div class="meta-item">Phase: <span>'+escH(String(meta.phase))+'</span></div>';
-  html+='<div class="meta-item">OS: <span>'+escH(String(meta.os))+'</span></div>';
-  html+='<div class="meta-item">BIOS: <span>'+escH(String(meta.bios))+'</span></div>';
-  html+='<div class="meta-item">Fan Mode: <span>'+escH(String(meta.fanMode))+'</span></div>';
-  html+='<div class="result-actions">';
-  html+='<button class="btn btn-grn" onclick="downloadOriginalExcel(\''+escH(label)+'\',\''+escH(proj)+'\')">⬇ 下載 Excel</button>';
-  html+='</div></div>';
-
+  html+='<div class="result-meta"><div class="meta-item"><span>'+escH(sname)+'</span></div></div>';
   html+='<div class="table-scroll"><table class="result-table">';
-  html+='<thead><tr><th class="col-item">測試項目</th><th class="col-unit">單位</th>';
-  skuCols.forEach(function(s){
-    html+='<th><div class="sku-header">'+escH(String(s.sku))+'</div>';
-    if(s.bd) html+='<div class="sku-sub">'+escH(String(s.bd))+'</div>';
-    if(s.cpu) html+='<div class="sku-sub">'+escH(String(s.cpu))+'</div>';
-    html+='</th>';
-  });
-  html+='</tr></thead><tbody>';
 
-  for(var r=10;r<data.length-1;r++){
-    var row=data[r]||[];
-    var id=row[0],item=row[1],unit=row[2];
-    if(!id&&!item) continue;
-    // Category header: merged cell → id has text, item is null (real template)
-    // or legacy format: id null, item has text
-    if(!item){
-      html+='<tr class="cat-header"><td colspan="'+(2+skuCols.length)+'">'+escH(String(id||''))+'</td></tr>';
-      continue;
+  if(isHWI){
+    html+='<thead><tr><th class="col-item" style="min-width:160px;">項目</th><th class="col-item">數值</th></tr></thead><tbody>';
+    for(var r=2;r<data.length;r++){
+      var row=data[r]||[];
+      if(row[0]===null&&row[1]===null) continue;
+      html+='<tr><td class="col-item">'+escH(String(row[0]!==null?row[0]:''))+'</td>';
+      html+='<td class="val">'+escH(String(row[1]!==null&&row[1]!==undefined?row[1]:'—'))+'</td></tr>';
     }
-    if(!id){
-      html+='<tr class="cat-header"><td colspan="'+(2+skuCols.length)+'">'+escH(String(item))+'</td></tr>';
-      continue;
+  } else {
+    html+='<thead><tr><th class="col-item">測試項目</th>';
+    skuCols.forEach(function(s){html+='<th>'+escH(s.name)+'</th>';});
+    html+='</tr></thead><tbody>';
+    for(var r=2;r<data.length;r++){
+      var row=data[r]||[];
+      var no=row[0],item=row[1];
+      if(no===null&&item===null) continue;
+      html+='<tr><td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(no!==null?no:''))+'</span>'+escH(String(item!==null?item:''))+'</td>';
+      skuCols.forEach(function(s){
+        var v=row[s.ci];
+        html+=(v===null||v===undefined||v==='')?'<td class="val empty">—</td>':'<td class="val">'+escH(String(v))+'</td>';
+      });
+      html+='</tr>';
     }
-    html+='<tr>';
-    html+='<td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(id))+'</span>'+escH(String(item||''))+'</td>';
-    html+='<td class="col-unit">'+escH(String(unit||''))+'</td>';
-    skuCols.forEach(function(s){
-      var val=row[s.col];
-      if(val===null||val===undefined||val===''){
-        html+='<td class="val empty">—</td>';
-      } else {
-        html+='<td class="val">'+escH(String(val))+'</td>';
-      }
-    });
-    html+='</tr>';
   }
   html+='</tbody></table></div></div>';
-
-  // store raw buffer for download
-  window._lastExcelBuf=rawBuf;
-  window._lastExcelName=label+'.xlsx';
-  area.innerHTML=html;
+  return html;
 }
 
-function downloadOriginalExcel(label, proj){
+function downloadLoadedExcel(){
   if(!window._lastExcelBuf){alert('請先載入結果。');return;}
   var blob=new Blob([window._lastExcelBuf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=label+'.xlsx';a.click();
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=window._lastExcelName||'result.xlsx';a.click();
 }
 
 // ── Compare Dashboard ─────────────────────────────────────────────────────────
@@ -748,76 +736,66 @@ function runCompare(){
   var promises=compareItems.map(function(item){
     return fetchFileViaPA(item.filename).then(function(buf){
       var wb=XLSX.read(buf,{type:'array'});
-      var ws=wb.Sheets['Performance Test'];
-      if(!ws) throw new Error(item.label+': 找不到 Performance Test sheet');
-      return {item:item,data:XLSX.utils.sheet_to_json(ws,{header:1,defval:null})};
+      var sheets=getMatchingSheets(wb.SheetNames,cat);
+      if(!sheets.length) throw new Error(item.label+': 無對應報告類別 Sheet');
+      var allRows=[];
+      sheets.forEach(function(sname){
+        var ws=wb.Sheets[sname];if(!ws)return;
+        var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+        var hdr=data[1]||[];
+        var skuCols=[];
+        for(var c=2;c<hdr.length;c++){if(hdr[c]!==null&&hdr[c]!==undefined)skuCols.push(c);}
+        allRows.push({section:sname});
+        for(var r=2;r<data.length;r++){
+          var row=data[r]||[];var no=row[0],itm=row[1];
+          if(no===null&&itm===null) continue;
+          var vals=skuCols.map(function(c){var v=row[c];return(v!==null&&v!==undefined)?v:null;});
+          allRows.push({no:no,item:itm,firstVal:vals.length?vals[0]:null});
+        }
+      });
+      return {item:item,rows:allRows};
     });
   });
   Promise.all(promises).then(function(results){
-    renderCompareTable(results,cat,area);
+    renderCompareTable(results,area);
     document.getElementById('export-btn').style.display='inline-flex';
     window._compareResults=results;
-    window._compareCat=cat;
   }).catch(function(e){
     area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>比對失敗：'+e.message+'</p></div>';
   });
 }
 
-function renderCompareTable(results,cat,area){
-  // Use first result as row template
-  var base=results[0].data;
+function renderCompareTable(results,area){
+  var masterRows=results[0].rows;
   var html='<div class="result-wrap"><div class="table-scroll">';
   html+='<table class="result-table compare-table"><thead><tr>';
-  html+='<th class="col-item">測試項目</th><th class="col-unit">單位</th>';
+  html+='<th class="col-item">測試項目</th>';
   results.forEach(function(r){
     html+='<th class="proj-header">'+escH(r.item.proj)+'<div class="sku-sub">'+escH(r.item.label)+'</div></th>';
   });
   html+='</tr></thead><tbody>';
-
-  for(var rowIdx=10;rowIdx<base.length-1;rowIdx++){
-    var row=base[rowIdx]||[];
-    var id=row[0],item=row[1],unit=row[2];
-    if(!id&&!item) continue;
-    if(!item||!id){
-      var catText=String(id||item||'');
-      if(cat!=='all'){
-        var catMap={battery:'Battery',bench:'Benchmark',fps:'Gaming'};
-        if(catText.toLowerCase().indexOf(catMap[cat].toLowerCase())<0) continue;
-      }
-      html+='<tr class="cat-header"><td colspan="'+(2+results.length)+'">'+escH(catText)+'</td></tr>';
-      continue;
+  masterRows.forEach(function(mrow){
+    if(mrow.section!==undefined){
+      html+='<tr class="cat-header"><td colspan="'+(1+results.length)+'">'+escH(mrow.section)+'</td></tr>';
+      return;
     }
-    // filter by category
-    if(cat!=='all'){
-      var prefix=String(id||'').substring(0,3).toLowerCase();
-      if(cat==='battery'&&prefix!=='bat') continue;
-      if(cat==='bench'&&prefix!=='bmk') continue;
-      if(cat==='fps'&&prefix!=='fps') continue;
-    }
-    // gather values from all results
-    var vals=results.map(function(r){
-      var rr=r.data[rowIdx]||[];
-      // find first SKU value (col 3+)
-      for(var c=3;c<rr.length;c++){
-        if(rr[c]!==null&&rr[c]!==undefined&&rr[c]!=='') return parseFloat(rr[c]);
-      }
+    var rowVals=results.map(function(r){
+      for(var i=0;i<r.rows.length;i++){if(r.rows[i].item===mrow.item)return r.rows[i].firstVal;}
       return null;
     });
-    var numVals=vals.filter(function(v){return v!==null&&!isNaN(v);});
-    var maxVal=numVals.length?Math.max.apply(null,numVals):null;
-    var minVal=numVals.length?Math.min.apply(null,numVals):null;
-
-    html+='<tr>';
-    html+='<td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(id))+'</span>'+escH(String(item||''))+'</td>';
-    html+='<td class="col-unit">'+escH(String(unit||''))+'</td>';
-    vals.forEach(function(v){
-      if(v===null||isNaN(v)){html+='<td class="val empty">—</td>';}
-      else if(numVals.length>1&&v===maxVal){html+='<td class="val best">'+v+'</td>';}
-      else if(numVals.length>1&&v===minVal){html+='<td class="val worst">'+v+'</td>';}
-      else{html+='<td class="val">'+v+'</td>';}
+    var numVals=rowVals.filter(function(v){return v!==null&&!isNaN(parseFloat(v));}).map(parseFloat);
+    var maxV=numVals.length?Math.max.apply(null,numVals):null;
+    var minV=numVals.length?Math.min.apply(null,numVals):null;
+    html+='<tr><td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(mrow.no!==null?mrow.no:''))+'</span>'+escH(String(mrow.item||''))+'</td>';
+    rowVals.forEach(function(v){
+      if(v===null||v===undefined){html+='<td class="val empty">—</td>';return;}
+      var fv=parseFloat(v);
+      if(numVals.length>1&&fv===maxV) html+='<td class="val best">'+escH(String(v))+'</td>';
+      else if(numVals.length>1&&fv===minV) html+='<td class="val worst">'+escH(String(v))+'</td>';
+      else html+='<td class="val">'+escH(String(v))+'</td>';
     });
     html+='</tr>';
-  }
+  });
   html+='</tbody></table></div></div>';
   area.innerHTML=html;
 }
@@ -826,30 +804,68 @@ function exportCompareCSV(){
   if(!window._compareResults) return;
   var BOM='\uFEFF';
   var lines=[];
-  var header=['測試項目','單位'].concat(window._compareResults.map(function(r){return r.item.proj+' ('+r.item.label+')';}));
+  var header=['測試項目'].concat(window._compareResults.map(function(r){return r.item.proj+' ('+r.item.label+')';}));
   lines.push(header.map(function(h){return '"'+h+'"';}).join(','));
-  var base=window._compareResults[0].data;
-  var cat=window._compareCat||'all';
-  for(var rowIdx=10;rowIdx<base.length-1;rowIdx++){
-    var row=base[rowIdx]||[];
-    var id=row[0],item=row[1],unit=row[2];
-    if(!id||!item) continue;
-    if(cat!=='all'){
-      var prefix=String(id).substring(0,3).toLowerCase();
-      if(cat==='battery'&&prefix!=='bat') continue;
-      if(cat==='bench'&&prefix!=='bmk') continue;
-      if(cat==='fps'&&prefix!=='fps') continue;
-    }
+  var masterRows=window._compareResults[0].rows;
+  masterRows.forEach(function(mrow){
+    if(mrow.section!==undefined) return;
     var vals=window._compareResults.map(function(r){
-      var rr=r.data[rowIdx]||[];
-      for(var c=3;c<rr.length;c++){if(rr[c]!==null&&rr[c]!==undefined&&rr[c]!=='') return rr[c];}
+      for(var i=0;i<r.rows.length;i++){if(r.rows[i].item===mrow.item)return r.rows[i].firstVal!==null?r.rows[i].firstVal:'';}
       return '';
     });
-    lines.push(['"'+id+' '+item+'"','"'+(unit||'')+'"'].concat(vals.map(function(v){return '"'+v+'"';})).join(','));
-  }
+    lines.push(['"'+(mrow.no!==null?mrow.no+' ':'')+String(mrow.item||'')+'"'].concat(vals.map(function(v){return '"'+v+'"';})).join(','));
+  });
   var blob=new Blob([BOM+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='GameLab_Compare_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+// ── Report Download Panel ────────────────────────────────────────────────────
+function onDlPLChange(){
+  var pl=document.getElementById('dl-product-line').value;
+  buildSelect('dl-sub-series',getSubSeries(pl),'--- 請先選擇 Chipset ---');
+  buildSelect('dl-proj-name',[],'--- 請先選擇 Chipset ---');
+  buildSelect('dl-file-sel',[],'--- 選擇版本 ---');
+  document.getElementById('dl-file-row').style.display='none';
+}
+function onDlSSChange(){
+  var pl=document.getElementById('dl-product-line').value;
+  var ss=document.getElementById('dl-sub-series').value;
+  buildSelect('dl-proj-name',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
+  buildSelect('dl-file-sel',[],'--- 選擇版本 ---');
+  document.getElementById('dl-file-row').style.display='none';
+}
+function onDlProjChange(){
+  var proj=document.getElementById('dl-proj-name').value;
+  if(!proj){document.getElementById('dl-file-row').style.display='none';return;}
+  var files=RESULT_INDEX[proj]||[];
+  buildSelect('dl-file-sel',files.map(function(f){return f.label;}),'--- 選擇版本 ---');
+  document.getElementById('dl-file-row').style.display='flex';
+}
+function downloadReport(){
+  var proj=document.getElementById('dl-proj-name').value;
+  var label=document.getElementById('dl-file-sel').value;
+  if(!proj||!label){alert('請選擇專案與版本。');return;}
+  var files=RESULT_INDEX[proj]||[];
+  var entry=null;
+  for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
+  if(!entry){alert('找不到對應檔案。');return;}
+  var btn=document.getElementById('dl-btn');
+  btn.disabled=true;btn.textContent='下載中...';
+  var statusArea=document.getElementById('dl-status-area');
+  statusArea.innerHTML='<div class="loading-bar">連線中，請稍候...</div>';
+  fetchFileViaPA(entry.filename)
+  .then(function(buf){
+    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=entry.filename;a.click();
+    btn.disabled=false;btn.textContent='⬇ 下載 Excel';
+    statusArea.innerHTML='<div style="padding:12px 0;color:var(--green);font-family:var(--font-mono);font-size:14px;">下載完成：'+escH(entry.filename)+'</div>';
+  })
+  .catch(function(e){
+    btn.disabled=false;btn.textContent='⬇ 下載 Excel';
+    statusArea.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>下載失敗：'+e.message+'</p></div>';
+  });
 }
 
 // ── Admin / Upload ─────────────────────────────────────────────────────────
