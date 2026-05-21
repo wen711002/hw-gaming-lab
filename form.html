@@ -2005,21 +2005,15 @@ function downloadTestTemplate(itemId){
     _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status');
     _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version');
   }
-  // ACC
+  // ACC：兩張 sheet 固定全出
   if(hasACC){
-    var accParsed=_xParse(item.ACCItems||'').items;
-    var hasCinebench=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('Cinebench')!==-1;});
-    var has3dmark=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('3D')!==-1;});
-    if(hasCinebench)_applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
-    if(has3dmark)_applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
+    _applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
+    _applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
   }
-  // TPR Battery life / Performance
+  // TPR：Battery life + Performance 固定全出
   if(hasTPR){
-    var tpr=_xTPRp(item.TPRItems||'');
-    var hasBat=tpr.hasBat||!item.TPRItems;
-    var hasPerf=tpr.hasPerf||!item.TPRItems;
-    if(hasBat)_applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
-    if(hasPerf)_applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
+    _applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
+    _applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
   }
   if(hasSOW)_applyTmplSheet(wb,'sow_performance','SOW｜Performance');
   if(hasHWI)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary');
