@@ -117,7 +117,7 @@ def serialize_alignment(align):
     return result
 
 # ── 主要 Sheet 提取函式 ───────────────────────────────────────────────────────
-def extract_sheet(ws, tpr_performance_mode=False):
+def extract_sheet(ws, tpr_performance_mode=False, header_only_mode=False):
     """
     從一個 worksheet 提取結構資料。
     tpr_performance_mode: 若 True 套用 TPR Performance 特殊欄位過濾規則
@@ -163,15 +163,20 @@ def extract_sheet(ws, tpr_performance_mode=False):
             # TPR Performance 特殊過濾規則
             if tpr_performance_mode:
                 if c <= 2:
-                    # A、B 欄：提取所有行 → 不過濾
-                    pass
+                    pass  # A/B 欄全行
                 elif 3 <= c <= 17:
-                    # C 到 Q 欄：只提取第 1、2 行
-                    if r > 2:
-                        continue
+                    if r > 2: continue  # C-Q 欄只留前 2 行
                 else:
-                    # 其他欄完全忽略
-                    continue
+                    continue  # 其他欄忽略
+
+            # Overall status / Tool Version：只保留 A 欄全行 + 前 2 列
+            if header_only_mode:
+                if c == 1:
+                    pass  # A 欄全行保留
+                elif r <= 2:
+                    pass  # 前 2 列全欄保留
+                else:
+                    continue  # 其他略過
 
             v = cell.value
 
@@ -252,6 +257,16 @@ def main():
     wb_tpr = openpyxl.load_workbook(FILES["tpr"], data_only=True)
     print(f"  TPR Sheets: {wb_tpr.sheetnames}")
 
+    ws = wb_tpr["Overall status"]
+    output["tpr_overall"] = extract_sheet(ws, header_only_mode=True)
+    stats["tpr_overall"] = len(output["tpr_overall"]["cells"])
+    print(f"  tpr_overall: {stats['tpr_overall']} cells")
+
+    ws = wb_tpr["Tool Version"]
+    output["tpr_toolversion"] = extract_sheet(ws, header_only_mode=True)
+    stats["tpr_toolversion"] = len(output["tpr_toolversion"]["cells"])
+    print(f"  tpr_toolversion: {stats['tpr_toolversion']} cells")
+
     ws = wb_tpr["Battery life"]
     output["tpr_battery"] = extract_sheet(ws)
     stats["tpr_battery"] = len(output["tpr_battery"]["cells"])
@@ -261,11 +276,6 @@ def main():
     output["tpr_performance"] = extract_sheet(ws, tpr_performance_mode=True)
     stats["tpr_performance"] = len(output["tpr_performance"]["cells"])
     print(f"  tpr_performance: {stats['tpr_performance']} cells")
-
-    ws = wb_tpr["iGPU"]
-    output["tpr_igpu"] = extract_sheet(ws)
-    stats["tpr_igpu"] = len(output["tpr_igpu"]["cells"])
-    print(f"  tpr_igpu: {stats['tpr_igpu']} cells")
 
     wb_tpr.close()
 

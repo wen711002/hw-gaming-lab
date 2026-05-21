@@ -774,19 +774,6 @@ document.getElementById('pw-input').focus();
                   </div>
                 </div>
               </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="iGPU" checked onchange="togTPRSec('igpu',this.checked)"> iGPU <span class="ri-mode-badge">Gaming FPS（R6S / CS2 FHD）</span></label>
-                </div>
-                <div id="tpr-sec-igpu" class="ri-sec-body">
-                  <div class="fan-mode-row">
-                    <span class="fml">Fan mode：</span>
-                    <label><input type="checkbox" data-tpr-fan="igpu" value="Silent" checked> Silent</label>
-                    <label><input type="checkbox" data-tpr-fan="igpu" value="Performance" checked> Performance</label>
-                    <label><input type="checkbox" data-tpr-fan="igpu" value="Turbo" checked> Turbo</label>
-                  </div>
-                </div>
-              </div>
             </div>
             <div class="ri-note-wrap">
               <input type="text" id="note-tpr" placeholder="備注：特殊說明（如排除特定 Fan mode 或遊戲）…">
@@ -1267,10 +1254,8 @@ function getReportItems(rpt){
   if(rpt==='tpr'){
     var batFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="battery"]:checked')).map(function(c){return c.value;});
     var perfFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="perf"]:checked')).map(function(c){return c.value;});
-    var igpuFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="igpu"]:checked')).map(function(c){return c.value;});
     if(batFans.length)result+='\n   Battery life Fan modes: '+batFans.join(', ');
     if(perfFans.length)result+='\n   Performance Fan modes: '+perfFans.join(', ');
-    if(igpuFans.length)result+='\n   iGPU Fan modes: '+igpuFans.join(', ');
   }
   if(rpt==='sow'){
     var sowFans=Array.prototype.slice.call(document.querySelectorAll('[data-sow-fan]:checked')).map(function(c){return c.value;});
@@ -1919,17 +1904,15 @@ function _xParse(t){
     var m=l.match(/^(\d+)\.\s+(.+)/);if(m){items.push({num:parseInt(m[1]),name:m[2]});return;}
     var nm=l.match(/^※\s*(.+)/);if(nm)note=nm[1];});return{items:items,note:note};}
 function _xTPRp(t){
-  var r={hasBat:false,hasPerf:false,hasIgpu:false,batFan:'',perfFan:'',igpuFan:'',note:''};
+  var r={hasBat:false,hasPerf:false,batFan:'',perfFan:'',note:''};
   if(!t)return r;
   t.split('\n').forEach(function(line){var l=line.trim();if(!l)return;
     var m=l.match(/^(\d+)\.\s+(.+)/);
     if(m){var v=m[2].toLowerCase();
       if(v.indexOf('battery')!==-1)r.hasBat=true;
-      else if(v.indexOf('igpu')!==-1)r.hasIgpu=true;
       else r.hasPerf=true;return;}
     var bf=l.match(/Battery life Fan modes?:\s*([^\n]+)/i);if(bf)r.batFan=bf[1];
     var pf=l.match(/Performance Fan modes?:\s*([^\n]+)/i);if(pf)r.perfFan=pf[1];
-    var gf=l.match(/iGPU Fan modes?:\s*([^\n]+)/i);if(gf)r.igpuFan=gf[1];
     var nf=l.match(/^※\s*(.+)/);if(nf)r.note=nf[1];});return r;}
 function _xCover(wb,info){
   var ws=wb.addWorksheet('Cover');var nc=6;
@@ -2010,17 +1993,20 @@ function downloadTestTemplate(itemId){
   var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
   _xCover(wb,info);
   if(info.accSkus.length){
-    _xParse(item.ACCItems||'').items.forEach(function(it){
-      var nm=it.name;
-      if(nm.indexOf('Cinebench')!==-1)_applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
-      else if(nm.indexOf('3D')!==-1)_applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
-    });
+    var accParsed=_xParse(item.ACCItems||'').items;
+    var hasCinebench=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('Cinebench')!==-1;});
+    var has3dmark=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('3D')!==-1||it.name.toLowerCase().indexOf('3dmark')!==-1;});
+    if(hasCinebench)_applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
+    if(has3dmark)_applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
   }
   if(info.tprSkus.length){
     var tpr=_xTPRp(item.TPRItems||'');
-    if(tpr.hasBat)_applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
-    if(tpr.hasPerf)_applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
-    if(tpr.hasIgpu)_applyTmplSheet(wb,'tpr_igpu','TPR｜iGPU');
+    var hasBat=tpr.hasBat||!item.TPRItems;
+    var hasPerf=tpr.hasPerf||!item.TPRItems;
+    _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status');
+    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version');
+    if(hasBat)_applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
+    if(hasPerf)_applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
   }
   if(info.sowSkus.length)_applyTmplSheet(wb,'sow_performance','SOW｜Performance');
   if(info.hwiSkus.length)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary');
