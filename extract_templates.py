@@ -117,7 +117,12 @@ def serialize_alignment(align):
     return result
 
 # ── 主要 Sheet 提取函式 ───────────────────────────────────────────────────────
-def extract_sheet(ws, tpr_performance_mode=False, header_only_mode=False):
+SOW_BLANK_ROWS   = {4, 5}
+HWINFO_BLANK_ROWS = set(list(range(9,13))+list(range(16,19))+list(range(22,25))+list(range(27,33)))
+HWINFO_BLANK_COLS = {2, 3, 4}   # B, C, D
+
+def extract_sheet(ws, tpr_performance_mode=False, header_only_mode=False,
+                  sow_mode=False, hwinfo_mode=False):
     """
     從一個 worksheet 提取結構資料。
     tpr_performance_mode: 若 True 套用 TPR Performance 特殊欄位過濾規則
@@ -188,12 +193,18 @@ def extract_sheet(ws, tpr_performance_mode=False, header_only_mode=False):
             if isinstance(v, str):
                 cell_v = v
             elif isinstance(v, bool):
-                # bool 在 Python 是 int 的子類，先判 bool
                 cell_v = None
             elif isinstance(v, (int, float)):
                 cell_v = None
             else:
-                # datetime, None, 其他 → 輸出 None（若非字串均清除）
+                cell_v = None
+
+            # SOW 特殊：第 4、5 列強制清空（包含文字）
+            if sow_mode and r in SOW_BLANK_ROWS:
+                cell_v = None
+
+            # HW Info 特殊：BCD 欄指定列強制清空（包含文字）
+            if hwinfo_mode and c in HWINFO_BLANK_COLS and r in HWINFO_BLANK_ROWS:
                 cell_v = None
 
             # 如果值已為 None 且無樣式則跳過
@@ -292,7 +303,7 @@ def main():
         ws = wb_sow.active
         print(f"  指定 sheet 不存在，使用 active sheet: {ws.title}")
 
-    output["sow_performance"] = extract_sheet(ws)
+    output["sow_performance"] = extract_sheet(ws, sow_mode=True)
     stats["sow_performance"] = len(output["sow_performance"]["cells"])
     print(f"  sow_performance: {stats['sow_performance']} cells")
 
@@ -305,7 +316,7 @@ def main():
 
     ws = wb_hw.worksheets[0]
     print(f"  使用 index 0 sheet: {ws.title}")
-    output["hwinfo_summary"] = extract_sheet(ws)
+    output["hwinfo_summary"] = extract_sheet(ws, hwinfo_mode=True)
     stats["hwinfo_summary"] = len(output["hwinfo_summary"]["cells"])
     print(f"  hwinfo_summary: {stats['hwinfo_summary']} cells")
 

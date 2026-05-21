@@ -120,9 +120,9 @@ def process_sheet(data):
     styles_js = [[json.loads(s[0]), json.loads(s[1]),
                   json.loads(s[2]), json.loads(s[3])] for s in styles]
 
-    # rowHeights: only non-default (default ≈ 15)
+    # rowHeights: only keep rows TALLER than default (≈15); don't shrink rows
     rh = {k: v for k, v in data.get('rowHeights', {}).items()
-          if v and abs(v - 15) > 0.5}
+          if v and v > 15.5}
 
     # colWidths: round to 2 decimals
     cw = {k: round(v, 2) for k, v in data.get('colWidths', {}).items() if v}

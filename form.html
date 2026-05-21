@@ -1966,7 +1966,9 @@ function _applyTmplSheet(wb,key,title){
     var s=tmpl.styles[si];
     if(s[0]){var fo={};if(s[0].n)fo.name=s[0].n;if(s[0].s)fo.size=s[0].s;if(s[0].b)fo.bold=true;if(s[0].i)fo.italic=true;if(s[0].c)fo.color={argb:s[0].c};cell.font=fo;}
     if(s[1])cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:s[1]}};
+    var bdrDef={style:'thin',color:{argb:'FFBFBFBF'}};
     if(s[2])cell.border={top:_tmplBdrSide(s[2][0]),bottom:_tmplBdrSide(s[2][1]),left:_tmplBdrSide(s[2][2]),right:_tmplBdrSide(s[2][3])};
+    else if(cd[2]===null&&s[1])cell.border={top:bdrDef,bottom:bdrDef,left:bdrDef,right:bdrDef};
     if(s[3]){var al={};if(s[3].h)al.horizontal=s[3].h;if(s[3].v)al.vertical=s[3].v;if(s[3].w)al.wrapText=true;cell.alignment=al;}
   });
   Object.keys(tmpl.rh).forEach(function(r){ws.getRow(parseInt(r,10)).height=tmpl.rh[r];});
@@ -1990,26 +1992,35 @@ function downloadTestTemplate(itemId){
     skuList:_xSkus(item.SKUList||''),
     accSkus:_xCsv(item.ReportACC),tprSkus:_xCsv(item.ReportTPR),
     sowSkus:_xCsv(item.ReportSOW),hwiSkus:_xCsv(item.ReportHWInfo)};
+  var hasACC=!!(item.ReportACC||item.ACCItems);
+  var hasTPR=!!(item.ReportTPR||item.TPRItems);
+  var hasSOW=!!(item.ReportSOW||item.SOWItems);
+  var hasHWI=!!(item.ReportHWInfo||item.HWInfoItems);
   var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
   _xCover(wb,info);
-  if(info.accSkus.length){
+  // TPR Overall + Tool Version → 緊跟 Cover 後
+  if(hasTPR){
+    _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status');
+    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version');
+  }
+  // ACC
+  if(hasACC){
     var accParsed=_xParse(item.ACCItems||'').items;
     var hasCinebench=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('Cinebench')!==-1;});
-    var has3dmark=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('3D')!==-1||it.name.toLowerCase().indexOf('3dmark')!==-1;});
+    var has3dmark=!accParsed.length||accParsed.some(function(it){return it.name.indexOf('3D')!==-1;});
     if(hasCinebench)_applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
     if(has3dmark)_applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
   }
-  if(info.tprSkus.length){
+  // TPR Battery life / Performance
+  if(hasTPR){
     var tpr=_xTPRp(item.TPRItems||'');
     var hasBat=tpr.hasBat||!item.TPRItems;
     var hasPerf=tpr.hasPerf||!item.TPRItems;
-    _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status');
-    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version');
     if(hasBat)_applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
     if(hasPerf)_applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
   }
-  if(info.sowSkus.length)_applyTmplSheet(wb,'sow_performance','SOW｜Performance');
-  if(info.hwiSkus.length)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary');
+  if(hasSOW)_applyTmplSheet(wb,'sow_performance','SOW｜Performance');
+  if(hasHWI)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary');
   wb.xlsx.writeBuffer().then(function(buf){
     var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     var url=URL.createObjectURL(blob);var a=document.createElement('a');
