@@ -1953,14 +1953,21 @@ function _xCover(wb,info){
     var c2=ro.getCell(2);c2.value=rpt.skus.join(', ');_xfi(c2,bg);_xfo(c2,9,false,_V5C.nv);_xal(c2,'left','middle');c2.border=_xb();
     ws.mergeCells(r,3,r,nc);var c3=ro.getCell(3);c3.value='→ 參考 "'+rpt.n+'" 工作表';_xfi(c3,bg);_xfo(c3,9,false,_V5C.nv);_xal(c3,'left','middle');c3.border=_xb();r++;});}
 function _tmplBdrSide(x){if(!x)return undefined;if(typeof x==='string')return{style:x};return{style:x[0],color:{argb:x[1]}};}
-function _applyTmplSheet(wb,key,title){
+function _colToNum(c){var n=0;for(var i=0;i<c.length;i++)n=n*26+(c.charCodeAt(i)-64);return n;}
+function _shiftRange(rng,off){return rng.replace(/([A-Z]+)(\d+)/g,function(_,c,r){return c+(parseInt(r,10)+off);});}
+function _applyTmplSheet(wb,key,title,skus){
   var tmpl=window.GL_TMPL&&window.GL_TMPL[key];
   if(!tmpl){console.warn('GL_TMPL missing:',key);return;}
   var ws=wb.addWorksheet(title);
-  Object.keys(tmpl.cw).forEach(function(col){ws.getColumn(col).width=tmpl.cw[col];});
-  tmpl.mc.forEach(function(rng){try{ws.mergeCells(rng);}catch(e){}});
+  var off=skus&&skus.length?1:0;
+  var maxCol=1;
+  Object.keys(tmpl.cw).forEach(function(col){
+    ws.getColumn(col).width=tmpl.cw[col];
+    var n=_colToNum(col);if(n>maxCol)maxCol=n;
+  });
+  tmpl.mc.forEach(function(rng){try{ws.mergeCells(off?_shiftRange(rng,off):rng);}catch(e){}});
   tmpl.cells.forEach(function(cd){
-    var cell=ws.getCell(cd[0],cd[1]);
+    var cell=ws.getCell(cd[0]+off,cd[1]);
     if(cd[2]!==null)cell.value=cd[2];
     var si=cd[3];if(si<0)return;
     var s=tmpl.styles[si];
@@ -1971,11 +1978,22 @@ function _applyTmplSheet(wb,key,title){
     else if(cd[2]===null&&s[1])cell.border={top:bdrDef,bottom:bdrDef,left:bdrDef,right:bdrDef};
     if(s[3]){var al={};if(s[3].h)al.horizontal=s[3].h;if(s[3].v)al.vertical=s[3].v;if(s[3].w)al.wrapText=true;cell.alignment=al;}
   });
-  Object.keys(tmpl.rh).forEach(function(r){ws.getRow(parseInt(r,10)).height=tmpl.rh[r];});
+  Object.keys(tmpl.rh).forEach(function(r){ws.getRow(parseInt(r,10)+off).height=tmpl.rh[r];});
   if(tmpl.fp){var fp=tmpl.fp,m=fp.match(/^([A-Z]*)(\d*)$/),xs=0,ys=0;
     if(m[1]){var cl=m[1];for(var i=0;i<cl.length;i++)xs=xs*26+(cl.charCodeAt(i)-64);}
     if(m[2])ys=parseInt(m[2],10)-1;
-    ws.views=[{state:'frozen',xSplit:xs,ySplit:ys}];}
+    ws.views=[{state:'frozen',xSplit:xs,ySplit:ys+off}];}
+  if(off){
+    var hb={style:'thin',color:{argb:'FF1F3864'}};
+    ws.mergeCells(1,1,1,maxCol);
+    var hc=ws.getCell(1,1);
+    hc.value='▶  SKU：'+skus.join('   |   ');
+    hc.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
+    hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2E74B5'}};
+    hc.alignment={horizontal:'left',vertical:'middle'};
+    hc.border={top:hb,bottom:hb,left:hb,right:hb};
+    ws.getRow(1).height=18;
+  }
 }
 function downloadTestTemplate(itemId){
   var item=_adminItems[itemId];
@@ -2000,23 +2018,27 @@ function downloadTestTemplate(itemId){
   if(!hasACC&&!hasTPR&&!hasSOW&&!hasHWI){hasACC=true;hasTPR=true;hasSOW=true;hasHWI=true;}
   var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
   _xCover(wb,info);
+  var allSkuNames=info.skuList.map(function(s){return s.name;});
+  function skusFor(f){var csv=_xCsv(item[f]||'');return csv.length?csv:allSkuNames;}
   // TPR Overall + Tool Version → 緊跟 Cover 後
   if(hasTPR){
-    _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status');
-    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version');
+    var tprSkus=skusFor('ReportTPR');
+    _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status',tprSkus);
+    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version',tprSkus);
   }
   // ACC：兩張 sheet 固定全出
   if(hasACC){
-    _applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop');
-    _applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark');
+    var accSkuNames=skusFor('ReportACC');
+    _applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop',accSkuNames);
+    _applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark',accSkuNames);
   }
   // TPR：Battery life + Performance 固定全出
   if(hasTPR){
-    _applyTmplSheet(wb,'tpr_battery','TPR｜Battery life');
-    _applyTmplSheet(wb,'tpr_performance','TPR｜Performance');
+    _applyTmplSheet(wb,'tpr_battery','TPR｜Battery life',tprSkus);
+    _applyTmplSheet(wb,'tpr_performance','TPR｜Performance',tprSkus);
   }
-  if(hasSOW)_applyTmplSheet(wb,'sow_performance','SOW｜Performance');
-  if(hasHWI)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary');
+  if(hasSOW)_applyTmplSheet(wb,'sow_performance','SOW｜Performance',skusFor('ReportSOW'));
+  if(hasHWI)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary',skusFor('ReportHWInfo'));
   wb.xlsx.writeBuffer().then(function(buf){
     var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     var url=URL.createObjectURL(blob);var a=document.createElement('a');
