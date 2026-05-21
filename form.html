@@ -1916,8 +1916,9 @@ function _xTPRp(t){
     var nf=l.match(/^※\s*(.+)/);if(nf)r.note=nf[1];});return r;}
 function _xCover(wb,info){
   var ws=wb.addWorksheet('Cover');var nc=6;
-  ws.getColumn(1).width=3;ws.getColumn(2).width=22;ws.getColumn(3).width=28;
-  ws.getColumn(4).width=22;ws.getColumn(5).width=28;ws.getColumn(6).width=3;
+  ws.properties.tabColor={argb:'FF1F3864'};
+  ws.getColumn(1).width=8;ws.getColumn(2).width=22;ws.getColumn(3).width=28;
+  ws.getColumn(4).width=22;ws.getColumn(5).width=28;ws.getColumn(6).width=8;
   var r=1;
   _xTitle(ws,'HW Gaming 加速實驗室  |  Result 報告底板  —  '+info.projCode+(info.phase?' '+info.phase:''),nc,r);r++;
   _xSp(ws,r,nc);r++;
@@ -1955,10 +1956,11 @@ function _xCover(wb,info){
 function _tmplBdrSide(x){if(!x)return undefined;if(typeof x==='string')return{style:x};return{style:x[0],color:{argb:x[1]}};}
 function _colToNum(c){var n=0;for(var i=0;i<c.length;i++)n=n*26+(c.charCodeAt(i)-64);return n;}
 function _shiftRange(rng,off){return rng.replace(/([A-Z]+)(\d+)/g,function(_,c,r){return c+(parseInt(r,10)+off);});}
-function _applyTmplSheet(wb,key,title,skus){
+function _applyTmplSheet(wb,key,title,skus,tabColor){
   var tmpl=window.GL_TMPL&&window.GL_TMPL[key];
   if(!tmpl){console.warn('GL_TMPL missing:',key);return;}
   var ws=wb.addWorksheet(title);
+  if(tabColor)ws.properties.tabColor={argb:tabColor};
   var off=skus&&skus.length?1:0;
   var maxCol=1;
   Object.keys(tmpl.cw).forEach(function(col){
@@ -1992,7 +1994,7 @@ function _applyTmplSheet(wb,key,title,skus){
     hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2E74B5'}};
     hc.alignment={horizontal:'left',vertical:'middle'};
     hc.border={top:hb,bottom:hb,left:hb,right:hb};
-    ws.getRow(1).height=18;
+    ws.getRow(1).height=24;
   }
 }
 function downloadTestTemplate(itemId){
@@ -2023,22 +2025,22 @@ function downloadTestTemplate(itemId){
   // TPR Overall + Tool Version → 緊跟 Cover 後
   if(hasTPR){
     var tprSkus=skusFor('ReportTPR');
-    _applyTmplSheet(wb,'tpr_overall','TPR｜Overall status',tprSkus);
-    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version',tprSkus);
+    _applyTmplSheet(wb,'tpr_overall',   'TPR｜Overall status',tprSkus,'FFED7D31');
+    _applyTmplSheet(wb,'tpr_toolversion','TPR｜Tool Version',  tprSkus,'FFED7D31');
   }
   // ACC：兩張 sheet 固定全出
   if(hasACC){
     var accSkuNames=skusFor('ReportACC');
-    _applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop',accSkuNames);
-    _applyTmplSheet(wb,'acc_3dmark','ACC｜3DMark Benchmark',accSkuNames);
+    _applyTmplSheet(wb,'acc_cinebench','ACC｜Cinebench R23 30-loop',accSkuNames,'FF4472C4');
+    _applyTmplSheet(wb,'acc_3dmark',   'ACC｜3DMark Benchmark',     accSkuNames,'FF4472C4');
   }
   // TPR：Battery life + Performance 固定全出
   if(hasTPR){
-    _applyTmplSheet(wb,'tpr_battery','TPR｜Battery life',tprSkus);
-    _applyTmplSheet(wb,'tpr_performance','TPR｜Performance',tprSkus);
+    _applyTmplSheet(wb,'tpr_battery',    'TPR｜Battery life', tprSkus,'FFFFC000');
+    _applyTmplSheet(wb,'tpr_performance','TPR｜Performance',  tprSkus,'FFFFC000');
   }
-  if(hasSOW)_applyTmplSheet(wb,'sow_performance','SOW｜Performance',skusFor('ReportSOW'));
-  if(hasHWI)_applyTmplSheet(wb,'hwinfo_summary','HW Info｜Summary',skusFor('ReportHWInfo'));
+  if(hasSOW)_applyTmplSheet(wb,'sow_performance','SOW｜Performance',  skusFor('ReportSOW'),  'FF70AD47');
+  if(hasHWI)_applyTmplSheet(wb,'hwinfo_summary', 'HW Info｜Summary',  skusFor('ReportHWInfo'),'FF7030A0');
   wb.xlsx.writeBuffer().then(function(buf){
     var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     var url=URL.createObjectURL(blob);var a=document.createElement('a');
