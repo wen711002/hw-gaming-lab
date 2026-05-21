@@ -204,9 +204,12 @@ document.getElementById('pw-input').focus();
 <div class="main-content">
 
   <!-- HEADER -->
-  <div class="page-header">
-    <h1>Result <span>Viewer</span></h1>
-    <p>查看單一專案測試結果，或跨專案比對看板</p>
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1>Result <span>Viewer</span></h1>
+      <p>查看單一專案測試結果，或跨專案比對看板</p>
+    </div>
+    <button id="demo-btn" onclick="toggleDemo()" style="margin-top:8px;padding:7px 16px;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.4);border-radius:6px;color:var(--amber);font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.06em;cursor:pointer;white-space:nowrap;transition:all 0.2s;">⚗ Demo 模式</button>
   </div>
 
   <!-- MODE SELECTOR -->
@@ -1043,8 +1046,69 @@ function loadResultIndex(){
   });
 }
 
+// ── Demo Mode ────────────────────────────────────────────────────────────────
+var DEMO_MODE = false;
+
+var DEMO_PROJECT_DATA = {
+  'Demo': {
+    'Mock Projects': ['FX611H (Intel / ACC+TPR+SOW)', 'FA401EA (AMD / ACC+TPR)', 'G513RM (AMD / TPR+SOW+HWI)']
+  }
+};
+
+var DEMO_RESULT_INDEX = {
+  'FX611H (Intel / ACC+TPR+SOW)': [{label:'FX611H_PR1_Result_20260410', filename:'FX611H_PR1_Result_20260410.xlsx'}],
+  'FA401EA (AMD / ACC+TPR)':      [{label:'FA401EA_PR2_Result_20260418', filename:'FA401EA_PR2_Result_20260418.xlsx'}],
+  'G513RM (AMD / TPR+SOW+HWI)':   [{label:'G513RM_PR1_Result_20260425',  filename:'G513RM_PR1_Result_20260425.xlsx'}]
+};
+
+function toggleDemo(){
+  DEMO_MODE = !DEMO_MODE;
+  var btn = document.getElementById('demo-btn');
+  if(DEMO_MODE){
+    btn.style.background = 'rgba(255,179,71,0.3)';
+    btn.style.borderColor = 'rgba(255,179,71,0.8)';
+    btn.textContent = '⚗ Demo 模式 ON';
+    // inject demo data
+    Object.keys(DEMO_PROJECT_DATA).forEach(function(pl){
+      PROJECT_DATA[pl] = DEMO_PROJECT_DATA[pl];
+    });
+    Object.keys(DEMO_RESULT_INDEX).forEach(function(proj){
+      RESULT_INDEX[proj] = DEMO_RESULT_INDEX[proj];
+    });
+  } else {
+    btn.style.background = 'rgba(255,179,71,0.12)';
+    btn.style.borderColor = 'rgba(255,179,71,0.4)';
+    btn.textContent = '⚗ Demo 模式';
+    // remove demo data
+    Object.keys(DEMO_PROJECT_DATA).forEach(function(pl){ delete PROJECT_DATA[pl]; });
+    Object.keys(DEMO_RESULT_INDEX).forEach(function(proj){ delete RESULT_INDEX[proj]; });
+  }
+  // rebuild PL dropdowns
+  var pls = Object.keys(PROJECT_DATA);
+  ['s-product-line','c-product-line','dl-product-line'].forEach(function(id){
+    var sel = document.getElementById(id); if(!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">--- 選擇 Product Line ---</option>';
+    pls.forEach(function(pl){var o=document.createElement('option');o.value=pl;o.textContent=pl;sel.appendChild(o);});
+    if(cur) sel.value = cur;
+  });
+}
+
 // ── Helper ───────────────────────────────────────────────────────────────────
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Override fetchFileViaPA to support Demo Mode (fetch directly from repo)
+var _origFetchFileViaPA = fetchFileViaPA;
+function fetchFileViaPA(filename){
+  if(DEMO_MODE){
+    return fetch('mock_results/'+filename)
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status+' — 找不到 mock_results/'+filename);
+      return r.arrayBuffer();
+    });
+  }
+  return _origFetchFileViaPA(filename);
+}
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 loadResultIndex();
