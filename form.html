@@ -1996,6 +1996,8 @@ function downloadTestTemplate(itemId){
   var hasTPR=!!(item.ReportTPR||item.TPRItems);
   var hasSOW=!!(item.ReportSOW||item.SOWItems);
   var hasHWI=!!(item.ReportHWInfo||item.HWInfoItems);
+  // 若 SP 未回傳任何 report 欄位（舊資料或 $select 未含），輸出全部
+  if(!hasACC&&!hasTPR&&!hasSOW&&!hasHWI){hasACC=true;hasTPR=true;hasSOW=true;hasHWI=true;}
   var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
   _xCover(wb,info);
   // TPR Overall + Tool Version → 緊跟 Cover 後
