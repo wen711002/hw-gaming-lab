@@ -513,7 +513,15 @@ document.getElementById('pw-input').focus();
     <div class="panel-header"><div class="panel-title">載入既有表單</div></div>
     <div class="panel-body">
       <div class="retest-lookup">
-        <h3>選擇專案以載入既有資料</h3>
+        <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border2);">
+          <div style="font-family:var(--font-head);font-size:15px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Report ID 快速查詢</div>
+          <div class="lookup-row">
+            <input type="text" id="rt-report-id" placeholder="輸入 Report ID，例：01、02…" style="font-family:var(--font-mono);"/>
+            <button class="btn btn-sec" onclick="lookupByReportId()" style="white-space:nowrap;font-size:16px;padding:9px 20px;">LOAD</button>
+          </div>
+          <div style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 直接輸入舊 Report ID 帶出所有既有資料</div>
+        </div>
+        <h3>或依專案篩選</h3>
         <div class="field" style="margin-bottom:10px;">
           <label>Product Line<span class="req">*</span></label>
           <select id="rt-product-line" onchange="onProductLineChange('retest')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
@@ -558,13 +566,34 @@ document.getElementById('pw-input').focus();
     <div class="steps-bar">
       <div class="sbar-item active" id="step1-tab"><span class="sbar-num" id="sn1">1</span>基本資訊</div>
       <div class="sbar-div"></div>
-      <div class="sbar-item" id="step2-tab"><span class="sbar-num" id="sn2">2</span>報告選擇</div>
+      <div class="sbar-item" id="step2-tab"><span class="sbar-num" id="sn2">2</span>專案設定</div>
       <div class="sbar-div"></div>
-      <div class="sbar-item" id="step3-tab"><span class="sbar-num" id="sn3">3</span>確認送出</div>
+      <div class="sbar-item" id="step3-tab"><span class="sbar-num" id="sn3">3</span>報告選擇</div>
+      <div class="sbar-div"></div>
+      <div class="sbar-item" id="step4-tab"><span class="sbar-num" id="sn4">4</span>確認送出</div>
     </div>
 
     <!-- PAGE 1 -->
     <div class="page active" id="page1">
+      <div class="panel" style="border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.03);margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title" style="color:var(--cyan);">Report Task ID</div>
+          <span style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 系統自動生成，今日序號</span>
+        </div>
+        <div class="panel-body" style="padding:14px 20px;">
+          <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:13px;color:var(--text3);margin-bottom:4px;">REPORT ID</div>
+              <div id="report-id-display" style="font-family:var(--font-head);font-size:30px;font-weight:700;color:var(--cyan);letter-spacing:0.12em;text-shadow:0 0 16px var(--cyan-glow);">—</div>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <div style="font-family:var(--font-mono);font-size:13px;color:var(--text3);margin-bottom:4px;">FILENAME PREVIEW</div>
+              <div id="report-filename-preview" style="font-family:var(--font-mono);font-size:14px;color:var(--text2);word-break:break-all;">RESULT_..._NEW_..._DATE.XLSX</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="retest-block" class="retest-block hidden">
         <div class="retest-block-title">RETEST INFO</div>
         <div class="field">
@@ -605,42 +634,8 @@ document.getElementById('pw-input').focus();
       </div>
 
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">專案資訊</div></div>
+        <div class="panel-header"><div class="panel-title">測試時程</div></div>
         <div class="panel-body">
-          <div class="g2" style="margin-bottom:12px;">
-            <div class="field">
-              <label>Product Line<span class="req">*</span></label>
-              <select id="pl-product-line" onchange="onProductLineChange('new')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
-                <option value="">--- 選擇 Product Line ---</option>
-                <option value="Strix">Strix</option>
-                <option value="TUF">TUF</option>
-                <option value="Consumer">Consumer</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Chipset / Sub-series<span class="req">*</span></label>
-              <select id="pl-sub-series" onchange="onSubSeriesChange('new')" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
-                <option value="">--- 請先選擇 Product Line ---</option>
-              </select>
-            </div>
-          </div>
-          <div class="field" style="margin-bottom:12px;">
-            <label>Project Name<span class="req">*</span></label>
-            <input type="text" id="pl-proj-name-input" oninput="onNewProjNameInput()" placeholder="例：FX611H" style="width:100%;"/>
-            <input type="hidden" id="proj_name"/>
-            <input type="hidden" id="proj_code"/>
-            <input type="hidden" id="prod_line"/>
-            <input type="hidden" id="sub_series"/>
-          </div>
-          <div class="field" style="margin-bottom:12px;">
-            <label>Project Code <span style="color:var(--text3);font-size:14px;font-weight:400;">(PDM project name)</span><span class="req">*</span></label>
-            <input type="text" id="proj-code-input" oninput="document.getElementById('proj_code').value=this.value.trim();" placeholder="例：FX611_27_GM_O" style="width:100%;"/>
-          </div>
-          <div class="g2">
-          <div class="field">
-            <label>Phase<span class="req">*</span></label>
-            <input type="text" id="phase" placeholder="例：ER1、ER2、PR1、MP..."/>
-          </div>
           <div class="g2">
             <div class="field">
               <label>測試開始日期<span class="req">*</span></label>
@@ -655,70 +650,31 @@ document.getElementById('pw-input').focus();
           </div>
         </div>
       </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header"><div class="panel-title">測試機台 SKU</div></div>
-        <div class="panel-body">
-          <p class="sku-hint">// 欄位較多，可左右滑動 — 支援最多 10+ 台機台</p>
-          <div class="sku-wrap">
-            <table>
-              <thead><tr>
-                <th class="col-i">#</th>
-                <th style="min-width:88px;">SKU 型號</th>
-                <th style="min-width:80px;">OS 版本</th>
-                <th style="min-width:88px;">Panel</th>
-                <th style="min-width:130px;">CPU</th>
-                <th style="min-width:78px;">GPU</th>
-                <th style="min-width:52px;">RAM</th>
-                <th style="min-width:82px;">BIOS</th>
-                <th style="min-width:82px;">VBIOS</th>
-                <th style="min-width:82px;"  >DCD</th>
-                <th style="min-width:100px;">VGA Driver</th>
-                <th style="min-width:78px;">備註</th>
-                <th class="col-d"></th>
-              </tr></thead>
-              <tbody id="sku-tbody">
-                <tr>
-                  <td class="col-i">01</td>
-                  <td><input type="text" placeholder="SKU-XXXX" required/></td>
-                  <td><input type="text" placeholder="Win11 24H2"/></td>
-                  <td><input type="text" placeholder='14" FHD 144Hz'/></td>
-                  <td><input type="text" placeholder="Intel Core Ultra 7"/></td>
-                  <td><input type="text" placeholder="RTX 4070"/></td>
-                  <td><input type="text" placeholder="32GB"/></td>
-                  <td><input type="text" placeholder="X.XX.XXX"/></td>
-                  <td><input type="text" placeholder="XX.XX.XX"/></td>
-                  <td><input type="text" placeholder="X.X.XXXX"/></td>
-                  <td><input type="text" placeholder="XXX.XX"/></td>
-                  <td><input type="text" placeholder="—"/></td>
-                  <td><button class="del-btn" onclick="delRow(this)">×</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <button class="add-row-btn" onclick="addSkuRow()">＋ ADD MACHINE</button>
-          <div class="sec">SKU 規格表上傳</div>
-          <div class="upload-zone" id="upload-zone-box">
-            <p>上傳 SKU 規格對照表（Excel / PDF）</p>
-            <input type="file" accept=".xlsx,.xls,.pdf,.csv" id="sku-file" onchange="handleFileSelect(this)"/>
-            <p style="font-size:13px;color:var(--text3);margin-top:6px;font-family:var(--font-mono);">// 檔案大小上限：5MB</p>
-            <div id="file-preview" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.3);border-radius:6px;font-family:var(--font-mono);font-size:14px;color:var(--text2);">
-              <span id="file-preview-name"></span>
-              <button onclick="clearFile()" style="margin-left:10px;background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">× 移除</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="btn-row">
         <button class="btn btn-sec" onclick="backToMode()">← BACK</button>
-        <button class="btn btn-pri" onclick="goPage(2)">NEXT: TEST REQUIREMENTS →</button>
+        <button class="btn btn-pri" onclick="goPage(2)">NEXT: PROJECT SETUP →</button>
       </div>
     </div>
 
-    <!-- PAGE 2 -->
+    <!-- PAGE 2: PROJECTS -->
     <div class="page" id="page2">
+      <div class="panel" style="border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.02);margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-title">說明</div></div>
+        <div class="panel-body" style="padding:12px 20px;">
+          <p style="font-size:16px;color:var(--text2);line-height:1.8;">// 一個 Report Task 可包含多個專案（例如 SOW 跨多專案、HW Info 多組態）。<br>// 每個專案填入獨立的 SKU 機台清單；SOW / HW Info 為跨專案共用報告類型。</p>
+        </div>
+      </div>
+      <div id="projects-container"></div>
+      <button class="add-row-btn" onclick="addProjectCard()" style="margin-bottom:20px;">＋ ADD PROJECT</button>
+      <div class="btn-row">
+        <button class="btn btn-sec" onclick="goPage(1)">← BACK</button>
+        <button class="btn btn-pri" onclick="goPage(3)">NEXT: TEST REQUIREMENTS →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 3: TEST ITEMS -->
+    <div class="page" id="page3">
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">SKU × 報告對應</div>
@@ -836,16 +792,17 @@ document.getElementById('pw-input').focus();
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-sec" onclick="goPage(1)">← BACK</button>
-        <button class="btn btn-pri" onclick="goPage(3)">NEXT: REVIEW →</button>
+        <button class="btn btn-sec" onclick="goPage(2)">← BACK</button>
+        <button class="btn btn-pri" onclick="goPage(4)">NEXT: REVIEW →</button>
       </div>
     </div>
 
-    <!-- PAGE 3 -->
-    <div class="page" id="page3">
+    <!-- PAGE 4: SUMMARY -->
+    <div class="page" id="page4">
       <div class="ok-banner">◈ 請確認以下資訊無誤後，再按下「SUBMIT」</div>
       <div class="scard">
         <h3>Form Info</h3>
+        <div class="srow"><span class="sl">REPORT_ID</span><span class="sv" id="s-report-id" style="color:var(--cyan);font-weight:700;font-family:var(--font-mono);">—</span></div>
         <div class="srow"><span class="sl">FORM_TYPE</span><span class="sv" id="s-mode">—</span></div>
         <div class="srow"><span class="sl">CREATED</span><span class="sv" id="s-createdate">—</span></div>
         <div id="s-retest-reason-row" class="srow hidden"><span class="sl">RETEST_REASON</span><span class="sv" id="s-retest-reason">—</span></div>
@@ -857,12 +814,9 @@ document.getElementById('pw-input').focus();
         <div class="srow"><span class="sl">EMAIL</span><span class="sv" id="s-email">—</span></div>
         <div class="srow"><span class="sl">CONTACT</span><span class="sv" id="s-contact">—</span></div>
       </div>
+      <div id="s-projects-wrap"></div>
       <div class="scard">
-        <h3>Project</h3>
-        <div class="srow"><span class="sl">PROJECT_NAME</span><span class="sv" id="s-pname">—</span></div>
-        <div class="srow"><span class="sl">PROJECT_CODE</span><span class="sv" id="s-pcode">—</span></div>
-        <div class="srow"><span class="sl">PHASE</span><span class="sv" id="s-phase">—</span></div>
-        <div class="srow"><span class="sl">FAN_MODE</span><span class="sv" id="s-fan">—</span></div>
+        <h3>Test Schedule</h3>
         <div class="srow"><span class="sl">TEST_SCHEDULE</span><span class="sv" id="s-sched">—</span></div>
         <div class="srow"><span class="sl">REPORT_DEADLINE</span><span class="sv" id="s-due">—</span></div>
       </div>
@@ -892,7 +846,7 @@ document.getElementById('pw-input').focus();
         <div id="s-hwinfo"></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-sec" onclick="goPage(2)">← BACK</button>
+        <button class="btn btn-sec" onclick="goPage(3)">← BACK</button>
         <button class="btn btn-pri" onclick="submitForm()">SUBMIT REQUEST ✓</button>
       </div>
     </div>
@@ -1006,7 +960,7 @@ function updReportDueMin(){
 var rptAllState={acc:true,tpr:true,sow:true,hwinfo:true};
 var formDb={};
 
-function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');}
+function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');initReportId();initProjectCards();}
 var _rtAllData=[];
 function startRetest(){
   isRetest=true;
@@ -1139,52 +1093,49 @@ function loadRetestData(){
   document.getElementById('retest-block').classList.remove('hidden');
   var rtSel=document.getElementById('rt-proj-code');
   var code=((data&&data.code)||(rtSel&&rtSel.value)||'').trim().toUpperCase();
-  // fill all fields from previous form
+  // Generate new Report ID for this retest and reset project cards
+  initReportId();
+  initProjectCards();
   if(data){
-    var set=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
-    set('proj_code', code);
-    set('proj-code-input', code);
-    set('proj_name', data.name);
+    var set=function(id,val){var el=document.getElementById(id);if(el&&val!=null)el.value=val;};
+    // Page 1 fields
     set('dept',      data.dept);
     set('requester', data.requester);
     set('req-email', data.email);
     set('contact',   data.ee||data.pl||data.qa||'');
-    set('phase', data.phase||'');
-    // fan mode
-    if(data.fanMode){
-      document.querySelectorAll('.fan-chip').forEach(function(fc){fc.classList.remove('sel');});
-      document.querySelectorAll('.fan-chip').forEach(function(fc){
-        if(fc.textContent.trim()===data.fanMode||fc.dataset&&fc.dataset.val===data.fanMode){
-          fc.classList.add('sel');selFanVal=data.fanMode;
-          var hid=document.getElementById('fan_mode');if(hid)hid.value=data.fanMode;
-        }
-      });
-    }
-    // schedule dates (pre-fill but leave editable)
     set('sch_start', data.schedStart?data.schedStart.slice(0,10):'');
-    // notes
     set('extra_notes', data.notes);
-    // restore ProductLine / SubSeries hidden fields
-    set('prod_line', data.prodLine||'');
-    set('sub_series', data.subSeries||'');
-    // fill visible dropdowns for product line / sub-series
-    var plSel=document.getElementById('pl-product-line');
-    if(plSel&&data.prodLine){
-      if(!Array.from(plSel.options).some(function(o){return o.value===data.prodLine;})){
-        var o=document.createElement('option');o.value=data.prodLine;o.textContent=data.prodLine;plSel.appendChild(o);
+    // Fill first project card
+    var firstCard=document.querySelector('[data-proj-card]');
+    if(firstCard){
+      var nameEl=firstCard.querySelector('.proj-name');
+      if(nameEl)nameEl.value=data.name||'';
+      var codeEl=firstCard.querySelector('.proj-code');
+      if(codeEl)codeEl.value=code;
+      var phaseEl=firstCard.querySelector('.proj-phase');
+      if(phaseEl)phaseEl.value=data.phase||'';
+      // ProductLine dropdown
+      var plEl=firstCard.querySelector('.proj-pl');
+      if(plEl&&data.prodLine){
+        if(!Array.from(plEl.options).some(function(o){return o.value===data.prodLine;})){
+          var opt=document.createElement('option');opt.value=data.prodLine;opt.textContent=data.prodLine;plEl.appendChild(opt);
+        }
+        plEl.value=data.prodLine;
+        onProjCardPLChange(plEl);
       }
-      plSel.value=data.prodLine;
-    }
-    var ssSel=document.getElementById('pl-sub-series');
-    if(ssSel&&data.subSeries){
-      if(!Array.from(ssSel.options).some(function(o){return o.value===data.subSeries;})){
-        var o=document.createElement('option');o.value=data.subSeries;o.textContent=data.subSeries;ssSel.appendChild(o);
+      // SubSeries dropdown (after PL populates it)
+      if(data.subSeries){
+        var ssEl=firstCard.querySelector('.proj-ss');
+        if(ssEl){
+          if(!Array.from(ssEl.options).some(function(o){return o.value===data.subSeries;})){
+            var opt2=document.createElement('option');opt2.value=data.subSeries;opt2.textContent=data.subSeries;ssEl.appendChild(opt2);
+          }
+          ssEl.value=data.subSeries;
+        }
       }
-      ssSel.value=data.subSeries;
     }
-    var nameInp=document.getElementById('pl-proj-name-input');
-    if(nameInp) nameInp.value=data.name||'';
   }
+  updateFilenamePreview();
 }
 function toggleRetestOther(){
   var v=document.getElementById('retest-reason').value;
@@ -1197,15 +1148,11 @@ function selFan(el,val){
   el.classList.add('sel');selFanVal=val;document.getElementById('fan_mode').value=val;
 }
 function buildSkuReportMatrix(){
-  var skus=[];
-  document.querySelectorAll('#sku-tbody tr').forEach(function(r){
-    var inp=r.querySelectorAll('input');
-    if(inp[0]&&inp[0].value.trim())skus.push(inp[0].value.trim());
-  });
+  var skus=getAllSkuNames();
   var wrap=document.getElementById('sku-report-matrix-wrap');
   if(!wrap)return;
   if(skus.length===0){
-    wrap.innerHTML='<p style="color:var(--text3);font-size:15px;font-family:var(--font-mono);padding:8px 0;">// 請先在 Step 1 填入 SKU 資訊</p>';
+    wrap.innerHTML='<p style="color:var(--text3);font-size:15px;font-family:var(--font-mono);padding:8px 0;">// 請先在 Step 2 各專案中填入 SKU 資訊</p>';
     ['acc','tpr','sow','hwinfo'].forEach(function(rpt){var p=document.getElementById('ritems-'+rpt);if(p)p.style.display='none';});
     return;
   }
@@ -1304,6 +1251,8 @@ function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
 function buildSummary(){
+  // Form info
+  document.getElementById('s-report-id').textContent=currentReportId||'—';
   document.getElementById('s-mode').textContent=isRetest?'RETEST':'NEW';
   document.getElementById('s-createdate').textContent=today();
   if(isRetest){var rr=document.getElementById('retest-reason');var rv=rr?rr.value:'';var rt=rv==='data-gap'?'數據落差過大 — '+v('retest-gap-item'):rv==='other'?'其它 — '+v('retest-other-text'):rv;document.getElementById('s-retest-reason').textContent=rt||'—';document.getElementById('s-retest-reason-row').classList.remove('hidden');}
@@ -1311,26 +1260,54 @@ function buildSummary(){
   document.getElementById('s-req').textContent=v('requester')||'—';
   document.getElementById('s-email').textContent=v('req-email')||'—';
   document.getElementById('s-contact').textContent=v('contact')||'—';
-  document.getElementById('s-pname').textContent=v('proj_name')||'—';
-  document.getElementById('s-pcode').textContent=v('proj_code')||'—';
-  document.getElementById('s-phase').textContent=v('phase')||'—';
-  document.getElementById('s-fan').textContent=selFanVal||'—';
   document.getElementById('s-sched').textContent=v('sch_start')||'—';
   document.getElementById('s-due').textContent=v('report_due')||'—';
-  var rows=document.querySelectorAll('#sku-tbody tr');document.getElementById('s-sku-count').textContent=rows.length;
-  var sh='';rows.forEach(function(r,i){var inp=r.querySelectorAll('input');sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);">'+
-    (i+1<10?'0'+(i+1):i+1)+'. '+esc(inp[0].value||'(未填)')+
-    (inp[3].value?' &nbsp;|&nbsp; '+esc(inp[3].value):'')+
-    (inp[4].value?' / '+esc(inp[4].value):'')+
-    (inp[6].value?' &nbsp;|&nbsp; BIOS:'+esc(inp[6].value):'')+
-    '</div>';});
+  // Projects
+  var projs=getAllProjectsData();
+  var pw=document.getElementById('s-projects-wrap');
+  if(pw){
+    var ph='';
+    projs.forEach(function(p,i){
+      ph+='<div class="scard"><h3>Project '+(i+1)+(p.projName?' — '+esc(p.projName):'')+'</h3>';
+      ph+='<div class="srow"><span class="sl">PROD_LINE</span><span class="sv">'+esc(p.prodLine||'—')+'</span></div>';
+      ph+='<div class="srow"><span class="sl">SUB_SERIES</span><span class="sv">'+esc(p.subSeries||'—')+'</span></div>';
+      ph+='<div class="srow"><span class="sl">PROJ_NAME</span><span class="sv" style="color:var(--cyan);">'+esc(p.projName||'—')+'</span></div>';
+      ph+='<div class="srow"><span class="sl">PROJ_CODE</span><span class="sv">'+esc(p.projCode||'—')+'</span></div>';
+      ph+='<div class="srow"><span class="sl">PHASE</span><span class="sv">'+esc(p.phase||'—')+'</span></div>';
+      if(p.skus&&p.skus.length){
+        ph+='<div style="margin-top:10px;font-family:var(--font-head);font-size:13px;color:var(--text3);letter-spacing:0.06em;margin-bottom:6px;">SKU MACHINES ('+p.skus.length+')</div>';
+        p.skus.forEach(function(s,si){
+          ph+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);font-family:var(--font-mono);font-size:15px;">';
+          ph+=(si+1<10?'0'+(si+1):si+1)+'. '+esc(s.name||'(未填)');
+          if(s.cpu)ph+=' &nbsp;|&nbsp; '+esc(s.cpu);
+          if(s.gpu)ph+=' / '+esc(s.gpu);
+          if(s.bios)ph+=' &nbsp;|&nbsp; BIOS:'+esc(s.bios);
+          ph+='</div>';
+        });
+      }
+      ph+='</div>';
+    });
+    pw.innerHTML=ph||'<div class="scard"><p style="color:var(--text3);font-family:var(--font-mono);">// 尚未設定任何專案</p></div>';
+  }
+  // All SKUs flat list
+  var allSkus=[];
+  projs.forEach(function(p){if(p.skus)p.skus.forEach(function(s){if(s.name)allSkus.push(s);});});
+  document.getElementById('s-sku-count').textContent=allSkus.length;
+  var sh='';
+  allSkus.forEach(function(s,i){
+    sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);">';
+    sh+=(i+1<10?'0'+(i+1):i+1)+'. '+esc(s.name||'(未填)');
+    if(s.cpu)sh+=' &nbsp;|&nbsp; '+esc(s.cpu);
+    if(s.gpu)sh+=' / '+esc(s.gpu);
+    if(s.bios)sh+=' &nbsp;|&nbsp; BIOS:'+esc(s.bios);
+    sh+='</div>';
+  });
   document.getElementById('s-sku-list').innerHTML=sh||'—';
+  // SKU×Report matrix
   var rpts=['acc','tpr','sow','hwinfo'];
   var rptCls={acc:'blue',tpr:'amber',sow:'green',hwinfo:'purple'};
   var rptShort={acc:'ACC',tpr:'TPR',sow:'SOW',hwinfo:'HW Info'};
-  // Build SKU×Report summary matrix
-  var skuNames=[];
-  document.querySelectorAll('#sku-tbody tr').forEach(function(r){var inp=r.querySelectorAll('input');if(inp[0]&&inp[0].value.trim())skuNames.push(inp[0].value.trim());});
+  var skuNames=getAllSkuNames();
   var mhtml='<div style="overflow-x:auto;"><table class="srm-table" style="margin-bottom:4px;"><thead><tr><th>SKU</th>';
   rpts.forEach(function(rpt){mhtml+='<th><span class="rc-tag rc-tag-'+rptCls[rpt]+'">'+rptShort[rpt]+'</span></th>';});
   mhtml+='</tr></thead><tbody>';
@@ -1373,14 +1350,15 @@ function buildSummary(){
   });
 }
 function goPage(n){
-  if(n===2)buildSkuReportMatrix();
-  if(n===3)buildSummary();
+  if(n===3)buildSkuReportMatrix();
+  if(n===4)buildSummary();
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page'+n).classList.add('active');
-  ['step1-tab','step2-tab','step3-tab'].forEach(function(id,i){
-    var el=document.getElementById(id);var sn=document.getElementById('sn'+(i+1));
+  ['step1-tab','step2-tab','step3-tab','step4-tab'].forEach(function(id,i){
+    var el=document.getElementById(id);if(!el)return;
+    var sn=document.getElementById('sn'+(i+1));
     el.classList.remove('active','done');
-    if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');sn.innerHTML='✓';}else{sn.innerHTML=String(i+1);}
+    if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');if(sn)sn.innerHTML='✓';}else{if(sn)sn.innerHTML=String(i+1);}
   });
   window.scrollTo(0,0);
 }
@@ -1534,34 +1512,40 @@ function submitForm(){
   var miss=[];
   if(!v('dept'))miss.push('需求部門');
   if(!v('requester'))miss.push('需求人姓名');
-  if(!isRetest&&!document.getElementById('pl-product-line').value)miss.push('Product Line');
-  if(!isRetest&&!document.getElementById('pl-sub-series').value)miss.push('Chipset / Sub-series');
   if(!v('req-email'))miss.push('需求人Email');
-  if(!v('proj_name'))miss.push('專案名稱');
-  if(!isRetest&&!v('proj_code'))miss.push('Project Code');
-  if(!v('phase'))miss.push('Phase');
   if(!v('sch_start'))miss.push('測試時段');
   if(!v('report_due'))miss.push('截止日');
   if(!document.querySelector('[data-srm-rpt]:checked'))miss.push('測試報告（至少選擇一組 SKU × 報告）');
-  // SKU required check
-  var skuFirst=document.querySelector('#sku-tbody tr input');
-  if(!skuFirst||!skuFirst.value.trim())miss.push('SKU（至少填寫第一筆）');
+  var projs=getAllProjectsData();
+  var validProjs=projs.filter(function(p){return p.projName&&p.phase&&p.skus&&p.skus.length&&p.skus[0].name;});
+  if(!validProjs.length)miss.push('專案（至少一個專案需填寫名稱、Phase 及 SKU）');
   if(isRetest&&!v('retest-reason'))miss.push('複測原因');
-  if(miss.length){alert('以下欄位未填寫: '+miss.join(', '));return;}
+  if(miss.length){alert('以下欄位未填寫:\n'+miss.join('\n'));return;}
   paSubmit();
 }
 function paSubmit(){
   var PA_URL='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f72524dfbf1649b69aace89bc5b37b57/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jkj-f6ttMbePYMiAg_vXWc2MKT6ESEwVlRAUNICZyEw';
+  var projs=getAllProjectsData();
+  var firstProj=projs[0]||{};
+  // Flat SKU list across all projects (backward compat)
   var sku='',skuMachineCount=0;
-  document.querySelectorAll('#sku-tbody tr').forEach(function(r,i){
-    var inp=r.querySelectorAll('input');
-    if(inp[0]&&inp[0].value){
-      sku+=(i+1)+'. '+inp[0].value+
-        (inp[3]&&inp[3].value?' CPU:'+inp[3].value:'')+
-        (inp[4]&&inp[4].value?' GPU:'+inp[4].value:'')+' | ';
-      skuMachineCount++;
-    }
+  projs.forEach(function(p){
+    (p.skus||[]).forEach(function(s){
+      if(s.name){
+        skuMachineCount++;
+        sku+=skuMachineCount+'. '+s.name+
+          (s.cpu?' CPU:'+s.cpu:'')+
+          (s.gpu?' GPU:'+s.gpu:'')+' | ';
+      }
+    });
   });
+  // Build filename: RESULT_{PROJNAMES}_{PHASES}_{NEW|RETEST}_{ID}_{YYMMDD}.XLSX
+  var projNames=projs.map(function(p){return (p.projName||'').replace(/\s+/g,'_').toUpperCase();}).filter(Boolean);
+  var phases=projs.map(function(p){return (p.phase||'').toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
+  var fName='RESULT'+(projNames.length?'_'+projNames.join('_'):'')+
+    (phases.length?'_'+phases.join('_'):'')+
+    '_'+(isRetest?'RETEST':'NEW')+
+    '_'+currentReportId+'_'+getTodayYYMMDD()+'.XLSX';
   var retestTxt='';
   var rrEl=document.getElementById('retest-reason');
   if(rrEl&&rrEl.value){
@@ -1572,24 +1556,27 @@ function paSubmit(){
   var btn=document.querySelector('[onclick="submitForm()"]');
   if(btn){btn.disabled=true;btn.textContent='送出中...';}
   var payload={
-    Title:v('proj_code'),
+    Title:firstProj.projCode||firstProj.projName||('REPORT_'+currentReportId),
+    ReportID:currentReportId,
+    ReportFileName:fName,
     FormType:isRetest?'複測':'新建',
-    ProductLine:v('prod_line')||document.getElementById('pl-product-line').value||'',
-    SubSeries:v('sub_series')||document.getElementById('pl-sub-series').value||'',
+    ProductLine:firstProj.prodLine||'',
+    SubSeries:firstProj.subSeries||'',
+    ProjectName:firstProj.projName||'',
+    ProjectCode:firstProj.projCode||'',
+    Phase:firstProj.phase||'',
+    FanMode:'',
     Dept:v('dept'),
     Requester:v('requester'),
     RequesterEmail:v('req-email'),
     EEContact:v('contact'),
     PLContact:'',
     QAContact:'',
-    ProjectName:v('proj_name'),
-    ProjectCode:v('proj_code'),
-    Phase:v('phase'),
-    FanMode:'',
     ScheduleStart:v('sch_start')||'',
     ScheduleEnd:'',
     ReportDeadline:v('report_due')||'',
     SKUList:sku,
+    Projects:JSON.stringify(projs),
     ReportACC:getSkusForReport('acc').join(', '),
     ACCItems:reportNeeded('acc')?getReportItems('acc'):'',
     ReportTPR:getSkusForReport('tpr').join(', '),
@@ -1604,23 +1591,15 @@ function paSubmit(){
     Status:'Pending',
     SubmittedDate:new Date().toISOString()
   };
-  // 讀取附件檔案（若有），轉 Base64 後一起送出
   var fileInput=document.getElementById('sku-file');
   var file=fileInput&&fileInput.files&&fileInput.files[0];
-  function doSubmit(fileBase64, fileName){
-    if(fileBase64){
-      payload.SkuFileBase64=fileBase64;
-      payload.SkuFileName=fileName;
-    }
-    fetch(PA_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    })
+  function doSubmit(fileBase64,fileName){
+    if(fileBase64){payload.SkuFileBase64=fileBase64;payload.SkuFileName=fileName;}
+    fetch(PA_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){
       if(!r.ok)throw new Error('Error '+r.status);
       if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
-      alert('表單已成功送出！\n專案：'+v('proj_code')+'\n需求人：'+v('requester')+'\n\n實驗室將於 1 個工作天內確認排程並回覆。');
+      alert('表單已成功送出！\nReport ID：'+currentReportId+'\n需求人：'+v('requester')+'\n檔名：'+fName+'\n\n實驗室將於 1 個工作天內確認排程並回覆。');
       setTimeout(function(){window.location.href='index.html';},1500);
     })
     .catch(function(err){
@@ -1630,21 +1609,14 @@ function paSubmit(){
   }
   if(file){
     var reader=new FileReader();
-    reader.onload=function(e){
-      // e.target.result = "data:application/xxx;base64,XXXX..."
-      var base64=e.target.result.split(',')[1];
-      doSubmit(base64, file.name);
-    };
+    reader.onload=function(e){doSubmit(e.target.result.split(',')[1],file.name);};
     reader.onerror=function(){
-      if(confirm('檔案讀取失敗，是否略過附件直接送出？')){
-        doSubmit(null, null);
-      } else {
-        if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
-      }
+      if(confirm('檔案讀取失敗，是否略過附件直接送出？')){doSubmit(null,null);}
+      else{if(btn){btn.disabled=false;btn.textContent='確認送出需求';}}
     };
     reader.readAsDataURL(file);
   } else {
-    doSubmit(null, null);
+    doSubmit(null,null);
   }
 }
 function renderSchedule(){
@@ -2075,6 +2047,194 @@ function adminSubmitUpload(){
     .catch(function(err){alert('上傳失敗：'+err.message);});
   };
   reader.readAsDataURL(_adminUploadFile);
+}
+
+// ── Report ID ────────────────────────────────────────────────────────────────
+var currentReportId='';
+function getTodayYYMMDD(){var d=new Date();var yy=String(d.getFullYear()).slice(2);var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();return yy+mm+dd;}
+function getNextReportId(){var today=getTodayYYMMDD();var key='gl_rid_'+today;var last=parseInt(localStorage.getItem(key)||'0',10);var next=last+1;localStorage.setItem(key,String(next));return next<10?'0'+next:''+next;}
+function initReportId(){
+  currentReportId=getNextReportId();
+  var el=document.getElementById('report-id-display');
+  if(el)el.textContent=currentReportId;
+  updateFilenamePreview();
+}
+function updateFilenamePreview(){
+  var projs=getAllProjectsData();
+  var names=projs.map(function(p){return p.projName.trim().toUpperCase();}).filter(Boolean);
+  var phases=[];projs.forEach(function(p){if(p.phase&&phases.indexOf(p.phase.toUpperCase())<0)phases.push(p.phase.toUpperCase());});
+  var mode=isRetest?'UPDATE':'NEW';
+  var id=currentReportId||'??';
+  var date=getTodayYYMMDD();
+  var parts=['RESULT'].concat(names.length?names:['...']).concat(phases.length?phases:['...']).concat([mode,id,date]);
+  var fname=parts.join('_')+'.XLSX';
+  var el=document.getElementById('report-filename-preview');
+  if(el)el.textContent=fname;
+}
+
+// ── Multi-Project Card Builder ───────────────────────────────────────────────
+var _projCardCount=0;
+function initProjectCards(){
+  _projCardCount=0;
+  var container=document.getElementById('projects-container');
+  if(container)container.innerHTML='';
+  _addProjectCardDom();
+}
+function addProjectCard(){_addProjectCardDom();updateFilenamePreview();}
+function _addProjectCardDom(){
+  _projCardCount++;
+  var n=_projCardCount;
+  var container=document.getElementById('projects-container');
+  if(!container)return;
+  var div=document.createElement('div');
+  div.setAttribute('data-proj-card',n);
+  div.innerHTML=_buildProjectCardInnerHtml(n);
+  container.appendChild(div);
+  _updateProjectCardNumbers();
+}
+function removeProjectCard(btn){
+  var cards=document.querySelectorAll('[data-proj-card]');
+  if(cards.length<=1)return;
+  btn.closest('[data-proj-card]').remove();
+  _updateProjectCardNumbers();
+  updateFilenamePreview();
+}
+function _updateProjectCardNumbers(){
+  document.querySelectorAll('[data-proj-card]').forEach(function(card,i){
+    var title=card.querySelector('.pcard-title');
+    if(title)title.textContent='PROJECT '+(i+1);
+  });
+}
+function _buildProjectCardInnerHtml(n){
+  var ss='width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;';
+  var plOpts='<option value="">--- 選擇 Product Line ---</option>';
+  Object.keys(PROJECT_DATA).forEach(function(pl){plOpts+='<option value="'+esc(pl)+'">'+esc(pl)+'</option>';});
+  var rmBtn=n>1?'<button onclick="removeProjectCard(this)" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:22px;line-height:1;padding:0 6px;" title="移除">×</button>':'';
+  return '<div class="panel" style="margin-bottom:16px;">'+
+    '<div class="panel-header"><div class="panel-title pcard-title">PROJECT '+n+'</div>'+rmBtn+'</div>'+
+    '<div class="panel-body">'+
+    '<div class="g2" style="margin-bottom:12px;">'+
+    '<div class="field"><label>Product Line<span class="req">*</span></label>'+
+    '<select class="proj-pl" onchange="onProjCardPLChange(this)" style="'+ss+'">'+plOpts+'</select></div>'+
+    '<div class="field"><label>Chipset / Sub-series<span class="req">*</span></label>'+
+    '<select class="proj-ss" style="'+ss+'"><option value="">--- 請先選擇 Product Line ---</option></select></div>'+
+    '</div>'+
+    '<div class="g2" style="margin-bottom:12px;">'+
+    '<div class="field"><label>Project Name<span class="req">*</span></label>'+
+    '<input type="text" class="proj-name" placeholder="例：FX611H" style="width:100%;" oninput="updateFilenamePreview()"/></div>'+
+    '<div class="field"><label>Project Code</label>'+
+    '<input type="text" class="proj-code" placeholder="例：FX611_27_GM_O" style="width:100%;"/></div>'+
+    '</div>'+
+    '<div class="field" style="margin-bottom:12px;"><label>Phase<span class="req">*</span></label>'+
+    '<input type="text" class="proj-phase" placeholder="例：PR1、ER2…" style="width:100%;" oninput="updateFilenamePreview()"/></div>'+
+    '<div class="sec">測試機台 SKU</div>'+
+    '<p class="sku-hint">// 欄位較多，可左右滑動</p>'+
+    '<div class="sku-wrap"><table><thead><tr>'+
+    '<th class="col-i">#</th><th style="min-width:88px;">SKU 型號</th><th style="min-width:80px;">OS 版本</th>'+
+    '<th style="min-width:88px;">Panel</th><th style="min-width:130px;">CPU</th><th style="min-width:78px;">GPU</th>'+
+    '<th style="min-width:52px;">RAM</th><th style="min-width:82px;">BIOS</th><th style="min-width:82px;">VBIOS</th>'+
+    '<th style="min-width:82px;">DCD</th><th style="min-width:100px;">VGA Driver</th><th style="min-width:78px;">備註</th>'+
+    '<th class="col-d"></th></tr></thead>'+
+    '<tbody class="proj-sku-tbody">'+_buildSkuRowHtml(1)+'</tbody></table></div>'+
+    '<button class="add-row-btn" onclick="addProjSkuRow(this)">＋ ADD MACHINE</button>'+
+    '</div></div>';
+}
+function _buildSkuRowHtml(n){
+  var num=n<10?'0'+n:''+n;
+  return '<tr><td class="col-i">'+num+'</td>'+
+    '<td><input type="text" placeholder="SKU-XXXX" required/></td>'+
+    '<td><input type="text" placeholder="Win11 24H2"/></td>'+
+    '<td><input type="text" placeholder=\'14" FHD 144Hz\'/></td>'+
+    '<td><input type="text" placeholder="Intel Core Ultra 7"/></td>'+
+    '<td><input type="text" placeholder="RTX 4070"/></td>'+
+    '<td><input type="text" placeholder="32GB"/></td>'+
+    '<td><input type="text" placeholder="X.XX.XXX"/></td>'+
+    '<td><input type="text" placeholder="XX.XX.XX"/></td>'+
+    '<td><input type="text" placeholder="X.X.XXXX"/></td>'+
+    '<td><input type="text" placeholder="XXX.XX"/></td>'+
+    '<td><input type="text" placeholder="—"/></td>'+
+    '<td><button class="del-btn" onclick="delProjSkuRow(this)">×</button></td></tr>';
+}
+function addProjSkuRow(btn){
+  var tbody=btn.closest('[data-proj-card]').querySelector('.proj-sku-tbody');
+  var n=tbody.querySelectorAll('tr').length+1;
+  var tmp=document.createElement('tbody');tmp.innerHTML=_buildSkuRowHtml(n);
+  tbody.appendChild(tmp.querySelector('tr'));
+}
+function delProjSkuRow(btn){
+  var tbody=btn.closest('.proj-sku-tbody');
+  if(tbody.querySelectorAll('tr').length<=1)return;
+  btn.closest('tr').remove();
+  tbody.querySelectorAll('tr').forEach(function(r,i){r.cells[0].textContent=i+1<10?'0'+(i+1):''+(i+1);});
+}
+function onProjCardPLChange(select){
+  var card=select.closest('[data-proj-card]');
+  var pl=select.value;
+  var ssSel=card.querySelector('.proj-ss');
+  var opts='<option value="">--- 選擇 Chipset / Sub-series ---</option>';
+  if(pl&&PROJECT_DATA[pl])Object.keys(PROJECT_DATA[pl]).forEach(function(ss){opts+='<option value="'+esc(ss)+'">'+esc(ss)+'</option>';});
+  ssSel.innerHTML=opts;
+}
+function getAllProjectsData(){
+  var result=[];
+  document.querySelectorAll('[data-proj-card]').forEach(function(card){
+    var pl=card.querySelector('.proj-pl').value;
+    var ss=card.querySelector('.proj-ss').value;
+    var name=card.querySelector('.proj-name').value.trim();
+    var code=card.querySelector('.proj-code').value.trim();
+    var phase=card.querySelector('.proj-phase').value.trim();
+    var skus=[];
+    card.querySelectorAll('.proj-sku-tbody tr').forEach(function(row){
+      var inp=row.querySelectorAll('input');
+      if(inp[0]&&inp[0].value.trim()){
+        skus.push({name:inp[0].value.trim(),os:inp[1]?inp[1].value.trim():'',panel:inp[2]?inp[2].value.trim():'',
+          cpu:inp[3]?inp[3].value.trim():'',gpu:inp[4]?inp[4].value.trim():'',ram:inp[5]?inp[5].value.trim():'',
+          bios:inp[6]?inp[6].value.trim():'',vbios:inp[7]?inp[7].value.trim():'',dcd:inp[8]?inp[8].value.trim():'',
+          vgadrv:inp[9]?inp[9].value.trim():'',note:inp[10]?inp[10].value.trim():''});
+      }
+    });
+    result.push({prodLine:pl,subSeries:ss,projName:name,projCode:code,phase:phase,skus:skus});
+  });
+  return result;
+}
+function getAllSkuNames(){
+  var skus=[],seen={};
+  getAllProjectsData().forEach(function(p){p.skus.forEach(function(s){if(s.name&&!seen[s.name]){seen[s.name]=true;skus.push(s.name);}});});
+  return skus;
+}
+
+// ── Retest: lookup by Report ID ──────────────────────────────────────────────
+function lookupByReportId(){
+  var rid=(document.getElementById('rt-report-id').value||'').trim();
+  if(!rid){alert('請輸入 Report ID');return;}
+  var btn=document.querySelector('[onclick="lookupByReportId()"]');
+  if(btn){btn.disabled=true;btn.textContent='查詢中...';}
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryReportId:rid,allStatus:true})})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(data){
+    if(btn){btn.disabled=false;btn.textContent='LOAD';}
+    var items=data.value||(data.d&&data.d.results)||[];
+    var match=null;
+    var ridPadded=rid.length<2?'0'+rid:rid;
+    for(var i=0;i<items.length;i++){var ri=items[i].ReportID||'';if(ri===rid||ri===ridPadded){match=items[i];break;}}
+    if(!match){alert('找不到 Report ID：'+rid);return;}
+    formDb['current']={name:match.ProjectName||match.Title||'',code:match.ProjectCode||'',
+      phase:match.Phase||'',date:(match.SubmittedDate||match.Created||'').slice(0,10),
+      requester:match.Requester||'',dept:match.Dept||'',email:match.RequesterEmail||'',
+      ee:match.EEContact||'',prodLine:match.ProductLine||'',subSeries:match.SubSeries||'',
+      schedStart:match.ScheduleStart||'',notes:match.Notes||'',reportId:rid,
+      projects:match.Projects||''};
+    document.getElementById('fc-title').textContent=(match.ProjectName||match.Title||'—')+' [ID: '+rid+']';
+    document.getElementById('fc-code').textContent=match.ProjectCode||'—';
+    document.getElementById('fc-phase').textContent=match.Phase||'—';
+    document.getElementById('fc-date').textContent=(match.SubmittedDate||match.Created||'—').slice(0,10);
+    document.getElementById('fc-req').textContent=match.Requester||'—';
+    document.getElementById('lookup-result').classList.remove('hidden');
+  })
+  .catch(function(err){
+    if(btn){btn.disabled=false;btn.textContent='LOAD';}
+    alert('查詢失敗：'+err.message);
+  });
 }
 </script>
 </body>
