@@ -1556,7 +1556,7 @@ function paSubmit(){
   var btn=document.querySelector('[onclick="submitForm()"]');
   if(btn){btn.disabled=true;btn.textContent='送出中...';}
   var payload={
-    Title:firstProj.projCode||firstProj.projName||('REPORT_'+currentReportId),
+    Title:projNames.length?projNames.join('_'):('REPORT_'+currentReportId),
     ReportID:currentReportId,
     ReportFileName:fName,
     FormType:isRetest?'複測':'新建',
