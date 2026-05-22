@@ -1576,7 +1576,7 @@ function paSubmit(){
     ScheduleEnd:'',
     ReportDeadline:v('report_due')||'',
     SKUList:sku,
-    Projects:JSON.stringify(projs),
+    AllProjects:JSON.stringify(projs),
     ReportACC:getSkusForReport('acc').join(', '),
     ACCItems:reportNeeded('acc')?getReportItems('acc'):'',
     ReportTPR:getSkusForReport('tpr').join(', '),
@@ -2240,7 +2240,7 @@ function lookupByReportId(){
       requester:match.Requester||'',dept:match.Dept||'',email:match.RequesterEmail||'',
       ee:match.EEContact||'',prodLine:match.ProductLine||'',subSeries:match.SubSeries||'',
       schedStart:match.ScheduleStart||'',notes:match.Notes||'',reportId:rid,
-      projects:match.Projects||''};
+      projects:match.AllProjects||''};
     document.getElementById('fc-title').textContent=(match.ProjectName||match.Title||'—')+' [ID: '+rid+']';
     document.getElementById('fc-code').textContent=match.ProjectCode||'—';
     document.getElementById('fc-phase').textContent=match.Phase||'—';
