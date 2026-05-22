@@ -2017,7 +2017,14 @@ function downloadTestTemplate(itemId){
   wb.xlsx.writeBuffer().then(function(buf){
     var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     var url=URL.createObjectURL(blob);var a=document.createElement('a');
-    a.href=url;a.download=projCode+(phase?'_'+phase:'')+'_Result_Template.xlsx';
+    var _rid=item.ReportID||'';
+    var _mode=(item.FormType==='複測')?'RETEST':'NEW';
+    var _fname=item.ReportFileName||(
+      'RESULT_'+(projCode||'PROJ').replace(/\s+/g,'_').toUpperCase()+
+      (phase?'_'+phase.replace(/\s+/g,'_').toUpperCase():'')+
+      '_'+_mode+(_rid?'_'+_rid:'')+'.xlsx'
+    );
+    a.href=url;a.download=_fname;
     document.body.appendChild(a);a.click();
     setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},200);});}
 
