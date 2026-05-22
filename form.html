@@ -2205,8 +2205,18 @@ function getAllProjectsData(){
   return result;
 }
 function getAllSkuNames(){
+  var projs=getAllProjectsData();
+  var multiProj=projs.length>1;
   var skus=[],seen={};
-  getAllProjectsData().forEach(function(p){p.skus.forEach(function(s){if(s.name&&!seen[s.name]){seen[s.name]=true;skus.push(s.name);}});});
+  projs.forEach(function(p){
+    var prefix=multiProj?((p.projCode||p.projName||'?')+' / '):'';
+    p.skus.forEach(function(s){
+      if(s.name){
+        var key=prefix+s.name;
+        if(!seen[key]){seen[key]=true;skus.push(key);}
+      }
+    });
+  });
   return skus;
 }
 
