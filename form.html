@@ -387,6 +387,12 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .ri-note-wrap{padding:8px 16px 14px;border-top:1px solid var(--border);}
 .ri-note-wrap input[type=text]{width:100%;padding:7px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:14px;font-family:var(--font-body);}
 .ri-note-wrap input::placeholder{color:var(--text3);}
+.ri-sub-title{font-family:var(--font-mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:8px 0 4px;margin-top:8px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.ri-sub-title:first-child{margin-top:0;}
+.ri-sub-title2{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:0.05em;padding:5px 0 2px;}
+.ri-indent{padding-left:18px;}
+.ri-2col{display:grid;grid-template-columns:1fr 1fr;}
+@media(max-width:560px){.ri-2col{grid-template-columns:1fr;}}
 @media(max-width:860px){
   .sidebar{display:none;}
   .main{padding:20px 16px 40px;}
@@ -684,14 +690,46 @@ document.getElementById('pw-input').focus();
           <div id="sku-report-matrix-wrap" style="overflow-x:auto;margin-bottom:16px;"></div>
 
           <!-- ACC items -->
+          <!-- ACC items -->
           <div class="report-items" id="ritems-acc">
             <div class="ri-header">
               <span class="ri-label ri-label-blue">ACC — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('acc')">全選 / 全清</button>
             </div>
-            <div class="ri-body">
-              <label class="crow"><input type="checkbox" data-rpt="acc" value="Cinebench R23 30-loop" checked> Cinebench R23 30-loop</label>
-              <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Benchmark" checked> 3DMark Benchmark <span class="ri-mode-badge">Fire Strike / Port Royal / Time Spy</span></label>
+            <div class="ri-body" style="gap:8px;">
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="acc-cinebench" checked onchange="togRptGrp('acc-cinebench',this.checked,'acc')"> CineBench R20,23,24</label>
+                </div>
+                <div id="rpt-sec-acc-cinebench" class="ri-sec-body">
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="CineBench R20,23,24 — nT" checked> nT（多核）</label>
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="CineBench R20,23,24 — 1T" checked> 1T（單核）</label>
+                  </div>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="acc-3dmark" checked onchange="togRptGrp('acc-3dmark',this.checked,'acc')"> 3DMark</label>
+                </div>
+                <div id="rpt-sec-acc-3dmark" class="ri-sec-body">
+                  <div class="ri-sub-title">Fire Strike</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
+                  </div>
+                  <div class="ri-sub-title">Time Spy</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
+                  </div>
+                  <div class="ri-sub-title">Port Royal</div>
+                  <label class="crow ri-indent"><input type="checkbox" data-rpt="acc" value="3DMark Port Royal" checked> Port Royal</label>
+                </div>
+              </div>
             </div>
             <div class="ri-note-wrap">
               <input type="text" id="note-acc" placeholder="備注：特殊說明（如特定條件或排除項目）…">
@@ -705,29 +743,118 @@ document.getElementById('pw-input').focus();
               <button class="sa-btn" onclick="togAllRptItems('tpr')">全選 / 全清</button>
             </div>
             <div class="ri-body" style="gap:8px;">
+              <!-- Battery Life -->
               <div class="ri-section">
                 <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery life" checked onchange="togTPRSec('battery',this.checked)"> Battery life</label>
+                  <label class="crow"><input type="checkbox" data-rpt-grp="tpr-battery" checked onchange="togRptGrp('tpr-battery',this.checked,'tpr')"> Battery Life <span class="ri-mode-badge">Auto test tool: NBCBatteryLifeTool</span></label>
                 </div>
-                <div id="tpr-sec-battery" class="ri-sec-body">
-                  <div class="fan-mode-row">
+                <div id="rpt-sec-tpr-battery" class="ri-sec-body">
+                  <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
                     <span class="fml">Fan mode：</span>
                     <label><input type="checkbox" data-tpr-fan="battery" value="Silent"> Silent</label>
                     <label><input type="checkbox" data-tpr-fan="battery" value="Performance" checked> Performance</label>
                     <label><input type="checkbox" data-tpr-fan="battery" value="Turbo"> Turbo</label>
                   </div>
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Video Playback (ADK)" checked> Video Playback (ADK)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Web Browsing (ADK)" checked> Web Browsing (ADK)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Maximum Runtime (Reader)" checked> Maximum Runtime (Reader)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — PCMark 10 (Modern Office)" checked> PCMark 10 (Modern Office)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — UL Procyon Office Productivity" checked> UL Procyon Office Productivity</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Teams" checked> Teams</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Modern Standby" checked> Modern Standby</label>
+                  </div>
                 </div>
               </div>
+              <!-- Benchmark Performance -->
               <div class="ri-section">
                 <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt="tpr" value="Performance" checked onchange="togTPRSec('perf',this.checked)"> Performance <span class="ri-mode-badge">Benchmark + Gaming FPS</span></label>
+                  <label class="crow"><input type="checkbox" data-rpt-grp="tpr-benchmark" checked onchange="togRptGrp('tpr-benchmark',this.checked,'tpr')"> Benchmark Performance</label>
                 </div>
-                <div id="tpr-sec-perf" class="ri-sec-body">
-                  <div class="fan-mode-row">
+                <div id="rpt-sec-tpr-benchmark" class="ri-sec-body">
+                  <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
                     <span class="fml">Fan mode：</span>
-                    <label><input type="checkbox" data-tpr-fan="perf" value="Silent" checked> Silent</label>
-                    <label><input type="checkbox" data-tpr-fan="perf" value="Performance" checked> Performance</label>
-                    <label><input type="checkbox" data-tpr-fan="perf" value="Turbo" checked> Turbo</label>
+                    <label><input type="checkbox" data-tpr-fan="benchmark" value="Silent" checked> Silent</label>
+                    <label><input type="checkbox" data-tpr-fan="benchmark" value="Performance" checked> Performance</label>
+                    <label><input type="checkbox" data-tpr-fan="benchmark" value="Turbo" checked> Turbo</label>
+                  </div>
+                  <div class="ri-sub-title">CineBench R20,23,24</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="CineBench R20,23,24 — nT" checked> nT（多核）</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="CineBench R20,23,24 — 1T" checked> 1T（單核）</label>
+                  </div>
+                  <div class="ri-sub-title">3DMark</div>
+                  <div class="ri-indent">
+                    <div class="ri-sub-title2">Fire Strike</div>
+                    <div class="ri-2col ri-indent">
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
+                    </div>
+                    <div class="ri-sub-title2">Time Spy</div>
+                    <div class="ri-2col ri-indent">
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
+                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
+                    </div>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Port Royal" checked> Port Royal</label>
+                  </div>
+                  <div class="ri-sub-title">其他 Benchmarks</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="AIDA64" checked> AIDA64</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="CrystalDiskMark" checked> CrystalDiskMark</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="PCMark10" checked> PCMark10</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="HandBrake" checked> HandBrake</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="UL Procyon AI" checked> UL Procyon AI</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Pugetbench" checked> Pugetbench</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Specviewperf" checked> Specviewperf</label>
+                  </div>
+                </div>
+              </div>
+              <!-- Game FPS -->
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="tpr-gamefps" checked onchange="togRptGrp('tpr-gamefps',this.checked,'tpr')"> Game FPS <span class="ri-mode-badge">Auto test tool: MediaReviewer</span></label>
+                </div>
+                <div id="rpt-sec-tpr-gamefps" class="ri-sec-body">
+                  <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                    <span class="fml">Fan mode：</span>
+                    <label><input type="checkbox" data-tpr-fan="gamefps" value="Silent" checked> Silent</label>
+                    <label><input type="checkbox" data-tpr-fan="gamefps" value="Performance" checked> Performance</label>
+                    <label><input type="checkbox" data-tpr-fan="gamefps" value="Turbo" checked> Turbo</label>
+                  </div>
+                  <div class="ri-sub-title">Game FPS — MediaReviewer</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — SOTTR (Steam)" checked> SOTTR (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 2K 原生" checked> Cyberpunk 2077 — 2K 原生</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 2K DLSS3" checked> Cyberpunk 2077 — 2K DLSS3</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 2K DLSS4" checked> Cyberpunk 2077 — 2K DLSS4</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 FHD 原生" checked> Cyberpunk 2077 — FHD 原生</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 FHD DLSS3" checked> Cyberpunk 2077 — FHD DLSS3</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 FHD DLSS4" checked> Cyberpunk 2077 — FHD DLSS4</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 W/RTX" checked> Cyberpunk 2077 — W/RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Metro Exodus w/o RTX" checked> Metro Exodus — w/o RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Metro Exodus w RTX" checked> Metro Exodus — w RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
+                  </div>
+                  <div class="ri-sub-title">Intel Gaming（高能靜音模式）</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Cyberpunk 2077 1080p DX12" checked> Cyberpunk 2077 1080p DX12</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Black Myth 黑悟空 1440p DX12" checked> Black Myth-黑悟空 1440p DX12</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — PUBG 1080p DX11E" checked> PUBG 1080p DX11E</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Naraka Bladepoint 1080p DX11" checked> Naraka: Bladepoint 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Counter Strike 2 1080p DX11" checked> Counter Strike 2 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Rainbow Six Siege 1080p DX11" checked> Rainbow Six Siege 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — League of Legends 1080p DX11" checked> League of Legends 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — DOTA2 1080p DX11" checked> DOTA2 1080p DX11</label>
                   </div>
                 </div>
               </div>
@@ -743,16 +870,99 @@ document.getElementById('pw-input').focus();
               <span class="ri-label ri-label-green">SOW Performance — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('sow')">全選 / 全清</button>
             </div>
-            <div class="ri-body">
-              <div class="fan-mode-row" style="margin-bottom:6px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+            <div class="ri-body" style="gap:8px;">
+              <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--border);">
                 <span class="fml">Fan mode：</span>
                 <label><input type="checkbox" data-sow-fan value="Silent"> Silent</label>
                 <label><input type="checkbox" data-sow-fan value="Performance"> Performance</label>
                 <label><input type="checkbox" data-sow-fan value="Turbo" checked> Turbo</label>
               </div>
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Benchmark" checked> 3DMark Benchmark</label>
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — 2K" checked> Gaming FPS — 2K</label>
-              <label class="crow"><input type="checkbox" data-rpt="sow" value="Gaming FPS — FHD" checked> Gaming FPS — FHD</label>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-3dmark" checked onchange="togRptGrp('sow-3dmark',this.checked,'sow')"> 3DMark</label>
+                </div>
+                <div id="rpt-sec-sow-3dmark" class="ri-sec-body">
+                  <div class="ri-sub-title">Fire Strike</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
+                  </div>
+                  <div class="ri-sub-title">Time Spy</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
+                  </div>
+                  <div class="ri-sub-title">Port Royal</div>
+                  <label class="crow ri-indent"><input type="checkbox" data-rpt="sow" value="3DMark Port Royal" checked> Port Royal</label>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-fps2k" checked onchange="togRptGrp('sow-fps2k',this.checked,'sow')"> Gaming FPS — 2K</label>
+                </div>
+                <div id="rpt-sec-sow-fps2k" class="ri-sec-body">
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — SOTTR (Steam)" checked> SOTTR (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Cyberpunk 2077 原生" checked> Cyberpunk 2077 — 原生</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Cyberpunk 2077 DLSS3" checked> Cyberpunk 2077 — DLSS3</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Cyberpunk 2077 DLSS4" checked> Cyberpunk 2077 — DLSS4</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Metro Exodus w/o RTX" checked> Metro Exodus — w/o RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Metro Exodus w RTX" checked> Metro Exodus — w RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
+                  </div>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-fpsfhd" checked onchange="togRptGrp('sow-fpsfhd',this.checked,'sow')"> Gaming FPS — FHD</label>
+                </div>
+                <div id="rpt-sec-sow-fpsfhd" class="ri-sec-body">
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — SOTTR (Steam)" checked> SOTTR (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 原生" checked> Cyberpunk 2077 — 原生</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 DLSS3" checked> Cyberpunk 2077 — DLSS3</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 DLSS4" checked> Cyberpunk 2077 — DLSS4</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 W/RTX" checked> Cyberpunk 2077 — W/RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Metro Exodus w/o RTX" checked> Metro Exodus — w/o RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Metro Exodus w RTX" checked> Metro Exodus — w RTX</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
+                  </div>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-intel" checked onchange="togRptGrp('sow-intel',this.checked,'sow')"> Intel Gaming（高能靜音模式）</label>
+                </div>
+                <div id="rpt-sec-sow-intel" class="ri-sec-body">
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Cyberpunk 2077 1080p DX12" checked> Cyberpunk 2077 1080p DX12</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Black Myth 黑悟空 1440p DX12" checked> Black Myth-黑悟空 1440p DX12</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — PUBG 1080p DX11E" checked> PUBG 1080p DX11E</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Naraka Bladepoint 1080p DX11" checked> Naraka: Bladepoint 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Counter Strike 2 1080p DX11" checked> Counter Strike 2 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Rainbow Six Siege 1080p DX11" checked> Rainbow Six Siege 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — League of Legends 1080p DX11" checked> League of Legends 1080p DX11</label>
+                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — DOTA2 1080p DX11" checked> DOTA2 1080p DX11</label>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="ri-note-wrap">
               <input type="text" id="note-sow" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
@@ -765,16 +975,71 @@ document.getElementById('pw-input').focus();
               <span class="ri-label ri-label-purple">HW Information — 測項明細</span>
               <button class="sa-btn" onclick="togAllRptItems('hwinfo')">全選 / 全清</button>
             </div>
-            <div class="ri-body">
-              <div class="fan-mode-row" style="margin-bottom:6px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+            <div class="ri-body" style="gap:8px;">
+              <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--border);">
                 <span class="fml">Fan mode：</span>
                 <label><input type="checkbox" data-hwinfo-fan value="Silent"> Silent</label>
                 <label><input type="checkbox" data-hwinfo-fan value="Performance"> Performance</label>
                 <label><input type="checkbox" data-hwinfo-fan value="Turbo" checked> Turbo</label>
               </div>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery life" checked> Battery life</label>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Benchmark" checked> 3DMark Benchmark</label>
-              <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Gaming FPS" checked> Gaming FPS</label>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="hwinfo-battery" checked onchange="togRptGrp('hwinfo-battery',this.checked,'hwinfo')"> Battery Life</label>
+                </div>
+                <div id="rpt-sec-hwinfo-battery" class="ri-sec-body">
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Video Playback (ADK)" checked> Video Playback (ADK)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Web Browsing (ADK)" checked> Web Browsing (ADK)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Maximum Runtime (Reader)" checked> Maximum Runtime (Reader)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — PCMark 10 (Modern Office)" checked> PCMark 10 (Modern Office)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — UL Procyon Office Productivity" checked> UL Procyon Office Productivity</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Teams" checked> Teams</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Modern Standby" checked> Modern Standby</label>
+                  </div>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="hwinfo-3dmark" checked onchange="togRptGrp('hwinfo-3dmark',this.checked,'hwinfo')"> 3DMark</label>
+                </div>
+                <div id="rpt-sec-hwinfo-3dmark" class="ri-sec-body">
+                  <div class="ri-sub-title">Fire Strike</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
+                  </div>
+                  <div class="ri-sub-title">Time Spy</div>
+                  <div class="ri-2col ri-indent">
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
+                  </div>
+                  <div class="ri-sub-title">Port Royal</div>
+                  <label class="crow ri-indent"><input type="checkbox" data-rpt="hwinfo" value="3DMark Port Royal" checked> Port Royal</label>
+                </div>
+              </div>
+              <div class="ri-section">
+                <div class="ri-section-hd">
+                  <label class="crow"><input type="checkbox" data-rpt-grp="hwinfo-gamefps" checked onchange="togRptGrp('hwinfo-gamefps',this.checked,'hwinfo')"> Game FPS</label>
+                </div>
+                <div id="rpt-sec-hwinfo-gamefps" class="ri-sec-body">
+                  <div class="ri-2col">
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — SOTTR (Steam)" checked> SOTTR (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Cyberpunk 2077 (Steam)" checked> Cyberpunk 2077 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Metro Exodus (Steam)" checked> Metro Exodus (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
+                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="ri-note-wrap">
               <input type="text" id="note-hwinfo" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
@@ -1188,22 +1453,32 @@ function togAllSkusReport(rpt){
   cbs.forEach(function(cb){cb.checked=!allOn;});
   onSrmChange();
 }
+function togRptGrp(secId,show,rpt){
+  var body=document.getElementById('rpt-sec-'+secId);
+  if(!body)return;
+  body.style.display=show?'':'none';
+  body.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=show;});
+}
 function togAllRptItems(rpt){
   rptAllState[rpt]=!rptAllState[rpt];
-  document.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=rptAllState[rpt];});
-}
-function togTPRSec(sec,show){
-  var body=document.getElementById('tpr-sec-'+sec);
-  if(body)body.style.display=show?'':'none';
+  var state=rptAllState[rpt];
+  document.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=state;});
+  document.querySelectorAll('#ritems-'+rpt+' [data-rpt-grp]').forEach(function(cb){
+    cb.checked=state;
+    var sid=cb.getAttribute('data-rpt-grp');
+    var body=sid&&document.getElementById('rpt-sec-'+sid);
+    if(body)body.style.display=state?'':'none';
+  });
 }
 function getReportItems(rpt){
   var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
   var result=items.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
   if(rpt==='tpr'){
-    var batFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="battery"]:checked')).map(function(c){return c.value;});
-    var perfFans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="perf"]:checked')).map(function(c){return c.value;});
-    if(batFans.length)result+='\n   Battery life Fan modes: '+batFans.join(', ');
-    if(perfFans.length)result+='\n   Performance Fan modes: '+perfFans.join(', ');
+    var fanMap={battery:'Battery Life',benchmark:'Benchmark',gamefps:'Game FPS'};
+    Object.keys(fanMap).forEach(function(cat){
+      var fans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="'+cat+'"]:checked')).map(function(c){return c.value;});
+      if(fans.length)result+='\n   '+fanMap[cat]+' Fan: '+fans.join(', ');
+    });
   }
   if(rpt==='sow'){
     var sowFans=Array.prototype.slice.call(document.querySelectorAll('[data-sow-fan]:checked')).map(function(c){return c.value;});
