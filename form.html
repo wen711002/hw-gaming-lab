@@ -314,6 +314,23 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .delay-field label{display:block;font-size:14px;color:var(--text2);margin-bottom:6px;font-family:var(--font-head);font-weight:600;letter-spacing:0.04em;}
 .delay-field input{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;font-family:var(--font-body);}
 .delay-field input:focus{outline:none;border-color:var(--purple);}
+/* Phase Comparison */
+.cmp-step{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r8);padding:14px 16px;margin-bottom:12px;}
+.cmp-step-title{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin-bottom:10px;}
+.cmp-phase-cb-label{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--r4);cursor:pointer;font-size:14px;}
+.cmp-phase-cb-label:hover{background:rgba(255,255,255,0.04);}
+.cmp-phase-cb-label input{accent-color:var(--cyan);width:15px;height:15px;cursor:pointer;}
+.cmp-grid{display:grid;gap:12px;overflow-x:auto;}
+.cmp-col{min-width:220px;}
+.cmp-col-hd{padding:7px 12px;border-radius:var(--r4) var(--r4) 0 0;font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--bg0);text-align:center;}
+.cmp-col-body{background:var(--bg3);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r4) var(--r4);padding:10px 12px;}
+.cmp-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5;}
+.cmp-row:last-child{border-bottom:none;}
+.cmp-row-label{color:var(--text3);font-family:var(--font-mono);font-size:12px;flex-shrink:0;min-width:80px;}
+.cmp-row-val{color:var(--text);text-align:right;word-break:break-all;max-width:160px;}
+.cmp-section-hd{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);padding:8px 0 4px;border-bottom:1px solid var(--border);margin-top:10px;margin-bottom:4px;}
+.cmp-section-hd:first-child{margin-top:0;}
+.cmp-items-list{font-size:12px;color:var(--text2);line-height:1.8;white-space:pre-wrap;word-break:break-all;}
 .ab{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.04em;padding:5px 12px;border-radius:var(--r4);cursor:pointer;transition:all 0.12s;border:none;}
 .ab-acc{background:rgba(0,229,160,0.12);color:var(--green);border:1px solid rgba(0,229,160,0.3);}
 .ab-acc:hover{background:rgba(0,229,160,0.2);}
@@ -1139,6 +1156,7 @@ document.getElementById('pw-input').focus();
     <div class="btabs">
       <button class="btab active" id="tab-review" onclick="switchTab('tab-review')">接單審核</button>
       <button class="btab" id="tab-result" onclick="switchTab('tab-result')">Result 上傳</button>
+      <button class="btab" id="tab-compare" onclick="switchTab('tab-compare')">Phase 比對</button>
     </div>
     <div class="btab-panel active" id="btab-review">
       <div id="admin-loading" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
@@ -1172,6 +1190,36 @@ document.getElementById('pw-input').focus();
       </div>
       <button class="btn btn-pri" onclick="adminSubmitUpload()" style="width:100%;">確認上傳</button>
     </div>
+    <!-- Phase 比對 Tab -->
+    <div class="btab-panel" id="btab-compare">
+      <div class="cmp-step">
+        <div class="cmp-step-title">① 輸入 Project Code</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="cmp-code-input" placeholder="例：G835LXG（大小寫均可）" style="flex:1;padding:8px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;font-family:var(--font-mono);">
+          <button class="btn btn-sec" onclick="cmpQueryProject()" style="padding:8px 18px;white-space:nowrap;">查詢</button>
+        </div>
+        <div id="cmp-phase-area" style="display:none;margin-top:12px;">
+          <div style="font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:8px;" id="cmp-phase-hint"></div>
+          <div id="cmp-phase-list"></div>
+        </div>
+      </div>
+      <div class="cmp-step" id="cmp-step2" style="display:none;">
+        <div class="cmp-step-title">② 選擇比對 Sheet</div>
+        <select id="cmp-sheet-select" style="width:100%;padding:8px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;margin-bottom:12px;">
+          <option value="Cover">Cover（封面 / 專案資訊）</option>
+          <option value="ACC&#xFF5CCinebench R23 30-loop">ACC｜Cinebench R23 30-loop</option>
+          <option value="ACC&#xFF5C3DMark Benchmark">ACC｜3DMark Benchmark</option>
+          <option value="TPR&#xFF5CBattery life">TPR｜Battery life</option>
+          <option value="TPR&#xFF5CPerformance">TPR｜Performance</option>
+          <option value="SOW&#xFF5CPerformance">SOW｜Performance</option>
+          <option value="HW Info&#xFF5CSummary">HW Info｜Summary</option>
+        </select>
+        <p style="font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 比對資料來源：SP 需求單記錄（下方卡片） + Excel 原始數據（需設定 PA_COMPARE）</p>
+        <button class="btn btn-pri" onclick="cmpRunSP()" style="width:100%;margin-bottom:8px;">▶ 需求單比對（立即可用）</button>
+        <button class="btn btn-sec" onclick="cmpRunExcel()" style="width:100%;">📊 Excel 數據比對（需 PA_COMPARE）</button>
+      </div>
+      <div id="cmp-result-area" style="margin-top:4px;"></div>
+    </div>
   </div>
 </div>
 
@@ -1201,6 +1249,7 @@ document.getElementById('pw-input').focus();
 var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 var PA_DELAY='__PASTE_PA_DELAY_URL_HERE__'; // ← 建立「延期通知」Flow 後貼上 URL
+var PA_COMPARE='__PASTE_PA_COMPARE_URL_HERE__'; // ← 建立「Result 比對」Flow 後貼上 URL
 function updReportDueMin(){
   var startVal=document.getElementById('sch_start').value;
   var inp=document.getElementById('report_due');
@@ -2123,6 +2172,176 @@ function acceptItem(btn){
   });
 }
 
+// ── Phase Comparison ─────────────────────────────────────────────────
+var _cmpPhaseMap={};
+function cmpQueryProject(){
+  var code=document.getElementById('cmp-code-input').value.trim().toUpperCase();
+  if(!code){alert('請輸入 Project Code');return;}
+  // Search all loaded admin items first
+  var matches=[];
+  Object.values(_adminItems).forEach(function(item){
+    var pc=item.ProjectCode||item.Title||'';
+    if(typeof pc==='object')pc=pc.Title||pc.Value||'';
+    if((pc+'').toUpperCase().indexOf(code)>=0){
+      var ph=item.Phase||'';
+      if(typeof ph==='object')ph=ph.Title||ph.Value||'';
+      matches.push(item);
+    }
+  });
+  // Also query by code for completed records
+  document.getElementById('cmp-phase-hint').textContent='// 查詢中…';
+  document.getElementById('cmp-phase-area').style.display='';
+  document.getElementById('cmp-phase-list').innerHTML='';
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({queryCode:code,allStatus:true,queryAll:true})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var items=data.value||data.items||data||[];
+    // Merge with locally loaded items
+    var seen={};
+    items.forEach(function(item){
+      var id=item.ID||item.Id||'';
+      if(id)seen[id]=item;
+    });
+    matches.forEach(function(item){
+      var id=item.ID||item.Id||'';
+      if(id&&!seen[id])seen[id]=item;
+    });
+    var all=Object.values(seen);
+    if(!all.length){
+      document.getElementById('cmp-phase-hint').textContent='// 找不到 '+code+' 的記錄';
+      document.getElementById('cmp-step2').style.display='none';
+      return;
+    }
+    // Group by phase
+    _cmpPhaseMap={};
+    all.forEach(function(item){
+      var ph=item.Phase||'';
+      if(typeof ph==='object')ph=ph.Title||ph.Value||'';
+      ph=ph||'—';
+      if(!_cmpPhaseMap[ph])_cmpPhaseMap[ph]=[];
+      _cmpPhaseMap[ph].push(item);
+    });
+    var phKeys=Object.keys(_cmpPhaseMap).sort();
+    document.getElementById('cmp-phase-hint').textContent='// 找到 '+phKeys.length+' 個 Phase，請勾選 2～3 個進行比對：';
+    var html='';
+    phKeys.forEach(function(ph){
+      var items2=_cmpPhaseMap[ph];
+      var latest=items2.sort(function(a,b){return (b.ID||0)-(a.ID||0);})[0];
+      var fn=latest.ReportFileName||'—';
+      var dt=(latest.SubmittedDate||latest.Created||'').slice(0,10);
+      var st=latest.Status||'—';
+      html+='<label class="cmp-phase-cb-label">';
+      html+='<input type="checkbox" class="cmp-phase-cb" value="'+esc(ph)+'"> ';
+      html+='<span style="color:var(--cyan);font-family:var(--font-mono);font-weight:700;">'+esc(ph)+'</span>';
+      html+='<span style="color:var(--text3);font-size:12px;">（'+items2.length+' 筆）</span>';
+      html+='<span style="color:var(--text3);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"> '+esc(fn)+'</span>';
+      html+='<span style="font-size:11px;color:var(--text3);">'+dt+'</span>';
+      html+='</label>';
+    });
+    document.getElementById('cmp-phase-list').innerHTML=html;
+    document.getElementById('cmp-step2').style.display='';
+    document.getElementById('cmp-result-area').innerHTML='';
+  })
+  .catch(function(err){
+    document.getElementById('cmp-phase-hint').textContent='// 查詢失敗：'+err.message;
+  });
+}
+function cmpGetCheckedPhases(){
+  return Array.prototype.slice.call(document.querySelectorAll('.cmp-phase-cb:checked')).map(function(cb){return cb.value;});
+}
+function cmpRunSP(){
+  var phases=cmpGetCheckedPhases();
+  if(phases.length<2){alert('請至少勾選 2 個 Phase');return;}
+  var colors=['var(--cyan)','var(--amber)','var(--green)'];
+  var colCount=phases.length;
+  var ra=document.getElementById('cmp-result-area');
+  var html='<div style="font-family:var(--font-mono);font-size:12px;color:var(--text3);margin-bottom:10px;">// 需求單資訊比對（'+phases.join(' vs ')+')');
+  html+='</div><div class="cmp-grid" style="grid-template-columns:repeat('+colCount+',1fr);">';
+  phases.forEach(function(ph,pi){
+    var items=(_cmpPhaseMap[ph]||[]).sort(function(a,b){return (b.ID||0)-(a.ID||0);});
+    var it=items[0]||{};
+    var fn=it.ReportFileName||'—';
+    var dt=(it.SubmittedDate||it.Created||'').slice(0,10);
+    var dl=(it.ReportDeadline||'').slice(0,10);
+    var sku=it.SKUList||'—';
+    var acc=it.ACCItems||'';
+    var tpr=it.TPRItems||'';
+    var sow=it.SOWItems||'';
+    var hwi=it.HWInfoItems||'';
+    html+='<div class="cmp-col">';
+    html+='<div class="cmp-col-hd" style="background:'+colors[pi]+';">Phase: '+esc(ph)+'</div>';
+    html+='<div class="cmp-col-body">';
+    html+='<div class="cmp-section-hd">基本資訊</div>';
+    html+='<div class="cmp-row"><span class="cmp-row-label">Result</span><span class="cmp-row-val" style="font-size:11px;">'+esc(fn)+'</span></div>';
+    html+='<div class="cmp-row"><span class="cmp-row-label">發單日</span><span class="cmp-row-val">'+esc(dt)+'</span></div>';
+    html+='<div class="cmp-row"><span class="cmp-row-label">截止日</span><span class="cmp-row-val" style="color:var(--amber);">'+esc(dl||'—')+'</span></div>';
+    html+='<div class="cmp-row"><span class="cmp-row-label">狀態</span><span class="cmp-row-val">'+esc(it.Status||'—')+'</span></div>';
+    if(sku&&sku!=='—'){html+='<div class="cmp-section-hd">SKU 清單</div><div class="cmp-items-list">'+esc(sku)+'</div>';}
+    if(acc){html+='<div class="cmp-section-hd">ACC 測項</div><div class="cmp-items-list">'+esc(acc)+'</div>';}
+    if(tpr){html+='<div class="cmp-section-hd">TPR 測項</div><div class="cmp-items-list">'+esc(tpr)+'</div>';}
+    if(sow){html+='<div class="cmp-section-hd">SOW 測項</div><div class="cmp-items-list">'+esc(sow)+'</div>';}
+    if(hwi){html+='<div class="cmp-section-hd">HW Info 測項</div><div class="cmp-items-list">'+esc(hwi)+'</div>';}
+    html+='</div></div>';
+  });
+  html+='</div>';
+  ra.innerHTML=html;
+}
+function cmpRunExcel(){
+  var phases=cmpGetCheckedPhases();
+  if(phases.length<2){alert('請至少勾選 2 個 Phase');return;}
+  if(PA_COMPARE.indexOf('__PASTE')===0){
+    var ra=document.getElementById('cmp-result-area');
+    ra.innerHTML='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r8);padding:16px;font-family:var(--font-mono);font-size:13px;color:var(--amber);">'
+      +'<div style="margin-bottom:8px;">⚠ PA_COMPARE 尚未設定</div>'
+      +'<div style="color:var(--text3);font-size:12px;line-height:1.9;">'
+      +'請依照文件建立「Result 比對」PA Flow，<br>'
+      +'並將 URL 填入程式碼中的 PA_COMPARE 變數。<br><br>'
+      +'Flow 需接收：<span style="color:var(--text);">{ phases:[{phase,fileName}], sheetName }</span><br>'
+      +'回傳格式：<span style="color:var(--text);">{ results:[{phase, rows:[[...]], headers:[...]}] }</span>'
+      +'</div></div>';
+    return;
+  }
+  var sheetName=document.getElementById('cmp-sheet-select').value;
+  var phaseObjs=phases.map(function(ph){
+    var it=(_cmpPhaseMap[ph]||[])[0]||{};
+    return {phase:ph,fileName:it.ReportFileName||''};
+  });
+  var ra=document.getElementById('cmp-result-area');
+  ra.innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);font-size:13px;">// 讀取中...</p>';
+  fetch(PA_COMPARE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({phases:phaseObjs,sheetName:sheetName})})
+  .then(function(r){return r.json();})
+  .then(function(data){cmpRenderExcel(data,phases,sheetName);})
+  .catch(function(err){ra.innerHTML='<p style="color:var(--red);">比對失敗：'+err.message+'</p>';});
+}
+function cmpRenderExcel(data,phases,sheetName){
+  var colors=['var(--cyan)','var(--amber)','var(--green)'];
+  var ra=document.getElementById('cmp-result-area');
+  var results=data.results||[];
+  if(!results.length){ra.innerHTML='<p style="color:var(--red);">未取得資料</p>';return;}
+  var colCount=results.length;
+  var html='<div style="font-family:var(--font-mono);font-size:12px;color:var(--text3);margin-bottom:10px;">// Excel 比對 — Sheet: '+esc(sheetName)+'</div>';
+  html+='<div class="cmp-grid" style="grid-template-columns:repeat('+colCount+',1fr);">';
+  results.forEach(function(res,pi){
+    html+='<div class="cmp-col">';
+    html+='<div class="cmp-col-hd" style="background:'+colors[pi]+';">'+esc(res.phase)+'</div>';
+    html+='<div style="overflow-x:auto;background:var(--bg3);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r4) var(--r4);">';
+    html+='<table style="border-collapse:collapse;width:100%;font-size:11px;">';
+    (res.rows||[]).slice(0,60).forEach(function(row,ri){
+      html+='<tr>';
+      (row||[]).slice(0,8).forEach(function(cell){
+        var s=cell===null||cell===undefined?'':String(cell);
+        var bg=ri===0?'background:var(--bg4);font-weight:700;font-family:var(--font-mono);':'';
+        html+='<td style="padding:3px 7px;border:1px solid var(--border);'+bg+'white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;" title="'+esc(s)+'">'+esc(s)+'</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</table></div></div>';
+  });
+  html+='</div>';
+  ra.innerHTML=html;
+}
 // ── Delay Item ────────────────────────────────────────────────────────
 var _delayCtx={};
 function delayItem(id,reqEmail,projCode){
