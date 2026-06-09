@@ -307,6 +307,13 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .sb-pending{background:rgba(255,179,71,0.15);color:var(--amber);}
 .sb-accept{background:rgba(0,229,160,0.12);color:var(--green);}
 .sb-fail{background:rgba(255,92,122,0.12);color:var(--red);}
+.sb-delay{background:rgba(168,85,247,0.15);color:var(--purple);}
+.ab-delay{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
+.ab-delay:hover{background:rgba(168,85,247,0.2);}
+.delay-field{margin-bottom:14px;}
+.delay-field label{display:block;font-size:14px;color:var(--text2);margin-bottom:6px;font-family:var(--font-head);font-weight:600;letter-spacing:0.04em;}
+.delay-field input{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;font-family:var(--font-body);}
+.delay-field input:focus{outline:none;border-color:var(--purple);}
 .ab{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.04em;padding:5px 12px;border-radius:var(--r4);cursor:pointer;transition:all 0.12s;border:none;}
 .ab-acc{background:rgba(0,229,160,0.12);color:var(--green);border:1px solid rgba(0,229,160,0.3);}
 .ab-acc:hover{background:rgba(0,229,160,0.2);}
@@ -1168,9 +1175,32 @@ document.getElementById('pw-input').focus();
   </div>
 </div>
 
+<!-- 延期設定 Modal -->
+<div class="modal-overlay" id="delay-modal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeDelayModal()">×</button>
+    <h2>⏰ 設定延期</h2>
+    <p class="modal-sub" id="delay-modal-title" style="font-family:var(--font-mono);color:var(--purple);">// 專案資訊</p>
+    <div class="delay-field">
+      <label>延期截止日期 <span class="req">*</span></label>
+      <input type="date" id="delay-date-input">
+    </div>
+    <div class="delay-field">
+      <label>接單 Owner Email <span class="req">*</span></label>
+      <input type="email" id="delay-owner-input" placeholder="owner@inventec.com">
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px;font-family:var(--font-mono);">// 系統將於截止日早上 9:30 自動發送 Outlook 提醒給需求方與接單 Owner</p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="sa-btn" onclick="closeDelayModal()">取消</button>
+      <button id="delay-confirm-btn" class="btn btn-pri" onclick="confirmDelay()" style="padding:8px 24px;">確認延期</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
+var PA_DELAY='__PASTE_PA_DELAY_URL_HERE__'; // ← 建立「延期通知」Flow 後貼上 URL
 function updReportDueMin(){
   var startVal=document.getElementById('sch_start').value;
   var inp=document.getElementById('report_due');
@@ -2046,12 +2076,15 @@ function loadAdminData(){
       html+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase);
       if(isRetest)html+=' &nbsp;<span style="font-size:14px;background:rgba(255,179,71,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;">RETEST</span>';
       html+='</div>';
-      html+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — '+dt+'</div>';
+      html+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — 發單：'+dt+'</div>';
+      var dlStr=item.ReportDeadline?(item.ReportDeadline+'').slice(0,10):'';
+      if(dlStr)html+='<div class="si-sub" style="color:var(--amber);margin-top:2px;">📋 報告截止：'+dlStr+'</div>';
       html+='</div>';
       html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
       html+='<span class="sbadge sb-pending">PENDING</span>';
-      html+='<div style="display:flex;gap:6px;">';
+      html+='<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">';
       html+='<button class="ab" style="background:rgba(0,229,160,0.12);color:var(--green);border-color:rgba(0,229,160,0.3);" onclick="downloadTestTemplate(\''+itemId+'\')">📥 底板</button>';
+      html+='<button class="ab ab-delay" onclick="delayItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">⏰ 延期</button>';
       html+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
       html+='</div>';
       html+='</div>';
@@ -2090,6 +2123,52 @@ function acceptItem(btn){
   });
 }
 
+// ── Delay Item ────────────────────────────────────────────────────────
+var _delayCtx={};
+function delayItem(id,reqEmail,projCode){
+  _delayCtx={id:id,reqEmail:reqEmail,projCode:projCode};
+  document.getElementById('delay-modal-title').textContent='// '+projCode;
+  var d=new Date();d.setDate(d.getDate()+7);
+  var pad=function(n){return n<10?'0'+n:''+n;};
+  document.getElementById('delay-date-input').value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  document.getElementById('delay-owner-input').value='';
+  var btn=document.getElementById('delay-confirm-btn');
+  btn.disabled=false;btn.textContent='確認延期';
+  document.getElementById('delay-modal').classList.add('show');
+}
+function closeDelayModal(){
+  document.getElementById('delay-modal').classList.remove('show');
+  _delayCtx={};
+}
+function confirmDelay(){
+  var delayDate=document.getElementById('delay-date-input').value;
+  var ownerEmail=document.getElementById('delay-owner-input').value.trim();
+  if(!delayDate){alert('請選擇延期日期');return;}
+  if(!ownerEmail||!/\S+@\S+\.\S+/.test(ownerEmail)){alert('請填寫有效的 Owner Email');return;}
+  if(PA_DELAY.indexOf('__PASTE')===0){alert('請先在程式碼中填入 PA_DELAY 的 Flow URL');return;}
+  var btn=document.getElementById('delay-confirm-btn');
+  btn.disabled=true;btn.textContent='處理中...';
+  var ctxId=_delayCtx.id,ctxReq=_delayCtx.reqEmail,ctxProj=_delayCtx.projCode;
+  fetch(PA_DELAY,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({itemId:parseInt(ctxId),ownerEmail:ownerEmail,requesterEmail:ctxReq,projCode:ctxProj,delayDeadline:delayDate})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    closeDelayModal();
+    var card=document.querySelector('.sub-item[data-id="'+ctxId+'"]');
+    if(card){
+      card.querySelector('.sbadge').className='sbadge sb-delay';
+      card.querySelector('.sbadge').textContent='DELAYED';
+    }
+    alert('✅ 延期設定完成！\n將於 '+delayDate+' 早上 9:30 發送提醒給：\n・'+ctxReq+'\n・'+ownerEmail);
+  })
+  .catch(function(err){
+    btn.disabled=false;btn.textContent='確認延期';
+    alert('延期設定失敗：'+err.message);
+  });
+}
 // ── Admin Result Upload ────────────────────────────────────────────────
 var _adminUploadFile=null;
 var _adminMeta={prodLine:'',subSeries:'',projName:''};
