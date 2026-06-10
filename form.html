@@ -1894,7 +1894,7 @@ function paSubmit(){
     });
   });
   // Build filename: RESULT_{PROJNAMES}_{PHASES}_{NEW|RETEST}_{ID}_{YYMMDD}.XLSX
-  var projNames=projs.map(function(p){return (p.projCode||'').replace(/\s+/g,'_').toUpperCase();}).filter(Boolean);
+  var projNames=projs.map(function(p){return (p.projCode||'').replace(/\s+/g,'_').toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
   var phases=projs.map(function(p){return (p.phase||'').toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
   var fName='RESULT'+(projNames.length?'_'+projNames.join('_'):'')+
     (phases.length?'_'+phases.join('_'):'')+
@@ -2641,7 +2641,7 @@ function initReportId(){
 }
 function updateFilenamePreview(){
   var projs=getAllProjectsData();
-  var names=projs.map(function(p){return (p.projCode||'').trim().toUpperCase();}).filter(Boolean);
+  var names=projs.map(function(p){return (p.projCode||'').trim().toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
   var phases=[];projs.forEach(function(p){if(p.phase&&phases.indexOf(p.phase.toUpperCase())<0)phases.push(p.phase.toUpperCase());});
   var mode=isRetest?'UPDATE':'NEW';
   var id=currentReportId||'??';
