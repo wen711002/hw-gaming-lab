@@ -1941,7 +1941,7 @@ function paSubmit(){
     Notes:v('extra_notes'),
     RetestReason:retestTxt,
     Status:'Pending',
-    SubmittedDate:new Date().toISOString()
+    SubmittedDate:getTaiwanDateTimeStr()
   };
   var fileInput=document.getElementById('sku-file');
   var file=fileInput&&fileInput.files&&fileInput.files[0];
@@ -2630,6 +2630,13 @@ function adminSubmitUpload(){
 // ── Report ID ────────────────────────────────────────────────────────────────
 var currentReportId='';
 function getTodayYYMMDD(){var d=new Date();var yy=String(d.getFullYear()).slice(2);var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();return yy+mm+dd;}
+function getTaiwanDateTimeStr(){
+  // 回傳 UTC+8 台灣時間字串，供存入 SP SubmittedDate 欄位
+  var pad=function(n){return n<10?'0'+n:String(n);};
+  var tw=new Date(Date.now()+8*60*60*1000);
+  return tw.getUTCFullYear()+'/'+pad(tw.getUTCMonth()+1)+'/'+pad(tw.getUTCDate())+
+    ' '+pad(tw.getUTCHours())+':'+pad(tw.getUTCMinutes())+':'+pad(tw.getUTCSeconds());
+}
 function getNextReportId(){var today=getTodayYYMMDD();var key='gl_rid_'+today;var last=parseInt(localStorage.getItem(key)||'0',10);var next=last+1;localStorage.setItem(key,String(next));return next<10?'0'+next:''+next;}
 function initReportId(){
   currentReportId=getNextReportId();
