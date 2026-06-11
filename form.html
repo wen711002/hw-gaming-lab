@@ -1533,9 +1533,9 @@ function togAllSkusReport(rpt){
   onSrmChange();
 }
 function togRptGrp(secId,show,rpt){
+  // 只做全選/全清，不隱藏 section（讓使用者可個別勾選細項）
   var body=document.getElementById('rpt-sec-'+secId);
   if(!body)return;
-  body.style.display=show?'':'none';
   body.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=show;});
 }
 function togAllRptItems(rpt){
@@ -1544,9 +1544,7 @@ function togAllRptItems(rpt){
   document.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=state;});
   document.querySelectorAll('#ritems-'+rpt+' [data-rpt-grp]').forEach(function(cb){
     cb.checked=state;
-    var sid=cb.getAttribute('data-rpt-grp');
-    var body=sid&&document.getElementById('rpt-sec-'+sid);
-    if(body)body.style.display=state?'':'none';
+    // 不隱藏 section，只同步父類 checkbox 狀態
   });
 }
 function getReportItems(rpt){
