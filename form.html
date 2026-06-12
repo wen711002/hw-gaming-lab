@@ -1959,17 +1959,25 @@ function paSubmit(){
       alert('送出失敗：'+err.message);
     });
   }
-  if(file){
-    var reader=new FileReader();
-    reader.onload=function(e){doSubmit(e.target.result.split(',')[1],file.name);};
-    reader.onerror=function(){
-      if(confirm('檔案讀取失敗，是否略過附件直接送出？')){doSubmit(null,null);}
-      else{if(btn){btn.disabled=false;btn.textContent='確認送出需求';}}
-    };
-    reader.readAsDataURL(file);
-  } else {
-    doSubmit(null,null);
+  function proceedWithFile(b64Excel){
+    if(b64Excel){
+      payload.ReqExcelBase64=b64Excel;
+      payload.ReqExcelName='REQ_'+fName.replace(/^RESULT_/i,'').replace(/\.XLSX$/i,'.xlsx');
+    }
+    if(file){
+      var reader=new FileReader();
+      reader.onload=function(e){doSubmit(e.target.result.split(',')[1],file.name);};
+      reader.onerror=function(){
+        if(confirm('檔案讀取失敗，是否略過附件直接送出？')){doSubmit(null,null);}
+        else{if(btn){btn.disabled=false;btn.textContent='確認送出需求';}}
+      };
+      reader.readAsDataURL(file);
+    } else {
+      doSubmit(null,null);
+    }
   }
+  // 先產生需求單 Excel，再送出
+  getReqExcelB64(payload).then(proceedWithFile);
 }
 function renderSchedule(){
   document.getElementById('sch-total').textContent='...';
@@ -2419,6 +2427,114 @@ function adminReadMetaFromExcel(file){
     }catch(ex){}
   };
   reader.readAsArrayBuffer(file);
+}
+// ── Request Summary Excel Generator ──────────────────────────────────────
+function buildReqSummaryWorkbook(pl){
+  var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
+  var ws=wb.addWorksheet('需求單');ws.properties.tabColor={argb:'FF1F3864'};
+  ws.getColumn(1).width=4;ws.getColumn(2).width=22;ws.getColumn(3).width=32;
+  ws.getColumn(4).width=22;ws.getColumn(5).width=32;ws.getColumn(6).width=4;
+  var R=1;var nc=6;
+  // 標題
+  _xTitle(ws,'HW Gaming Lab — 測試需求單  |  '+(pl.ReportFileName||''),nc,R);R++;
+  _xSp(ws,R,nc);R++;
+  // 專案資訊
+  _xCat(ws,' PROJECT INFO',nc,R);R++;
+  [['Report ID',pl.ReportID||'','Form Type',pl.FormType||''],
+   ['Project Code',pl.ProjectCode||'','Phase',pl.Phase||''],
+   ['Project Name',pl.ProjectName||'','Product Line',pl.ProductLine||''],
+   ['Sub-Series',pl.SubSeries||'','','']
+  ].forEach(function(row){
+    var ro=ws.getRow(R);ro.height=20;
+    _xfi(ro.getCell(1),_V5C.lBg);ro.getCell(1).border=_xb();
+    _xLb(ro.getCell(2),row[0]);_xVl(ro.getCell(3),row[1]);
+    _xLb(ro.getCell(4),row[2]);_xVl(ro.getCell(5),row[3]||'');
+    _xfi(ro.getCell(6),_V5C.lBg);ro.getCell(6).border=_xb();R++;
+  });
+  _xSp(ws,R,nc);R++;
+  // 提單資訊
+  _xCat(ws,' SUBMITTER INFO',nc,R);R++;
+  var retestRow=pl.FormType==='複測'&&pl.RetestReason?[['複測原因',pl.RetestReason,'','']]:[];
+  [['需求人',pl.Requester||'','Email',pl.RequesterEmail||''],
+   ['EE Contact',pl.EEContact||'','Dept',pl.Dept||''],
+   ['提單日期',pl.SubmittedDate||'','報告截止日',pl.ReportDeadline||''],
+   ['測試時段',pl.ScheduleStart||'','','']
+  ].concat(retestRow).forEach(function(row){
+    var ro=ws.getRow(R);ro.height=20;
+    _xfi(ro.getCell(1),_V5C.lBg);ro.getCell(1).border=_xb();
+    _xLb(ro.getCell(2),row[0]);_xVl(ro.getCell(3),row[1]);
+    _xLb(ro.getCell(4),row[2]);_xVl(ro.getCell(5),row[3]||'');
+    _xfi(ro.getCell(6),_V5C.lBg);ro.getCell(6).border=_xb();R++;
+  });
+  _xSp(ws,R,nc);R++;
+  // SKU 清單
+  _xCat(ws,' SKU 清單',nc,R);R++;
+  var skus=_xSkus(pl.SKUList||'');
+  if(skus.length){
+    var hro=ws.getRow(R);hro.height=20;
+    _xfi(hro.getCell(1),_V5C.lBg);hro.getCell(1).border=_xb();
+    ['#','SKU 型號','CPU','GPU','Panel'].forEach(function(h,i){_xLb(hro.getCell(i+2),h);});
+    _xfi(hro.getCell(7)||hro.getCell(6),_V5C.lBg);(hro.getCell(7)||hro.getCell(6)).border=_xb();R++;
+    skus.forEach(function(s,i){
+      var ro=ws.getRow(R);ro.height=18;
+      _xfi(ro.getCell(1),_V5C.dBg);ro.getCell(1).border=_xb();
+      [String(i+1),s.name,s.cpu||'',s.gpu||'',s.panel||''].forEach(function(v,ci){_xVl(ro.getCell(ci+2),v);});
+      _xfi(ro.getCell(7)||ro.getCell(6),_V5C.dBg);(ro.getCell(7)||ro.getCell(6)).border=_xb();R++;
+    });
+  }
+  _xSp(ws,R,nc);R++;
+  // 報告需求明細
+  _xCat(ws,' 報告需求明細',nc,R);R++;
+  function addRptSection(label,skuStr,itemsStr,clr){
+    if(!skuStr&&!itemsStr)return;
+    ws.mergeCells(R,1,R,nc);var hc=ws.getCell(R,1);
+    hc.value='  ▸ '+label;_xfi(hc,clr||'FF4472C4');
+    _xfo(hc,10,true,_V5C.wh);_xal(hc,'left','middle');hc.border=_xb();
+    ws.getRow(R).height=20;R++;
+    if(skuStr){
+      var sro=ws.getRow(R);sro.height=18;
+      _xfi(sro.getCell(1),_V5C.lBg);sro.getCell(1).border=_xb();
+      _xLb(sro.getCell(2),'指定 SKU');
+      ws.mergeCells(R,3,R,nc-1);_xVl(sro.getCell(3),skuStr);
+      _xfi(sro.getCell(nc),_V5C.lBg);sro.getCell(nc).border=_xb();R++;
+    }
+    if(itemsStr){
+      itemsStr.split('\n').forEach(function(line){
+        if(!line.trim())return;
+        var ro=ws.getRow(R);ro.height=17;
+        _xfi(ro.getCell(1),_V5C.dBg);ro.getCell(1).border=_xb();
+        _xfi(ro.getCell(2),_V5C.dBg);ro.getCell(2).border=_xb();
+        try{ws.mergeCells(R,3,R,nc-1);}catch(e){}
+        var c=ro.getCell(3);c.value=line.trim();
+        _xfi(c,_V5C.dBg);_xfo(c,9,false,_V5C.nv);_xal(c,'left','middle');c.border=_xb();
+        _xfi(ro.getCell(nc),_V5C.dBg);ro.getCell(nc).border=_xb();R++;
+      });
+    }
+    _xSp(ws,R,nc);R++;
+  }
+  addRptSection('ACC',pl.ReportACC,pl.ACCItems,'FF4472C4');
+  addRptSection('TPR',pl.ReportTPR,pl.TPRItems,'FFED7D31');
+  addRptSection('SOW',pl.ReportSOW,pl.SOWItems,'FF70AD47');
+  addRptSection('HW Info',pl.ReportHWInfo,pl.HWInfoItems,'FF7030A0');
+  // 補充說明
+  if(pl.Notes){
+    _xCat(ws,' 補充說明',nc,R);R++;
+    ws.mergeCells(R,1,R,nc);
+    var nc2=ws.getCell(R,1);nc2.value=pl.Notes;
+    _xfi(nc2,_V5C.dBg);_xfo(nc2,9,false,_V5C.nv);_xal(nc2,'left','middle',true);
+    nc2.border=_xb();ws.getRow(R).height=36;R++;
+  }
+  return wb;
+}
+function getReqExcelB64(pl){
+  if(typeof ExcelJS==='undefined')return Promise.resolve(null);
+  try{
+    return buildReqSummaryWorkbook(pl).xlsx.writeBuffer().then(function(buf){
+      var bytes=new Uint8Array(buf),bin='';
+      for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }).catch(function(){return null;});
+  }catch(e){return Promise.resolve(null);}
 }
 // ── V5 Test Report Template Generator ────────────────────────────────────
 var _adminItems={};
