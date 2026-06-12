@@ -300,6 +300,12 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .btab:hover{color:var(--text2);}
 .btab.active{color:var(--blue);border-bottom-color:var(--blue);}
 .btab-panel{display:none;}.btab-panel.active{display:block;}
+.admin-subtabs{display:flex;gap:6px;margin-bottom:14px;}
+.admin-subtab{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.06em;padding:5px 14px;border-radius:var(--r4);cursor:pointer;background:none;border:1px solid var(--border2);color:var(--text3);transition:all 0.15s;}
+.admin-subtab.active{background:rgba(76,158,245,0.15);color:var(--blue);border-color:rgba(76,158,245,0.35);}
+.admin-subtab:hover:not(.active){color:var(--text);border-color:var(--border3);}
+.astab-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:16px;padding:0 4px;border-radius:8px;font-size:10px;font-weight:700;background:var(--bg4);color:var(--text3);margin-left:5px;vertical-align:middle;}
+.admin-subpanel{display:none;}.admin-subpanel.active{display:block;}
 .sub-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r8);padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
 .si-title{font-family:var(--font-mono);font-size:17px;color:var(--blue);margin-bottom:3px;}
 .si-sub{font-size:16px;color:var(--text3);}
@@ -1159,8 +1165,17 @@ document.getElementById('pw-input').focus();
       <button class="btab" id="tab-compare" onclick="switchTab('tab-compare')">Phase 比對</button>
     </div>
     <div class="btab-panel active" id="btab-review">
+      <div class="admin-subtabs">
+        <button class="admin-subtab active" id="subtab-pending" onclick="switchAdminSubtab('pending')">
+          PENDING <span class="astab-count" id="pending-count">—</span>
+        </button>
+        <button class="admin-subtab" id="subtab-accepted" onclick="switchAdminSubtab('accepted')">
+          ACCEPTED <span class="astab-count" id="accepted-count">—</span>
+        </button>
+      </div>
       <div id="admin-loading" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
-      <div id="admin-list"></div>
+      <div class="admin-subpanel active" id="admin-list-pending"></div>
+      <div class="admin-subpanel" id="admin-list-accepted"></div>
     </div>
     <div class="btab-panel" id="btab-result">
       <div id="admin-upload-area" onclick="document.getElementById('admin-result-file').click()" ondragover="event.preventDefault()" ondrop="adminOnDrop(event)" style="border:2px dashed var(--border2);border-radius:var(--r8);padding:24px;text-align:center;background:var(--bg3);cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;">
@@ -2083,73 +2098,87 @@ function switchTab(id){
   document.querySelectorAll('.btab').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.btab-panel').forEach(function(p){p.classList.remove('active');});
   document.getElementById(id).classList.add('active');
-  var map={'tab-review':'btab-review','tab-result':'btab-result'};
-  document.getElementById(map[id]).classList.add('active');
+  var map={'tab-review':'btab-review','tab-result':'btab-result','tab-compare':'btab-compare'};
+  var panelId=map[id];
+  if(panelId)document.getElementById(panelId).classList.add('active');
+}
+function switchAdminSubtab(tab){
+  document.querySelectorAll('.admin-subtab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.admin-subpanel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('subtab-'+tab).classList.add('active');
+  document.getElementById('admin-list-'+tab).classList.add('active');
 }
 function loadAdminData(){
   document.getElementById('admin-loading').style.display='block';
-  document.getElementById('admin-list').innerHTML='';
+  document.getElementById('admin-list-pending').innerHTML='';
+  document.getElementById('admin-list-accepted').innerHTML='';
   fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-  .then(function(r){
-    if(!r.ok)throw new Error('Error '+r.status);
-    return r.json();
-  })
+  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
   .then(function(data){
     document.getElementById('admin-loading').style.display='none';
-    var items=(data.value||data.d&&data.d.results||[]).filter(function(i){return i.Status==='Pending';});
-    if(!items.length){
-      document.getElementById('admin-list').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有待審核的申請</p>';
-      return;
-    }
-    var html='';
+    var all=data.value||data.d&&data.d.results||[];
+    // 排序：依 SubmittedDate 或 Created，最新在前
+    all.sort(function(a,b){
+      var da=new Date(a.SubmittedDate||a.Created||0);
+      var db=new Date(b.SubmittedDate||b.Created||0);
+      return db-da;
+    });
+    var pending=all.filter(function(i){return i.Status==='Pending';});
+    var accepted=all.filter(function(i){return i.Status==='Accepted';});
     _adminItems={};
-    items.forEach(function(item){
-      // 兼容 SharePoint 回傳的各種 ID 欄位名稱
-      var itemId=item.ID||item.Id||item.id||item.ItemId||'';
+    function fmtDt(raw){
+      if(!raw)return'—';
+      try{var d=new Date(raw),p=function(n){return n<10?'0'+n:String(n);};
+        return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+      catch(e){return(raw+'').replace('T',' ').slice(0,16);}
+    }
+    function buildCard(item,isPending){
+      var itemId=item.ID||item.Id||item.id||'';
       _adminItems[itemId]=item;
-      // 日期＋時間：優先 SubmittedDate，備用 Created
-      var rawDt=item.SubmittedDate||item.Created||'';
-      var dt='—';
-      if(rawDt){
-        try{
-          var d=new Date(rawDt);
-          var pad=function(n){return n<10?'0'+n:String(n);};
-          dt=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())
-            +' '+pad(d.getHours())+':'+pad(d.getMinutes());
-        }catch(e){dt=rawDt.replace('T',' ').slice(0,16);}
-      }
-      // ProjectCode / Phase 可能是物件，強制取字串
       var projCode=item.ProjectCode;
-      if(projCode&&typeof projCode==='object') projCode=projCode.Title||projCode.Value||'';
+      if(projCode&&typeof projCode==='object')projCode=projCode.Title||projCode.Value||'';
       projCode=projCode||item.Title||'—';
       var phase=item.Phase;
-      if(phase&&typeof phase==='object') phase=phase.Title||phase.Value||'';
+      if(phase&&typeof phase==='object')phase=phase.Title||phase.Value||'';
       phase=phase||'—';
       var isRetest=item.FormType==='複測';
-      html+='<div class="sub-item" data-id="'+itemId+'" data-email="'+(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'">';
-      html+='<div>';
-      html+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase);
-      if(isRetest)html+=' &nbsp;<span style="font-size:14px;background:rgba(255,179,71,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;">RETEST</span>';
-      html+='</div>';
-      html+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — 發單：'+dt+'</div>';
+      var dt=fmtDt(item.SubmittedDate||item.Created||'');
       var dlStr=item.ReportDeadline?(item.ReportDeadline+'').slice(0,10):'';
-      if(dlStr)html+='<div class="si-sub" style="color:var(--amber);margin-top:2px;">📋 報告截止：'+dlStr+'</div>';
-      html+='</div>';
-      html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
-      html+='<span class="sbadge sb-pending">PENDING</span>';
-      html+='<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">';
-      html+='<button class="ab" style="background:rgba(0,229,160,0.12);color:var(--green);border-color:rgba(0,229,160,0.3);" onclick="downloadTestTemplate(\''+itemId+'\')">📥 底板</button>';
-      html+='<button class="ab ab-delay" onclick="delayItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">⏰ 延期</button>';
-      html+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
-      html+='</div>';
-      html+='</div>';
-      html+='</div>';
-    });
-    document.getElementById('admin-list').innerHTML=html;
+      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'">';
+      h+='<div>';
+      h+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase);
+      if(isRetest)h+=' &nbsp;<span style="font-size:14px;background:rgba(255,179,71,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;">RETEST</span>';
+      h+='</div>';
+      h+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — 發單：'+dt+'</div>';
+      if(dlStr)h+='<div class="si-sub" style="color:var(--amber);margin-top:2px;">📋 報告截止：'+dlStr+'</div>';
+      h+='</div>';
+      h+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
+      h+='<span class="sbadge '+(isPending?'sb-pending':'sb-accept')+'">'+(isPending?'PENDING':'ACCEPTED')+'</span>';
+      h+='<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">';
+      h+='<button class="ab" style="background:rgba(0,229,160,0.12);color:var(--green);border-color:rgba(0,229,160,0.3);" onclick="downloadTestTemplate(\''+itemId+'\')">📥 底板</button>';
+      h+='<button class="ab ab-delay" onclick="delayItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">⏰ 延期</button>';
+      if(isPending)h+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
+      h+='</div></div></div>';
+      return h;
+    }
+    // Pending
+    document.getElementById('pending-count').textContent=pending.length;
+    if(!pending.length){
+      document.getElementById('admin-list-pending').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有待審核的申請</p>';
+    } else {
+      document.getElementById('admin-list-pending').innerHTML=pending.map(function(i){return buildCard(i,true);}).join('');
+    }
+    // Accepted
+    document.getElementById('accepted-count').textContent=accepted.length;
+    if(!accepted.length){
+      document.getElementById('admin-list-accepted').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有已接收的申請</p>';
+    } else {
+      document.getElementById('admin-list-accepted').innerHTML=accepted.map(function(i){return buildCard(i,false);}).join('');
+    }
   })
   .catch(function(err){
     document.getElementById('admin-loading').style.display='none';
-    document.getElementById('admin-list').innerHTML='<p style="color:var(--red);padding:20px 0;">載入失敗：'+err.message+'</p>';
+    document.getElementById('admin-list-pending').innerHTML='<p style="color:var(--red);padding:20px 0;">載入失敗：'+err.message+'</p>';
   });
 }
 function acceptItem(btn){
