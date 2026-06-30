@@ -1492,14 +1492,30 @@ var GAMING_RPTS=[{id:'acc',label:'ACC',cls:'blue'},{id:'tpr',label:'TPR',cls:'am
 var CONSUMER_RPTS=[{id:'perf',label:'Performance',cls:'green'},{id:'battery',label:'Battery Life',cls:'cyan'}];
 var ALL_RPT_IDS=['acc','tpr','sow','hwinfo','perf','battery'];
 
+function syncProjCardPLOptions(){
+  var allowed=currentSeriesType==='consumer'?['Consumer']:['Strix','TUF'];
+  document.querySelectorAll('.proj-pl').forEach(function(sel){
+    var prev=sel.value;
+    sel.innerHTML='<option value="">--- 選擇 Product Line ---</option>';
+    allowed.forEach(function(pl){
+      var o=document.createElement('option');
+      o.value=pl;o.textContent=pl;
+      if(pl===prev)o.selected=true;
+      sel.appendChild(o);
+    });
+    if(prev&&allowed.indexOf(prev)===-1){
+      sel.value='';
+      var card=sel.closest('[data-proj-card]');
+      if(card){var ss=card.querySelector('.proj-ss');if(ss){ss.innerHTML='<option value="">--- 請先選擇 Product Line ---</option>';}}
+    }
+  });
+}
 function setSeriesType(type){
   currentSeriesType=type;
-  // update UI cards
   document.getElementById('sc-gaming').className='stype-card gaming'+(type==='gaming'?' active':'');
   document.getElementById('sc-consumer').className='stype-card consumer'+(type==='consumer'?' active':'');
-  // hide all report item panels
   ALL_RPT_IDS.forEach(function(r){var p=document.getElementById('ritems-'+r);if(p)p.style.display='none';});
-  // rebuild matrix if on page3
+  syncProjCardPLOptions();
   if(document.getElementById('page3').classList.contains('active')){
     buildSkuReportMatrix();
   }
@@ -3165,7 +3181,8 @@ function _updateProjectCardNumbers(){
 function _buildProjectCardInnerHtml(n){
   var ss='width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;';
   var plOpts='<option value="">--- 選擇 Product Line ---</option>';
-  Object.keys(PROJECT_DATA).forEach(function(pl){plOpts+='<option value="'+esc(pl)+'">'+esc(pl)+'</option>';});
+  var allowedPLs=currentSeriesType==='consumer'?['Consumer']:['Strix','TUF'];
+  allowedPLs.forEach(function(pl){plOpts+='<option value="'+esc(pl)+'">'+esc(pl)+'</option>';});
   var rmBtn=n>1?'<button onclick="removeProjectCard(this)" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:22px;line-height:1;padding:0 6px;" title="移除">×</button>':'';
   return '<div class="panel" style="margin-bottom:16px;">'+
     '<div class="panel-header"><div class="panel-title pcard-title">PROJECT '+n+'</div>'+rmBtn+'</div>'+
