@@ -2927,90 +2927,174 @@ function _applyTmplSheet(wb,key,title,skus,tabColor){
     ws.getRow(1).height=24;
   }
 }
-function _buildConsumerSheet(wb,title,skus,tabColor,items){
-  var ws=wb.addWorksheet(title);
-  if(tabColor)ws.properties.tabColor={argb:tabColor};
+function _buildConsumerPerfSheets(wb,projName,skuInfoList,items){
   var hdBdr={style:'thin',color:{argb:'FF1F3864'}};
-  // SKU header row
-  if(skus&&skus.length){
-    ws.mergeCells(1,1,1,3);
-    var hc=ws.getCell(1,1);
-    hc.value='▶  SKU：'+skus.join('   |   ');
-    hc.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
-    hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF4472C4'}};
-    hc.alignment={horizontal:'left',vertical:'middle'};
-    hc.border={top:hdBdr,bottom:hdBdr,left:hdBdr,right:hdBdr};
-    ws.getRow(1).height=22;
+  var thinBdr={style:'thin',color:{argb:'FFBFBFBF'}};
+  function pLabel(sku){
+    var s=projName+'\n'+sku.name;
+    if(sku.bios)s+=', BIOS: '+sku.bios;
+    if(sku.dcd)s+=', DCD: '+sku.dcd;
+    return s;
   }
-  var off=skus&&skus.length?1:0;
-  // Column headers
-  var colHd=['#','Test Item'].concat(skus&&skus.length?skus:['Result']);
-  colHd.forEach(function(h,ci){
-    var c=ws.getCell(off+1,ci+1);
-    c.value=h;
+  function addHd(ws,r,ci,val,bg){
+    var c=ws.getCell(r,ci+1);c.value=val;
     c.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2E74B5'}};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg||'FF2E74B5'}};
     c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
     c.border={top:hdBdr,bottom:hdBdr,left:hdBdr,right:hdBdr};
-  });
-  ws.getRow(off+1).height=28;
-  ws.getColumn(1).width=5;ws.getColumn(2).width=38;
-  for(var ci=3;ci<=colHd.length;ci++)ws.getColumn(ci).width=16;
-  // Item rows
-  var defaultItems=['CineBench R20/R23 — nT（多核）','CineBench R20/R23 — 1T（單核）','CineBench 2024 — ST（Qualcomm）','CineBench 2024 — MT（Qualcomm）','GeekBench 6 — CPU AC Mode','GeekBench 6 — CPU DC Mode','3DMark Fire Strike — Score','3DMark Fire Strike — Graphics Score','3DMark Time Spy — Score','3DMark Time Spy — Graphics Score','3DMark Port Royal','Game FPS — SOTTR','Game FPS — Far Cry 6','Game FPS — Metro Exodus W/O RTX','Game FPS — Metro Exodus W/ RTX','Game FPS — Cyberpunk 2077','Game FPS — Rainbow Six Siege','Game FPS — Red Dead Redemption 2','Game FPS — AC Valhalla','Game FPS — Forza Horizon 5'];
-  var rows=items&&items.length?items.map(function(x){return x.replace(/^\d+\.\s*/,'');}):defaultItems;
-  rows.forEach(function(item,i){
-    var r=off+2+i;var ro=ws.getRow(r);ro.height=18;
-    var bg=i%2===0?'FFF2F2F2':'FFFFFFFF';
-    var c1=ro.getCell(1);c1.value=i+1;c1.alignment={horizontal:'center',vertical:'middle'};c1.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};c1.border={top:{style:'thin',color:{argb:'FFBFBFBF'}},bottom:{style:'thin',color:{argb:'FFBFBFBF'}},left:{style:'thin',color:{argb:'FFBFBFBF'}},right:{style:'thin',color:{argb:'FFBFBFBF'}}};
-    var c2=ro.getCell(2);c2.value=item;c2.alignment={horizontal:'left',vertical:'middle'};c2.fill=c1.fill;c2.border=c1.border;
-    for(var ci=3;ci<=colHd.length;ci++){var cx=ro.getCell(ci);cx.fill=c1.fill;cx.border=c1.border;}
-  });
+  }
+  function addTitle(ws,nc,val,bg){
+    ws.mergeCells(1,1,1,nc);
+    var c=ws.getCell(1,1);c.value=val;
+    c.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+    c.alignment={horizontal:'left',vertical:'middle'};ws.getRow(1).height=22;
+  }
+  function addSkuRows(ws,startR,cols,bg0,bg1){
+    skuInfoList.forEach(function(sku,i){
+      var ro=ws.getRow(startR+i);ro.height=36;
+      var bg=i%2===0?bg0:bg1;
+      var c1=ro.getCell(1);c1.value=pLabel(sku);
+      c1.font={name:'Arial',size:9,bold:true};c1.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      c1.border={top:thinBdr,bottom:thinBdr,left:thinBdr,right:thinBdr};
+      c1.alignment={horizontal:'left',vertical:'middle',wrapText:true};
+      for(var ci=2;ci<=cols;ci++){
+        var cx=ro.getCell(ci);cx.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+        cx.border={top:thinBdr,bottom:thinBdr,left:thinBdr,right:thinBdr};
+        cx.font={name:'Arial',size:9};cx.alignment={horizontal:'center',vertical:'middle'};
+      }
+    });
+  }
+  // === Sheet 1: CPU Benchmarks ===
+  var wsCpu=wb.addWorksheet('CPU Benchmarks');
+  wsCpu.properties.tabColor={argb:'FF4472C4'};
+  var cpuCols=['Project','CB R20\n1T','CB R20\nnT','CB R23\n1T','CB R23\nnT','CB 2024\nST (Qualcomm)','CB 2024\nMT (Qualcomm)','GeekBench 6\nCPU AC','GeekBench 6\nCPU DC','Note'];
+  var cpuW=[32,12,12,12,12,14,14,14,14,18];
+  addTitle(wsCpu,cpuCols.length,'▶  '+projName+'  |  CPU Performance — CineBench / GeekBench','FF2E74B5');
+  cpuCols.forEach(function(h,ci){addHd(wsCpu,2,ci,h,'FF2E74B5');wsCpu.getColumn(ci+1).width=cpuW[ci];});
+  wsCpu.getRow(2).height=40;
+  addSkuRows(wsCpu,3,cpuCols.length,'FFF2F2F2','FFFFFFFF');
+  // === Sheet 2: GPU 3DMark ===
+  var wsGpu=wb.addWorksheet('GPU 3DMark');
+  wsGpu.properties.tabColor={argb:'FF7030A0'};
+  var gpuCols=['Project','Graphics','Fire Strike\nScore','Fire Strike\nGraphics','FS Extreme\nScore','Time Spy\nScore','Time Spy\nGraphics','Port Royal\nScore','Note'];
+  var gpuW=[32,20,13,13,13,13,13,13,18];
+  addTitle(wsGpu,gpuCols.length,'▶  '+projName+'  |  GPU — 3DMark','FF7030A0');
+  gpuCols.forEach(function(h,ci){addHd(wsGpu,2,ci,h,'FF7030A0');wsGpu.getColumn(ci+1).width=gpuW[ci];});
+  wsGpu.getRow(2).height=40;
+  addSkuRows(wsGpu,3,gpuCols.length,'FFF5F0FB','FFFFFFFF');
+  // === Sheet 3: Game FPS ===
+  var wsGame=wb.addWorksheet('Game FPS');
+  wsGame.properties.tabColor={argb:'FFBF0000'};
+  var gameCols=['Project','Graphics','SOTTR\nAvg FPS','Far Cry 6\nAvg FPS','Metro Exodus\nW/O RTX','Metro Exodus\nW/ RTX','Cyberpunk 2077\nAvg FPS','Rainbow Six\nSiege','Red Dead 2\nAvg FPS','AC Valhalla\nAvg FPS','Note'];
+  var gameW=[32,20,12,12,13,13,13,12,12,12,18];
+  addTitle(wsGame,gameCols.length,'▶  '+projName+'  |  GPU — Game FPS','FFBF0000');
+  gameCols.forEach(function(h,ci){addHd(wsGame,2,ci,h,'FFBF0000');wsGame.getColumn(ci+1).width=gameW[ci];});
+  wsGame.getRow(2).height=40;
+  addSkuRows(wsGame,3,gameCols.length,'FFFFF0F0','FFFFFFFF');
 }
 
-function _buildConsumerBatterySheet(wb,title,skus,tabColor,items){
-  var ws=wb.addWorksheet(title);
-  if(tabColor)ws.properties.tabColor={argb:tabColor};
+function _buildConsumerBatterySheets(wb,projName,skuInfoList,items){
   var hdBdr={style:'thin',color:{argb:'FF1F3864'}};
-  if(skus&&skus.length){
-    ws.mergeCells(1,1,1,3);
-    var hc=ws.getCell(1,1);
-    hc.value='▶  SKU：'+skus.join('   |   ');
-    hc.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
-    hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF00B0F0'}};
-    hc.alignment={horizontal:'left',vertical:'middle'};
-    hc.border={top:hdBdr,bottom:hdBdr,left:hdBdr,right:hdBdr};
-    ws.getRow(1).height=22;
-  }
-  var off=skus&&skus.length?1:0;
-  var colHd=['#','Test Item','Tool'].concat(skus&&skus.length?skus:['Result']);
-  colHd.forEach(function(h,ci){
-    var c=ws.getCell(off+1,ci+1);
-    c.value=h;
-    c.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0070C0'}};
-    c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
-    c.border={top:hdBdr,bottom:hdBdr,left:hdBdr,right:hdBdr};
-  });
-  ws.getRow(off+1).height=28;
-  ws.getColumn(1).width=5;ws.getColumn(2).width=36;ws.getColumn(3).width=22;
-  for(var ci=4;ci<=colHd.length;ci++)ws.getColumn(ci).width=16;
-  var defaultItems=[
-    {n:'Battery Life — Video Playback (CER)',tool:'NBC BatteryLife Tool'},
-    {n:'Battery Life — Web Browsing 2.0 (CER)',tool:'NBC BatteryLife Tool'},
-    {n:'Battery Life — UL Procyon Office Productivity (CER)',tool:'NBC BatteryLife Tool'},
-    {n:'Battery Life — Teams (CER)',tool:'NBC BatteryLife Tool'},
-    {n:'Battery Life — Maximum Runtime (NPI)',tool:'NBC BatteryLife Tool'},
-    {n:'Battery Life — Video Streaming (NPI)',tool:'NBC BatteryLife Tool'}
+  var thinBdr={style:'thin',color:{argb:'FFBFBFBF'}};
+  var allSections=[
+    {name:'Web Browsing 2.0 (CER)',cer:true},
+    {name:'Video Playback (CER)',cer:true},
+    {name:'UL Procyon Office Productivity (CER)',cer:true},
+    {name:'Teams (CER)',cer:true},
+    {name:'Maximum Runtime (NPI)',cer:false},
+    {name:'Video Streaming (NPI)',cer:false}
   ];
-  var rows=items&&items.length?items.map(function(x){return {n:x.replace(/^\d+\.\s*/,''),tool:'NBC BatteryLife Tool'};}):defaultItems;
-  rows.forEach(function(item,i){
-    var r=off+2+i;var ro=ws.getRow(r);ro.height=18;
-    var bg=i%2===0?'FFE9F5FB':'FFFFFFFF';
-    var c1=ro.getCell(1);c1.value=i+1;c1.alignment={horizontal:'center',vertical:'middle'};c1.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};c1.border={top:{style:'thin',color:{argb:'FFBFBFBF'}},bottom:{style:'thin',color:{argb:'FFBFBFBF'}},left:{style:'thin',color:{argb:'FFBFBFBF'}},right:{style:'thin',color:{argb:'FFBFBFBF'}}};
-    var c2=ro.getCell(2);c2.value=item.n;c2.alignment={horizontal:'left',vertical:'middle'};c2.fill=c1.fill;c2.border=c1.border;
-    var c3=ro.getCell(3);c3.value=item.tool;c3.alignment={horizontal:'center',vertical:'middle'};c3.fill=c1.fill;c3.border=c1.border;c3.font={name:'Arial',size:8,color:{argb:'FF595959'}};
-    for(var ci=4;ci<=colHd.length;ci++){var cx=ro.getCell(ci);cx.fill=c1.fill;cx.border=c1.border;}
+  // Filter sections based on selected items
+  var sections=allSections;
+  if(items&&items.length){
+    var filtered=allSections.filter(function(sec){
+      return items.some(function(it){
+        return it.toLowerCase().indexOf(sec.name.split('(')[0].trim().toLowerCase())!==-1;
+      });
+    });
+    if(filtered.length)sections=filtered;
+  }
+  function setBdr(c,bg){
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg||'FFFFFFFF'}};
+    c.border={top:thinBdr,bottom:thinBdr,left:thinBdr,right:thinBdr};
+    c.font={name:'Arial',size:9};
+    c.alignment={horizontal:'left',vertical:'middle',wrapText:true};
+  }
+  skuInfoList.forEach(function(sku){
+    var sn=(projName+'_'+sku.name).replace(/[\/\\:*?"<>|]/g,'_').substring(0,31);
+    var rn=('Result_'+sku.name).replace(/[\/\\:*?"<>|]/g,'_').substring(0,31);
+    // === Test template sheet per SKU ===
+    var ws=wb.addWorksheet(sn);
+    ws.properties.tabColor={argb:'FF0070C0'};
+    ws.getColumn(1).width=22;ws.getColumn(2).width=28;ws.getColumn(3).width=34;ws.getColumn(4).width=30;ws.getColumn(5).width=14;
+    // Title
+    ws.mergeCells(1,1,1,5);
+    var tt=ws.getCell(1,1);
+    tt.value='▶  '+projName+' — '+sku.name+(sku.bios?' | BIOS: '+sku.bios:'')+(sku.dcd?' | DCD: '+sku.dcd:'');
+    tt.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
+    tt.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0070C0'}};
+    tt.alignment={horizontal:'left',vertical:'middle'};ws.getRow(1).height=22;
+    var r=2;
+    sections.forEach(function(sec){
+      // Section header
+      ws.mergeCells(r,1,r,5);
+      var sh=ws.getCell(r,1);sh.value=sec.name;
+      sh.font={name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}};
+      sh.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2E74B5'}};
+      sh.alignment={horizontal:'left',vertical:'middle',indent:1};
+      sh.border={top:hdBdr,bottom:hdBdr,left:hdBdr,right:hdBdr};
+      ws.getRow(r).height=20;r++;
+      // Sub-header
+      ['System Configuration','Test Tool','System Setting','Battery Life','Power (W)'].forEach(function(h,ci){
+        var c=ws.getRow(r).getCell(ci+1);c.value=h;
+        c.font={name:'Arial',size:8,bold:true,color:{argb:'FF1F3864'}};
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD6E4F0'}};
+        c.alignment={horizontal:'center',vertical:'middle'};
+        c.border={top:{style:'thin',color:{argb:'FF9DC3E6'}},bottom:{style:'thin',color:{argb:'FF9DC3E6'}},left:{style:'thin',color:{argb:'FF9DC3E6'}},right:{style:'thin',color:{argb:'FF9DC3E6'}}};
+      });ws.getRow(r).height=18;r++;
+      var rows=[
+        [projName,'NBC BatteryLife Tool 3.0.3.1_ODM','--- 請填入 Panel 型號 (e.g. BOE/xxx) ---','Result (Mins): ',''],
+        ['Battery Pack: __Wh','','Resolution: ____x____ ___Hz','EstimatedResult (Mins, SOH100%)= ',''],
+        ['DCD: '+(sku.dcd||'___'),'','Setting 58%: 150nits',sec.cer?'CER test: 95%~75%':'NPI test: 100%~5%',''],
+        ['BIOS: '+(sku.bios||'___'),'','Speaker setting: 15%','StateOfHealth (SOH) = ___%',''],
+        ['SKU: '+sku.name,'','Keyboard backlight: off','',''],
+        ['Edition: Pro','','WIFI: ON / Connected','',''],
+        ['','','Bluetooth: ON / Not connected','',''],
+        ['','','Power Mode: Balanced','',''],
+        ['','','Fan Mode: Standard','','']
+      ];
+      rows.forEach(function(rd){
+        var ro=ws.getRow(r);ro.height=16;
+        rd.forEach(function(v,ci){var c=ro.getCell(ci+1);setBdr(c,'FFFFFFFF');if(v)c.value=v;});r++;
+      });
+      r++;// spacer
+    });
+    // === Result summary sheet ===
+    var wsR=wb.addWorksheet(rn);
+    wsR.properties.tabColor={argb:'FF00B0F0'};
+    [12,14,10,10,18,16,16,16,14,18,18,10].forEach(function(w,ci){wsR.getColumn(ci+1).width=w;});
+    var rCols=['Date','Model','Series','SKU','Max Runtime\n(w / min)','Video Playback\n(w / min)','Web Browsing\n(w / min)','Procyon CER\n(w / min)','Teams CER\n(w / min)','Web Browsing CER\n(w / min)','Video Playback CER\n(w / min)','BIOS'];
+    wsR.mergeCells(1,1,1,rCols.length);
+    var rt=wsR.getCell(1,1);
+    rt.value='▶  '+projName+' — '+sku.name+' | Battery Life Results';
+    rt.font={name:'Arial',size:9,bold:true,color:{argb:'FFFFFFFF'}};
+    rt.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF00B0F0'}};
+    rt.alignment={horizontal:'left',vertical:'middle'};wsR.getRow(1).height=22;
+    rCols.forEach(function(h,ci){
+      var c=wsR.getRow(2).getCell(ci+1);c.value=h;
+      c.font={name:'Arial',size:8,bold:true,color:{argb:'FFFFFFFF'}};
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0070C0'}};
+      c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      c.border={top:hdBdr,bottom:hdBdr,left:hdBdr,right:hdBdr};
+    });wsR.getRow(2).height=40;
+    var dr=wsR.getRow(3);dr.height=20;
+    [null,projName,projName,sku.name,null,null,null,null,null,null,null,sku.bios||null].forEach(function(val,ci){
+      var c=dr.getCell(ci+1);if(val)c.value=val;
+      c.font={name:'Arial',size:9};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE9F5FB'}};
+      c.border={top:thinBdr,bottom:thinBdr,left:thinBdr,right:thinBdr};
+      c.alignment={horizontal:'center',vertical:'middle'};
+    });
   });
 }
 
@@ -3018,7 +3102,6 @@ function downloadTestTemplate(itemId){
   var item=_adminItems[itemId];
   if(!item){alert('找不到表單資料');return;}
   if(typeof ExcelJS==='undefined'){alert('ExcelJS 尚未載入，請重新整理頁面後再試。');return;}
-  if(!window.GL_TMPL){alert('模板資料尚未載入，請重新整理頁面後再試。');return;}
   var projCode=_xSs(item.ProjectCode)||item.Title||'';
   var phase=item.Phase||'';
   var info={
@@ -3030,26 +3113,43 @@ function downloadTestTemplate(itemId){
     accSkus:_xCsv(item.ReportACC),tprSkus:_xCsv(item.ReportTPR),
     sowSkus:_xCsv(item.ReportSOW),hwiSkus:_xCsv(item.ReportHWInfo)};
   var isConsumer=(item.SeriesType==='consumer')||(!item.ReportACC&&!item.ACCItems&&!item.ReportTPR&&!item.TPRItems&&(item.ReportPerf||item.PerfItems||item.ReportBattery||item.BatteryItems));
+  // Build full SKU info map (with bios/dcd) from AllProjects JSON
+  var skuInfoMap={};
+  var firstProjName=info.projName;
+  try{
+    var ap=JSON.parse(item.AllProjects||'[]');
+    ap.forEach(function(proj){
+      var pn=proj.projName||proj.projCode||info.projName;
+      if(ap.length===1)firstProjName=pn;
+      (proj.skus||[]).forEach(function(s){
+        if(s.name)skuInfoMap[s.name]={bios:s.bios||'',dcd:s.dcd||'',projName:pn};
+      });
+    });
+  }catch(e){}
+  function enrichSkus(names){
+    return names.map(function(n){
+      var inf=skuInfoMap[n]||{};
+      return {name:n,bios:inf.bios||'',dcd:inf.dcd||'',projName:inf.projName||firstProjName};
+    });
+  }
   var wb=new ExcelJS.Workbook();wb.creator='HW Gaming Lab';wb.created=new Date();
   _xCover(wb,info);
   var allSkuNames=info.skuList.map(function(s){return s.name;});
   function skusFor(f){var csv=_xCsv(item[f]||'');return csv.length?csv:allSkuNames;}
   if(isConsumer){
-    // Consumer: Performance + Battery Life sheets
     var hasPerf=!!(item.ReportPerf||item.PerfItems);
     var hasBattery=!!(item.ReportBattery||item.BatteryItems);
     if(!hasPerf&&!hasBattery){hasPerf=true;hasBattery=true;}
     if(hasPerf){
-      var perfSkus=skusFor('ReportPerf');
       var perfItems=item.PerfItems?item.PerfItems.split('\n').filter(Boolean):[];
-      _buildConsumerSheet(wb,'Consumer｜Performance',perfSkus,'FF4472C4',perfItems);
+      _buildConsumerPerfSheets(wb,firstProjName,enrichSkus(skusFor('ReportPerf')),perfItems);
     }
     if(hasBattery){
-      var battSkus=skusFor('ReportBattery');
       var battItems=item.BatteryItems?item.BatteryItems.split('\n').filter(Boolean):[];
-      _buildConsumerBatterySheet(wb,'Consumer｜Battery Life',battSkus,'FF00B0F0',battItems);
+      _buildConsumerBatterySheets(wb,firstProjName,enrichSkus(skusFor('ReportBattery')),battItems);
     }
   } else {
+    if(!window.GL_TMPL){alert('模板資料尚未載入，請重新整理頁面後再試。');return;}
     // Gaming: ACC / TPR / SOW / HW Info sheets
     var hasACC=!!(item.ReportACC||item.ACCItems);
     var hasTPR=!!(item.ReportTPR||item.TPRItems);
