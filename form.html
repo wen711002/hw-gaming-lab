@@ -76,6 +76,11 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .schedule-section{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:20px 24px;margin-bottom:24px;animation:fadeUp 0.5s 0.1s ease both;}
 .schedule-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
 .schedule-title{font-family:var(--font-head);font-size:18px;font-weight:700;letter-spacing:0.06em;color:var(--cyan);text-transform:uppercase;}
+.series-owners-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.so-item{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);padding:10px 14px;font-size:15px;}
+.so-series{color:var(--text2);}
+.so-arrow{color:var(--text3);}
+.so-owner{color:var(--cyan);font-weight:700;font-family:var(--font-mono);}
 .schedule-stats{display:flex;gap:20px;font-size:15px;color:var(--text2);}
 .schedule-stats strong{color:var(--text);font-weight:700;}
 .schedule-timeline{position:relative;margin-bottom:6px;}
@@ -527,22 +532,13 @@ document.getElementById('pw-input').focus();
     <p>請依序填寫各項資訊，完成後點擊「確認送出」提交至實驗室排程系統</p>
   </div>
 
-  <!-- SCHEDULE SECTION -->
+  <!-- SERIES OWNERS SECTION -->
   <div class="schedule-section">
-    <div class="schedule-header" onclick="toggleSchedule()" style="cursor:pointer;">
-      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <div class="schedule-title">目前接單狀態</div>
-        <div class="schedule-stats">共 <strong id="sch-total">3</strong> 個案子 &nbsp;|&nbsp; 共 <strong id="sch-sku">7</strong> 台 SKU 機台</div>
-      </div>
-      <button id="sch-toggle" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:4px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:4px 12px;cursor:pointer;">展開排程 ↓</button>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="schedule-title">專案系列負責人</div>
     </div>
-    <div id="schedule-body" style="display:none;margin-top:14px;">
-      <div class="schedule-timeline" id="schedule-chart">
-        <div class="schedule-months" id="schedule-months"></div>
-        <div id="schedule-rows"></div>
-      </div>
-      <div class="schedule-note">* 資料來源：SharePoint 已提交表單 ｜ 顯示本月及下月排程</div>
-    </div>
+    <div id="series-owners-list" class="series-owners-list"></div>
+    <div class="schedule-note">* 資料來源：排程甘特圖系列負責人設定（介面尚未串接，目前為範例資料）</div>
   </div>
 
   <!-- ADMIN BAR -->
@@ -622,18 +618,38 @@ document.getElementById('pw-input').focus();
     </div>
   </div>
 
+  <!-- SERIES SCREEN -->
+  <div id="series-screen" class="hidden mode-screen">
+    <div class="mode-title">SELECT PRODUCT SERIES</div>
+    <div class="series-type-bar" style="max-width:760px;margin:0 auto;">
+      <div class="stype-card gaming active" id="sc-gaming" onclick="chooseSeries('gaming')">
+        <div class="stype-icon">🎮</div>
+        <div class="stype-info">
+          <div class="stype-title">Gaming</div>
+          <div class="stype-desc">Strix / TUF / ROG 系列</div>
+        </div>
+      </div>
+      <div class="stype-card consumer" id="sc-consumer" onclick="chooseSeries('consumer')">
+        <div class="stype-icon">💻</div>
+        <div class="stype-info">
+          <div class="stype-title">Consumer</div>
+          <div class="stype-desc">ZenBook / VivoBook 系列</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:20px;text-align:center;"><button class="btn btn-sec" onclick="backToMode()">← 返回選擇</button></div>
+  </div>
+
   <!-- MAIN FORM -->
   <div id="main-form" class="hidden">
 
     <!-- STEPS BAR -->
     <div class="steps-bar">
-      <div class="sbar-item active" id="step1-tab"><span class="sbar-num" id="sn1">1</span>基本資訊</div>
+      <div class="sbar-item active" id="step1-tab"><span class="sbar-num" id="sn1">1</span>基本資料</div>
       <div class="sbar-div"></div>
-      <div class="sbar-item" id="step2-tab"><span class="sbar-num" id="sn2">2</span>專案設定</div>
+      <div class="sbar-item" id="step2-tab"><span class="sbar-num" id="sn2">2</span>Report 底稿上傳</div>
       <div class="sbar-div"></div>
-      <div class="sbar-item" id="step3-tab"><span class="sbar-num" id="sn3">3</span>報告選擇</div>
-      <div class="sbar-div"></div>
-      <div class="sbar-item" id="step4-tab"><span class="sbar-num" id="sn4">4</span>確認送出</div>
+      <div class="sbar-item" id="step3-tab"><span class="sbar-num" id="sn3">3</span>確認送出</div>
     </div>
 
     <!-- PAGE 1 -->
@@ -680,29 +696,6 @@ document.getElementById('pw-input').focus();
         </div>
       </div>
 
-      <!-- SERIES TYPE SELECTOR -->
-      <div class="panel" style="border-color:rgba(0,229,160,0.25);background:rgba(0,229,160,0.02);margin-bottom:16px;">
-        <div class="panel-header"><div class="panel-title" style="color:var(--green);">產品系列 <span style="font-size:14px;font-weight:400;color:var(--text3);font-family:var(--font-mono);">// 選擇系列後，Step 3 將只顯示對應的報告模板</span></div></div>
-        <div class="panel-body">
-          <div class="series-type-bar">
-            <div class="stype-card gaming active" id="sc-gaming" onclick="setSeriesType('gaming')">
-              <div class="stype-icon">🎮</div>
-              <div class="stype-info">
-                <div class="stype-title">Gaming</div>
-                <div class="stype-desc">Strix / TUF / ROG 系列 — ACC、TPR、SOW、HW Info</div>
-              </div>
-            </div>
-            <div class="stype-card consumer" id="sc-consumer" onclick="setSeriesType('consumer')">
-              <div class="stype-icon">💻</div>
-              <div class="stype-info">
-                <div class="stype-title">Consumer</div>
-                <div class="stype-desc">ZenBook / VivoBook 系列 — Performance、Battery Life</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="panel">
         <div class="panel-header"><div class="panel-title">需求單位資訊</div></div>
         <div class="panel-body">
@@ -720,526 +713,72 @@ document.getElementById('pw-input').focus();
       </div>
 
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">測試時程</div></div>
+        <div class="panel-header"><div class="panel-title">專案資訊 <span style="font-size:14px;font-weight:400;color:var(--text3);font-family:var(--font-mono);" id="series-badge">// Gaming</span></div></div>
         <div class="panel-body">
           <div class="g2">
-            <div class="field">
-              <label>測試開始日期<span class="req">*</span></label>
-              <input type="text" id="sch_start" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" onchange="updReportDueMin()"/>
-              <span class="hint">請填入機台可供測試的開始日</span>
+            <div class="field"><label>專案系列<span class="req">*</span></label>
+              <select id="prodline" onchange="onProdLineChange()" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+                <option value="">--- 選擇 Product Line ---</option>
+              </select>
             </div>
-            <div class="field">
-              <label>報告需求日<span class="req">*</span></label>
-              <input type="text" id="report_due" placeholder="年/月/日" style="margin-top:6px;font-family:var(--font-mono);" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"/>
-              <span class="hint" id="hint-report-due">最少為測試開始日後第 5 天</span>
+            <div class="field"><label>專案平台<span class="req">*</span></label>
+              <select id="subseries" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;">
+                <option value="">--- 請先選擇 Product Line ---</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Project Code<span class="req">*</span></label><input type="text" id="projcode" placeholder="例：S5408QA（都大寫）" oninput="updateFilenamePreview()"/></div>
+          <div class="field"><label>Phase<span class="req">*</span></label><input type="text" id="projphase" placeholder="例：PR1、ER2（務必全以大寫輸入）" oninput="updateFilenamePreview()"/></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">此 Phase 測試機台 SKU</div></div>
+        <div class="panel-body">
+          <p class="sku-hint">// 欄位較多，可左右滑動</p>
+          <div class="sku-wrap"><table><thead><tr>
+            <th class="col-i">#</th><th style="min-width:88px;">SKU 型號</th><th style="min-width:80px;">OS 版本</th>
+            <th style="min-width:88px;">Panel</th><th style="min-width:130px;">CPU</th><th style="min-width:78px;">GPU</th>
+            <th style="min-width:52px;">RAM</th><th style="min-width:82px;">BIOS</th><th style="min-width:82px;">VBIOS</th>
+            <th style="min-width:82px;">DCD</th><th style="min-width:100px;">VGA Driver</th><th style="min-width:78px;">備註</th>
+            <th class="col-d"></th></tr></thead>
+            <tbody id="proj-sku-tbody"></tbody></table></div>
+          <button class="add-row-btn" onclick="addProjSkuRow()">＋ ADD MACHINE</button>
+          <div class="field" style="margin-top:16px;">
+            <label>SKU Table 上傳（選填）</label>
+            <input type="file" id="sku-file" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this)"/>
+            <span class="hint">如有現成 SKU 清單 Excel，可直接上傳作為附件</span>
+            <div id="file-preview" style="display:none;margin-top:6px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);">
+              <span id="file-preview-name" style="font-family:var(--font-mono);font-size:14px;color:var(--green);"></span>
+              <button type="button" class="sa-btn" style="margin-left:8px;" onclick="clearFile()">移除</button>
             </div>
           </div>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-sec" onclick="backToMode()">← BACK</button>
-        <button class="btn btn-pri" onclick="goPage(2)">NEXT: PROJECT SETUP →</button>
+        <button class="btn btn-sec" onclick="backFromPage1()">← BACK</button>
+        <button class="btn btn-pri" onclick="goPage(2)">NEXT: REPORT 底稿上傳 →</button>
       </div>
     </div>
 
-    <!-- PAGE 2: PROJECTS -->
+    <!-- PAGE 2: REPORTS -->
     <div class="page" id="page2">
       <div class="panel" style="border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.02);margin-bottom:16px;">
         <div class="panel-header"><div class="panel-title">說明</div></div>
         <div class="panel-body" style="padding:12px 20px;">
-          <p style="font-size:16px;color:var(--text2);line-height:1.8;">// 一個 Report Task 可包含多個專案（例如 SOW 跨多專案、HW Info 多組態）。<br>// 每個專案填入獨立的 SKU 機台清單；SOW / HW Info 為跨專案共用報告類型。</p>
+          <p style="font-size:16px;color:var(--text2);line-height:1.8;">// 請依「提交急迫度／重要程度」由上而下新增 report（最多 5 份）。<br>// 每份 report 各自上傳底板檔案、填寫測試時程，並勾選對應的 SKU 機台。</p>
         </div>
       </div>
-      <div id="projects-container"></div>
-      <button class="add-row-btn" onclick="addProjectCard()" style="margin-bottom:20px;">＋ ADD PROJECT</button>
-      <div class="btn-row">
-        <button class="btn btn-sec" onclick="goPage(1)">← BACK</button>
-        <button class="btn btn-pri" onclick="goPage(3)">NEXT: TEST REQUIREMENTS →</button>
-      </div>
-    </div>
-
-    <!-- PAGE 3: TEST ITEMS -->
-    <div class="page" id="page3">
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">SKU × 報告對應</div>
-          <span style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 預設全選，可取消不需要本次提交的組合</span>
-        </div>
+      <div class="panel hidden" id="consumer-extra-tests">
+        <div class="panel-header"><div class="panel-title">額外單項測試 <span style="font-size:14px;font-weight:400;color:var(--text3);font-family:var(--font-mono);">// 僅 Consumer 系列，勾選需另外測試的單項</span></div></div>
         <div class="panel-body">
-          <div id="sku-report-matrix-wrap" style="overflow-x:auto;margin-bottom:16px;"></div>
-
-          <!-- ACC items -->
-          <!-- ACC items -->
-          <div class="report-items" id="ritems-acc">
-            <div class="ri-header">
-              <span class="ri-label ri-label-blue">ACC — 測項明細</span>
-              <button class="sa-btn" onclick="togAllRptItems('acc')">全選 / 全清</button>
-            </div>
-            <div class="ri-body" style="gap:8px;">
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="acc-cinebench" checked onchange="togRptGrp('acc-cinebench',this.checked,'acc')"> CineBench R20,23,24</label>
-                </div>
-                <div id="rpt-sec-acc-cinebench" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="CineBench R20,23,24 — nT" checked> nT（多核）</label>
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="CineBench R20,23,24 — 1T" checked> 1T（單核）</label>
-                  </div>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="acc-3dmark" checked onchange="togRptGrp('acc-3dmark',this.checked,'acc')"> 3DMark</label>
-                </div>
-                <div id="rpt-sec-acc-3dmark" class="ri-sec-body">
-                  <div class="ri-sub-title">Fire Strike</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
-                  </div>
-                  <div class="ri-sub-title">Time Spy</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="acc" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
-                  </div>
-                  <div class="ri-sub-title">Port Royal</div>
-                  <label class="crow ri-indent"><input type="checkbox" data-rpt="acc" value="3DMark Port Royal" checked> Port Royal</label>
-                </div>
-              </div>
-            </div>
-            <div class="ri-note-wrap">
-              <input type="text" id="note-acc" placeholder="備注：特殊說明（如特定條件或排除項目）…">
-            </div>
-          </div>
-
-          <!-- TPR items -->
-          <div class="report-items" id="ritems-tpr">
-            <div class="ri-header">
-              <span class="ri-label ri-label-amber">TPR — 測項明細</span>
-              <button class="sa-btn" onclick="togAllRptItems('tpr')">全選 / 全清</button>
-            </div>
-            <div class="ri-body" style="gap:8px;">
-              <!-- Battery Life -->
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="tpr-battery" checked onchange="togRptGrp('tpr-battery',this.checked,'tpr')"> Battery Life <span class="ri-mode-badge">Auto test tool: NBCBatteryLifeTool</span></label>
-                </div>
-                <div id="rpt-sec-tpr-battery" class="ri-sec-body">
-                  <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span class="fml">Fan mode：</span>
-                    <label><input type="checkbox" data-tpr-fan="battery" value="Silent"> Silent</label>
-                    <label><input type="checkbox" data-tpr-fan="battery" value="Performance" checked> Performance</label>
-                    <label><input type="checkbox" data-tpr-fan="battery" value="Turbo"> Turbo</label>
-                  </div>
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Video Playback (ADK)" checked> Video Playback (ADK)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Web Browsing (ADK)" checked> Web Browsing (ADK)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Maximum Runtime (Reader)" checked> Maximum Runtime (Reader)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — PCMark 10 (Modern Office)" checked> PCMark 10 (Modern Office)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — UL Procyon Office Productivity" checked> UL Procyon Office Productivity</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Teams" checked> Teams</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Battery Life — Modern Standby" checked> Modern Standby</label>
-                  </div>
-                </div>
-              </div>
-              <!-- Benchmark Performance -->
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="tpr-benchmark" checked onchange="togRptGrp('tpr-benchmark',this.checked,'tpr')"> Benchmark Performance</label>
-                </div>
-                <div id="rpt-sec-tpr-benchmark" class="ri-sec-body">
-                  <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span class="fml">Fan mode：</span>
-                    <label><input type="checkbox" data-tpr-fan="benchmark" value="Silent" checked> Silent</label>
-                    <label><input type="checkbox" data-tpr-fan="benchmark" value="Performance" checked> Performance</label>
-                    <label><input type="checkbox" data-tpr-fan="benchmark" value="Turbo" checked> Turbo</label>
-                  </div>
-                  <div class="ri-sub-title">CineBench R20,23,24</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="CineBench R20,23,24 — nT" checked> nT（多核）</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="CineBench R20,23,24 — 1T" checked> 1T（單核）</label>
-                  </div>
-                  <div class="ri-sub-title">3DMark</div>
-                  <div class="ri-indent">
-                    <div class="ri-sub-title2">Fire Strike</div>
-                    <div class="ri-2col ri-indent">
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
-                    </div>
-                    <div class="ri-sub-title2">Time Spy</div>
-                    <div class="ri-2col ri-indent">
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
-                      <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
-                    </div>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="3DMark Port Royal" checked> Port Royal</label>
-                  </div>
-                  <div class="ri-sub-title">其他 Benchmarks</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="AIDA64" checked> AIDA64</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="CrystalDiskMark" checked> CrystalDiskMark</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="PCMark10" checked> PCMark10</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="HandBrake" checked> HandBrake</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="UL Procyon AI" checked> UL Procyon AI</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Pugetbench" checked> Pugetbench</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Specviewperf" checked> Specviewperf</label>
-                  </div>
-                </div>
-              </div>
-              <!-- Game FPS -->
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="tpr-gamefps" checked onchange="togRptGrp('tpr-gamefps',this.checked,'tpr')"> Game FPS <span class="ri-mode-badge">Auto test tool: MediaReviewer</span></label>
-                </div>
-                <div id="rpt-sec-tpr-gamefps" class="ri-sec-body">
-                  <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span class="fml">Fan mode：</span>
-                    <label><input type="checkbox" data-tpr-fan="gamefps" value="Silent" checked> Silent</label>
-                    <label><input type="checkbox" data-tpr-fan="gamefps" value="Performance" checked> Performance</label>
-                    <label><input type="checkbox" data-tpr-fan="gamefps" value="Turbo" checked> Turbo</label>
-                  </div>
-                  <div class="ri-sub-title">Game FPS — MediaReviewer</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — SOTTR (Steam)" checked> SOTTR (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 2K 原生" checked> Cyberpunk 2077 — 2K 原生</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 2K DLSS3" checked> Cyberpunk 2077 — 2K DLSS3</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 2K DLSS4" checked> Cyberpunk 2077 — 2K DLSS4</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 FHD 原生" checked> Cyberpunk 2077 — FHD 原生</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 FHD DLSS3" checked> Cyberpunk 2077 — FHD DLSS3</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 FHD DLSS4" checked> Cyberpunk 2077 — FHD DLSS4</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Cyberpunk 2077 W/RTX" checked> Cyberpunk 2077 — W/RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Metro Exodus w/o RTX" checked> Metro Exodus — w/o RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Metro Exodus w RTX" checked> Metro Exodus — w RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Game FPS — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
-                  </div>
-                  <div class="ri-sub-title">Intel Gaming（高能靜音模式）</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Cyberpunk 2077 1080p DX12" checked> Cyberpunk 2077 1080p DX12</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Black Myth 黑悟空 1440p DX12" checked> Black Myth-黑悟空 1440p DX12</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — PUBG 1080p DX11E" checked> PUBG 1080p DX11E</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Naraka Bladepoint 1080p DX11" checked> Naraka: Bladepoint 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Counter Strike 2 1080p DX11" checked> Counter Strike 2 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — Rainbow Six Siege 1080p DX11" checked> Rainbow Six Siege 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — League of Legends 1080p DX11" checked> League of Legends 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="tpr" value="Intel Gaming — DOTA2 1080p DX11" checked> DOTA2 1080p DX11</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ri-note-wrap">
-              <input type="text" id="note-tpr" placeholder="備注：特殊說明（如排除特定 Fan mode 或遊戲）…">
-            </div>
-          </div>
-
-          <!-- SOW Performance items -->
-          <div class="report-items" id="ritems-sow">
-            <div class="ri-header">
-              <span class="ri-label ri-label-green">SOW Performance — 測項明細</span>
-              <button class="sa-btn" onclick="togAllRptItems('sow')">全選 / 全清</button>
-            </div>
-            <div class="ri-body" style="gap:8px;">
-              <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-                <span class="fml">Fan mode：</span>
-                <label><input type="checkbox" data-sow-fan value="Silent"> Silent</label>
-                <label><input type="checkbox" data-sow-fan value="Performance"> Performance</label>
-                <label><input type="checkbox" data-sow-fan value="Turbo" checked> Turbo</label>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-3dmark" checked onchange="togRptGrp('sow-3dmark',this.checked,'sow')"> 3DMark</label>
-                </div>
-                <div id="rpt-sec-sow-3dmark" class="ri-sec-body">
-                  <div class="ri-sub-title">Fire Strike</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
-                  </div>
-                  <div class="ri-sub-title">Time Spy</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
-                  </div>
-                  <div class="ri-sub-title">Port Royal</div>
-                  <label class="crow ri-indent"><input type="checkbox" data-rpt="sow" value="3DMark Port Royal" checked> Port Royal</label>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-fps2k" checked onchange="togRptGrp('sow-fps2k',this.checked,'sow')"> Gaming FPS — 2K</label>
-                </div>
-                <div id="rpt-sec-sow-fps2k" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — SOTTR (Steam)" checked> SOTTR (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Cyberpunk 2077 原生" checked> Cyberpunk 2077 — 原生</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Cyberpunk 2077 DLSS3" checked> Cyberpunk 2077 — DLSS3</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Cyberpunk 2077 DLSS4" checked> Cyberpunk 2077 — DLSS4</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Metro Exodus w/o RTX" checked> Metro Exodus — w/o RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Metro Exodus w RTX" checked> Metro Exodus — w RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS 2K — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
-                  </div>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-fpsfhd" checked onchange="togRptGrp('sow-fpsfhd',this.checked,'sow')"> Gaming FPS — FHD</label>
-                </div>
-                <div id="rpt-sec-sow-fpsfhd" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — SOTTR (Steam)" checked> SOTTR (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 原生" checked> Cyberpunk 2077 — 原生</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 DLSS3" checked> Cyberpunk 2077 — DLSS3</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 DLSS4" checked> Cyberpunk 2077 — DLSS4</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Cyberpunk 2077 W/RTX" checked> Cyberpunk 2077 — W/RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Metro Exodus w/o RTX" checked> Metro Exodus — w/o RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Metro Exodus w RTX" checked> Metro Exodus — w RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Game FPS FHD — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
-                  </div>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="sow-intel" checked onchange="togRptGrp('sow-intel',this.checked,'sow')"> Intel Gaming（高能靜音模式）</label>
-                </div>
-                <div id="rpt-sec-sow-intel" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Cyberpunk 2077 1080p DX12" checked> Cyberpunk 2077 1080p DX12</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Black Myth 黑悟空 1440p DX12" checked> Black Myth-黑悟空 1440p DX12</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — PUBG 1080p DX11E" checked> PUBG 1080p DX11E</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Naraka Bladepoint 1080p DX11" checked> Naraka: Bladepoint 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Counter Strike 2 1080p DX11" checked> Counter Strike 2 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — Rainbow Six Siege 1080p DX11" checked> Rainbow Six Siege 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — League of Legends 1080p DX11" checked> League of Legends 1080p DX11</label>
-                    <label class="crow"><input type="checkbox" data-rpt="sow" value="Intel Gaming — DOTA2 1080p DX11" checked> DOTA2 1080p DX11</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ri-note-wrap">
-              <input type="text" id="note-sow" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
-            </div>
-          </div>
-
-          <!-- CONSUMER: Performance items -->
-          <div class="report-items" id="ritems-perf">
-            <div class="ri-header">
-              <span class="ri-label ri-label-green">Performance — 測項明細</span>
-              <button class="sa-btn" onclick="togAllRptItems('perf')">全選 / 全清</button>
-            </div>
-            <div class="ri-body" style="gap:8px;">
-              <!-- CPU Benchmark -->
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="perf-cpu" checked onchange="togRptGrp('perf-cpu',this.checked,'perf')"> CPU Benchmark</label>
-                </div>
-                <div id="rpt-sec-perf-cpu" class="ri-sec-body">
-                  <div class="ri-sub-title">CineBench R20 / R23</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="CineBench R20/R23 — nT（多核）" checked> nT（多核）</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="CineBench R20/R23 — 1T（單核）" checked> 1T（單核）</label>
-                  </div>
-                  <div class="ri-sub-title">CineBench 2024 <span style="font-size:11px;color:var(--text3);">（Qualcomm 適用）</span></div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="CineBench 2024 — ST（單核）" checked> ST（單核）</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="CineBench 2024 — MT（多核）" checked> MT（多核）</label>
-                  </div>
-                  <div class="ri-sub-title">GeekBench 6 <span style="font-size:11px;color:var(--text3);">（Qualcomm 適用）</span></div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="GeekBench 6 — CPU Score AC Mode" checked> CPU Score AC Mode</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="GeekBench 6 — CPU Score DC Mode" checked> CPU Score DC Mode</label>
-                  </div>
-                </div>
-              </div>
-              <!-- GPU Benchmark -->
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="perf-gpu" checked onchange="togRptGrp('perf-gpu',this.checked,'perf')"> GPU Benchmark — 3DMark</label>
-                </div>
-                <div id="rpt-sec-perf-gpu" class="ri-sec-body">
-                  <div class="ri-sub-title">Fire Strike</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
-                  </div>
-                  <div class="ri-sub-title">Time Spy</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
-                  </div>
-                  <div class="ri-sub-title">Port Royal</div>
-                  <label class="crow ri-indent"><input type="checkbox" data-rpt="perf" value="3DMark Port Royal" checked> Port Royal</label>
-                </div>
-              </div>
-              <!-- Game FPS -->
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="perf-gamefps" checked onchange="togRptGrp('perf-gamefps',this.checked,'perf')"> Game FPS</label>
-                </div>
-                <div id="rpt-sec-perf-gamefps" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — SOTTR (Steam)" checked> SOTTR (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Far Cry 6 (Steam)" checked> Far Cry 6 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Metro Exodus W/O RTX" checked> Metro Exodus — W/O RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Metro Exodus W/ RTX" checked> Metro Exodus — W/ RTX</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Cyberpunk 2077 (Steam)" checked> Cyberpunk 2077 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Assassins Creed Valhalla" checked> Assassins Creed Valhalla</label>
-                    <label class="crow"><input type="checkbox" data-rpt="perf" value="Game FPS — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ri-note-wrap">
-              <input type="text" id="note-perf" placeholder="備注：特殊說明（如 Qualcomm 機型無 GPU 測項、排除特定遊戲等）…">
-            </div>
-          </div>
-
-          <!-- CONSUMER: Battery Life items -->
-          <div class="report-items" id="ritems-battery">
-            <div class="ri-header">
-              <span class="ri-label ri-label-cyan">Battery Life — 測項明細</span>
-              <button class="sa-btn" onclick="togAllRptItems('battery')">全選 / 全清</button>
-            </div>
-            <div class="ri-body" style="gap:8px;">
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="battery-cer" checked onchange="togRptGrp('battery-cer',this.checked,'battery')"> CER 測試 <span class="ri-mode-badge">Auto test tool: NBC BatteryLife Tool</span></label>
-                </div>
-                <div id="rpt-sec-battery-cer" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="battery" value="Battery Life — Video Playback (CER)" checked> Video Playback (CER)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="battery" value="Battery Life — Web Browsing 2.0 (CER)" checked> Web Browsing 2.0 (CER)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="battery" value="Battery Life — UL Procyon Office Productivity (CER)" checked> UL Procyon Office Productivity (CER)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="battery" value="Battery Life — Teams (CER)" checked> Teams (CER)</label>
-                  </div>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="battery-npi" checked onchange="togRptGrp('battery-npi',this.checked,'battery')"> NPI 測試</label>
-                </div>
-                <div id="rpt-sec-battery-npi" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="battery" value="Battery Life — Maximum Runtime (NPI)" checked> Maximum Runtime (NPI)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="battery" value="Battery Life — Video Streaming (NPI)" checked> Video Streaming (NPI)</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ri-note-wrap">
-              <input type="text" id="note-battery" placeholder="備注：特殊說明（如特定 SOH 條件、排除特定測試）…">
-            </div>
-          </div>
-
-          <!-- HW Information items -->
-          <div class="report-items" id="ritems-hwinfo">
-            <div class="ri-header">
-              <span class="ri-label ri-label-purple">HW Information — 測項明細</span>
-              <button class="sa-btn" onclick="togAllRptItems('hwinfo')">全選 / 全清</button>
-            </div>
-            <div class="ri-body" style="gap:8px;">
-              <div class="fan-mode-row" style="margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-                <span class="fml">Fan mode：</span>
-                <label><input type="checkbox" data-hwinfo-fan value="Silent"> Silent</label>
-                <label><input type="checkbox" data-hwinfo-fan value="Performance"> Performance</label>
-                <label><input type="checkbox" data-hwinfo-fan value="Turbo" checked> Turbo</label>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="hwinfo-battery" checked onchange="togRptGrp('hwinfo-battery',this.checked,'hwinfo')"> Battery Life</label>
-                </div>
-                <div id="rpt-sec-hwinfo-battery" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Video Playback (ADK)" checked> Video Playback (ADK)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Web Browsing (ADK)" checked> Web Browsing (ADK)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Maximum Runtime (Reader)" checked> Maximum Runtime (Reader)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — PCMark 10 (Modern Office)" checked> PCMark 10 (Modern Office)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — UL Procyon Office Productivity" checked> UL Procyon Office Productivity</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Teams" checked> Teams</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Battery Life — Modern Standby" checked> Modern Standby</label>
-                  </div>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="hwinfo-3dmark" checked onchange="togRptGrp('hwinfo-3dmark',this.checked,'hwinfo')"> 3DMark</label>
-                </div>
-                <div id="rpt-sec-hwinfo-3dmark" class="ri-sec-body">
-                  <div class="ri-sub-title">Fire Strike</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Score" checked> Fire Strike Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Graphics Score" checked> Graphics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Physics Score" checked> Physics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Fire Strike — Combined Score" checked> Combined Score</label>
-                  </div>
-                  <div class="ri-sub-title">Time Spy</div>
-                  <div class="ri-2col ri-indent">
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Time Spy — Score" checked> Time Spy Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Time Spy — Graphics Score" checked> Graphics Score</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="3DMark Time Spy — CPU Score" checked> CPU Score</label>
-                  </div>
-                  <div class="ri-sub-title">Port Royal</div>
-                  <label class="crow ri-indent"><input type="checkbox" data-rpt="hwinfo" value="3DMark Port Royal" checked> Port Royal</label>
-                </div>
-              </div>
-              <div class="ri-section">
-                <div class="ri-section-hd">
-                  <label class="crow"><input type="checkbox" data-rpt-grp="hwinfo-gamefps" checked onchange="togRptGrp('hwinfo-gamefps',this.checked,'hwinfo')"> Game FPS</label>
-                </div>
-                <div id="rpt-sec-hwinfo-gamefps" class="ri-sec-body">
-                  <div class="ri-2col">
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Forza Horizon 5 (XBox)" checked> Forza Horizon 5 (XBox)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — SOTTR (Steam)" checked> SOTTR (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Cyberpunk 2077 (Steam)" checked> Cyberpunk 2077 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Rainbow Six Siege (Steam)" checked> Rainbow Six Siege (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Red Dead Redemption 2 (Steam)" checked> Red Dead Redemption 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Metro Exodus (Steam)" checked> Metro Exodus (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Counter-Strike 2 (Steam)" checked> Counter-Strike 2 (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Monster Hunter Wilds (Steam)" checked> Monster Hunter Wilds (Steam)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Black Myth 黑悟空" checked> Black Myth — 黑悟空</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Shadow of the Tomb Raider" checked> Shadow of the Tomb Raider (古墓奇兵)</label>
-                    <label class="crow"><input type="checkbox" data-rpt="hwinfo" value="Game FPS — Assassins Creed Valhalla" checked> Assassins Creed Valhalla (刺客教條)</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ri-note-wrap">
-              <input type="text" id="note-hwinfo" placeholder="備注：特殊說明（如排除特定遊戲或解析度）…">
-            </div>
-          </div>
+          <label class="crow" style="margin-right:20px;"><input type="checkbox" class="extra-test-cb" value="CrystalDiskMark"> CrystalDiskMark</label>
+          <label class="crow"><input type="checkbox" class="extra-test-cb" value="ATTO"> ATTO</label>
         </div>
       </div>
-
+      <div id="reports-container"></div>
+      <button class="add-row-btn" id="add-report-btn" onclick="addReportCard()" style="margin-bottom:20px;">＋ ADD REPORT</button>
 
       <div class="panel">
         <div class="panel-header"><div class="panel-title">補充說明</div></div>
@@ -1249,13 +788,13 @@ document.getElementById('pw-input').focus();
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-sec" onclick="goPage(2)">← BACK</button>
-        <button class="btn btn-pri" onclick="goPage(4)">NEXT: REVIEW →</button>
+        <button class="btn btn-sec" onclick="goPage(1)">← BACK</button>
+        <button class="btn btn-pri" onclick="goPage(3)">NEXT: REVIEW →</button>
       </div>
     </div>
 
-    <!-- PAGE 4: SUMMARY -->
-    <div class="page" id="page4">
+    <!-- PAGE 3: SUMMARY -->
+    <div class="page" id="page3">
       <div class="ok-banner">◈ 請確認以下資訊無誤後，再按下「SUBMIT」</div>
       <div class="scard">
         <h3>Form Info</h3>
@@ -1273,45 +812,17 @@ document.getElementById('pw-input').focus();
       </div>
       <div id="s-projects-wrap"></div>
       <div class="scard">
-        <h3>Test Schedule</h3>
-        <div class="srow"><span class="sl">TEST_SCHEDULE</span><span class="sv" id="s-sched">—</span></div>
-        <div class="srow"><span class="sl">REPORT_DEADLINE</span><span class="sv" id="s-due">—</span></div>
-      </div>
-      <div class="scard">
         <h3>SKU Machines (<span id="s-sku-count">0</span> units)</h3>
         <div id="s-sku-list" style="font-size:16px;line-height:2;font-family:var(--font-mono);"></div>
       </div>
+      <div id="s-extra-tests-wrap"></div>
+      <div id="s-reports-wrap"></div>
       <div class="scard">
-        <h3>Reports Required</h3>
-        <div id="s-reports"><span style="color:var(--text3);font-family:var(--font-mono);font-size:16px;">—</span></div>
-      </div>
-      <div class="scard" id="s-card-acc">
-        <h3><span class="rc-tag rc-tag-blue" style="margin-right:8px;">ACC</span>ACC Report</h3>
-        <div id="s-acc"></div>
-      </div>
-      <div class="scard" id="s-card-tpr">
-        <h3><span class="rc-tag rc-tag-amber" style="margin-right:8px;">TPR</span>TPR Report</h3>
-        <div id="s-tpr"></div>
-        <div id="s-tpr-map" style="margin-top:8px;"></div>
-      </div>
-      <div class="scard" id="s-card-sow">
-        <h3><span class="rc-tag rc-tag-green" style="margin-right:8px;">SOW</span>SOW Performance Report</h3>
-        <div id="s-sow"></div>
-      </div>
-      <div class="scard" id="s-card-hwinfo">
-        <h3><span class="rc-tag rc-tag-purple" style="margin-right:8px;">HW Info</span>HW Information Report</h3>
-        <div id="s-hwinfo"></div>
-      </div>
-      <div class="scard" id="s-card-perf" style="display:none;">
-        <h3><span class="rc-tag rc-tag-green" style="margin-right:8px;">Performance</span>Performance Report</h3>
-        <div id="s-perf"></div>
-      </div>
-      <div class="scard" id="s-card-battery" style="display:none;">
-        <h3><span class="rc-tag rc-tag-cyan" style="margin-right:8px;">Battery Life</span>Battery Life Report</h3>
-        <div id="s-battery"></div>
+        <h3>補充說明</h3>
+        <div id="s-notes" style="font-size:16px;color:var(--text2);white-space:pre-wrap;">—</div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-sec" onclick="goPage(3)">← BACK</button>
+        <button class="btn btn-sec" onclick="goPage(2)">← BACK</button>
         <button class="btn btn-pri" onclick="submitForm()">SUBMIT REQUEST ✓</button>
       </div>
     </div>
@@ -1435,94 +946,56 @@ var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 var PA_DELAY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/09b7285c6c594487bdb0d49f19ef9152/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iV6Xmitmm1EUWn6k3ePGXOEdZCgK0JjskjarwKzz9-I';
 var PA_COMPARE='__PASTE_PA_COMPARE_URL_HERE__'; // ← 建立「Result 比對」Flow 後貼上 URL
-function updReportDueMin(){
-  var startVal=document.getElementById('sch_start').value;
-  var inp=document.getElementById('report_due');
-  var hint=document.getElementById('hint-report-due');
-  var minDate;
-  if(startVal){
-    var d=new Date(startVal);
-    d.setDate(d.getDate()+5);
-    var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);
-    var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();
-    minDate=d.getFullYear()+'-'+mm+'-'+dd;
-    if(hint)hint.textContent='最少為測試開始日後第 5 天（'+minDate+'）';
-  } else {
-    var d2=new Date();
-    d2.setDate(d2.getDate()+6);
-    var mm2=d2.getMonth()+1<10?'0'+(d2.getMonth()+1):''+(d2.getMonth()+1);
-    var dd2=d2.getDate()<10?'0'+d2.getDate():''+d2.getDate();
-    minDate=d2.getFullYear()+'-'+mm2+'-'+dd2;
-    if(hint)hint.textContent='最少為測試開始日後第 5 天';
-  }
-  if(inp){
-    inp.min=minDate;
-    if(inp.value && inp.value<minDate){
-      inp.value='';
-      alert('⚠ 報告需求日須至少為測試開始日後第 5 天，已自動清除，請重新選擇。');
-    }
-  }
-}
-(function(){
-  // 初始預設 min = 今日+6
-  var d=new Date();
-  d.setDate(d.getDate()+6);
-  var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);
-  var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();
-  var fallbackMin=d.getFullYear()+'-'+mm+'-'+dd;
-  document.addEventListener('DOMContentLoaded',function(){
-    var inp=document.getElementById('report_due');
-    if(inp){
-      inp.min=fallbackMin;
-      inp.addEventListener('change',function(){
-        var startVal=document.getElementById('sch_start').value;
-        var curMin=this.min||fallbackMin;
-        if(this.value && this.value<curMin){
-          this.value='';
-          if(startVal){alert('⚠ 報告需求日須至少為測試開始日後第 5 天，請重新選擇。');}
-          else{alert('⚠ 報告需求日須為今日起第 6 天之後，請重新選擇。');}
-        }
-      });
-    }
-  });
-})();
-var rptAllState={acc:true,tpr:true,sow:true,hwinfo:true,perf:true,battery:true};
 var currentSeriesType='gaming'; // 'gaming' | 'consumer'
-var GAMING_RPTS=[{id:'acc',label:'ACC',cls:'blue'},{id:'tpr',label:'TPR',cls:'amber'},{id:'sow',label:'SOW',cls:'green'},{id:'hwinfo',label:'HW Info',cls:'purple'}];
-var CONSUMER_RPTS=[{id:'perf',label:'Performance',cls:'green'},{id:'battery',label:'Battery Life',cls:'cyan'}];
-var ALL_RPT_IDS=['acc','tpr','sow','hwinfo','perf','battery'];
 
-function syncProjCardPLOptions(){
+function syncProdLineOptions(){
   var allowed=currentSeriesType==='consumer'?['Consumer']:['Strix','TUF'];
-  document.querySelectorAll('.proj-pl').forEach(function(sel){
-    var prev=sel.value;
-    sel.innerHTML='<option value="">--- 選擇 Product Line ---</option>';
-    allowed.forEach(function(pl){
-      var o=document.createElement('option');
-      o.value=pl;o.textContent=pl;
-      if(pl===prev)o.selected=true;
-      sel.appendChild(o);
-    });
-    if(prev&&allowed.indexOf(prev)===-1){
-      sel.value='';
-      var card=sel.closest('[data-proj-card]');
-      if(card){var ss=card.querySelector('.proj-ss');if(ss){ss.innerHTML='<option value="">--- 請先選擇 Product Line ---</option>';}}
-    }
+  var sel=document.getElementById('prodline');
+  if(!sel)return;
+  var prev=sel.value;
+  sel.innerHTML='<option value="">--- 選擇 Product Line ---</option>';
+  allowed.forEach(function(pl){
+    var o=document.createElement('option');
+    o.value=pl;o.textContent=pl;
+    if(pl===prev)o.selected=true;
+    sel.appendChild(o);
   });
+  if(prev&&allowed.indexOf(prev)===-1){
+    sel.value='';
+    var ss=document.getElementById('subseries');
+    if(ss)ss.innerHTML='<option value="">--- 請先選擇 Product Line ---</option>';
+  }
+  var badge=document.getElementById('series-badge');
+  if(badge)badge.textContent='// '+(currentSeriesType==='consumer'?'Consumer':'Gaming');
 }
 function setSeriesType(type){
   currentSeriesType=type;
   document.getElementById('sc-gaming').className='stype-card gaming'+(type==='gaming'?' active':'');
   document.getElementById('sc-consumer').className='stype-card consumer'+(type==='consumer'?' active':'');
-  ALL_RPT_IDS.forEach(function(r){var p=document.getElementById('ritems-'+r);if(p)p.style.display='none';});
-  syncProjCardPLOptions();
-  if(document.getElementById('page3').classList.contains('active')){
-    buildSkuReportMatrix();
-  }
+  syncProdLineOptions();
+}
+function chooseSeries(type){
+  setSeriesType(type);
+  document.getElementById('series-screen').classList.add('hidden');
+  document.getElementById('main-form').classList.remove('hidden');
+  initReportId();
+  initProject();
+  goPage(1);
 }
 var formDb={};
 
-function startNew(){isRetest=false;document.getElementById('mode-screen').style.display='none';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.remove('hidden');document.getElementById('retest-block').classList.add('hidden');initReportId();initProjectCards();}
+function startNew(){
+  isRetest=false;
+  document.getElementById('mode-screen').style.display='none';
+  document.getElementById('retest-lookup').classList.add('hidden');
+  document.getElementById('retest-block').classList.add('hidden');
+  document.getElementById('series-screen').classList.remove('hidden');
+}
+function backFromPage1(){
+  if(isRetest){backToMode();return;}
+  document.getElementById('main-form').classList.add('hidden');
+  document.getElementById('series-screen').classList.remove('hidden');
+}
 var _rtAllData=[];
 function startRetest(){
   isRetest=true;
@@ -1560,13 +1033,7 @@ function loadRetestFromSP(){
     plSel.disabled=false;
   });
 }
-function toggleSchedule(){
-  var body=document.getElementById('schedule-body');
-  var btn=document.getElementById('sch-toggle');
-  if(body.style.display==='none'){body.style.display='block';btn.textContent='收合排程 ↑';}
-  else{body.style.display='none';btn.textContent='展開排程 ↓';}
-}
-function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
+function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('series-screen').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
 function lookupFormByName(projName){
   if(!projName) return;
   document.getElementById('lookup-result').classList.add('hidden');
@@ -1655,50 +1122,38 @@ function loadRetestData(){
   document.getElementById('retest-block').classList.remove('hidden');
   var rtSel=document.getElementById('rt-proj-code');
   var code=((data&&data.code)||(rtSel&&rtSel.value)||'').trim().toUpperCase();
-  // Generate new Report ID for this retest and reset project cards
+  // Generate new Report ID for this retest and reset project/report state
   initReportId();
-  initProjectCards();
+  initProject();
+  // 恢復系列類型（決定 Product Line 下拉可選項），須在填入 ProductLine 之前執行
+  setSeriesType((data&&data.seriesType)||'gaming');
   if(data){
     var set=function(id,val){var el=document.getElementById(id);if(el&&val!=null)el.value=val;};
-    // Page 1 fields
     set('dept',      data.dept);
     set('requester', data.requester);
     set('req-email', data.email);
     set('contact',   data.ee||data.pl||data.qa||'');
-    set('sch_start', data.schedStart?data.schedStart.slice(0,10):'');
     set('extra_notes', data.notes);
-    // Fill first project card
-    var firstCard=document.querySelector('[data-proj-card]');
-    if(firstCard){
-      var nameEl=firstCard.querySelector('.proj-name');
-      if(nameEl)nameEl.value=data.name||'';
-      var codeEl=firstCard.querySelector('.proj-code');
-      if(codeEl)codeEl.value=code;
-      var phaseEl=firstCard.querySelector('.proj-phase');
-      if(phaseEl)phaseEl.value=data.phase||'';
-      // ProductLine dropdown
-      var plEl=firstCard.querySelector('.proj-pl');
-      if(plEl&&data.prodLine){
-        if(!Array.from(plEl.options).some(function(o){return o.value===data.prodLine;})){
-          var opt=document.createElement('option');opt.value=data.prodLine;opt.textContent=data.prodLine;plEl.appendChild(opt);
-        }
-        plEl.value=data.prodLine;
-        onProjCardPLChange(plEl);
+    set('projcode', code);
+    set('projphase', data.phase);
+    var plEl=document.getElementById('prodline');
+    if(plEl&&data.prodLine){
+      if(!Array.from(plEl.options).some(function(o){return o.value===data.prodLine;})){
+        var opt=document.createElement('option');opt.value=data.prodLine;opt.textContent=data.prodLine;plEl.appendChild(opt);
       }
-      // SubSeries dropdown (after PL populates it)
-      if(data.subSeries){
-        var ssEl=firstCard.querySelector('.proj-ss');
-        if(ssEl){
-          if(!Array.from(ssEl.options).some(function(o){return o.value===data.subSeries;})){
-            var opt2=document.createElement('option');opt2.value=data.subSeries;opt2.textContent=data.subSeries;ssEl.appendChild(opt2);
-          }
-          ssEl.value=data.subSeries;
+      plEl.value=data.prodLine;
+      onProdLineChange();
+    }
+    if(data.subSeries){
+      var ssEl=document.getElementById('subseries');
+      if(ssEl){
+        if(!Array.from(ssEl.options).some(function(o){return o.value===data.subSeries;})){
+          var opt2=document.createElement('option');opt2.value=data.subSeries;opt2.textContent=data.subSeries;ssEl.appendChild(opt2);
         }
+        ssEl.value=data.subSeries;
       }
     }
   }
-  // 恢復系列類型
-  if(data&&data.seriesType){setSeriesType(data.seriesType);}
   updateFilenamePreview();
 }
 function toggleRetestOther(){
@@ -1711,117 +1166,20 @@ function selFan(el,val){
   document.querySelectorAll('.fan-chip').forEach(function(c){c.classList.remove('sel');});
   el.classList.add('sel');selFanVal=val;document.getElementById('fan_mode').value=val;
 }
-function buildSkuReportMatrix(){
-  // 自動從 Step 2 的 Product Line 偵測系列類型（比依賴點選順序更可靠）
-  var allCards=document.querySelectorAll('[data-proj-card]');
-  var hasConsumer=false,hasGaming=false;
-  allCards.forEach(function(card){
-    var plSel=card.querySelector('.proj-pl');
-    if(plSel&&plSel.value==='Consumer')hasConsumer=true;
-    else if(plSel&&plSel.value)hasGaming=true;
-  });
-  if(hasConsumer&&!hasGaming)currentSeriesType='consumer';
-  else if(hasGaming)currentSeriesType='gaming';
-  // 同步 Step 1 系列按鈕顯示狀態
-  var scG=document.getElementById('sc-gaming');
-  var scC=document.getElementById('sc-consumer');
-  if(scG)scG.className='stype-card gaming'+(currentSeriesType==='gaming'?' active':'');
-  if(scC)scC.className='stype-card consumer'+(currentSeriesType==='consumer'?' active':'');
+function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
 
-  var skus=getAllSkuNames();
-  var wrap=document.getElementById('sku-report-matrix-wrap');
-  if(!wrap)return;
-  var rpts=currentSeriesType==='consumer'?CONSUMER_RPTS:GAMING_RPTS;
-  if(skus.length===0){
-    wrap.innerHTML='<p style="color:var(--text3);font-size:15px;font-family:var(--font-mono);padding:8px 0;">// 請先在 Step 2 各專案中填入 SKU 資訊</p>';
-    ALL_RPT_IDS.forEach(function(rpt){var p=document.getElementById('ritems-'+rpt);if(p)p.style.display='none';});
-    return;
-  }
-  var html='<table class="srm-table"><thead><tr><th>SKU</th>';
-  rpts.forEach(function(r){html+='<th><span class="rc-tag rc-tag-'+r.cls+'">'+r.label+'</span></th>';});
-  html+='</tr></thead><tbody>';
-  skus.forEach(function(sku){
-    html+='<tr><td>'+esc(sku)+'</td>';
-    rpts.forEach(function(r){
-      var id='srm_'+sku.replace(/\W+/g,'_')+'_'+r.id;
-      html+='<td><input type="checkbox" id="'+esc(id)+'" data-srm-sku="'+esc(sku)+'" data-srm-rpt="'+r.id+'" checked onchange="onSrmChange()"></td>';
-    });
-    html+='</tr>';
-  });
-  html+='</tbody></table><div class="srm-col-btns">';
-  rpts.forEach(function(r){html+='<button class="sa-btn" onclick="togAllSkusReport(\''+r.id+'\')">'+r.label+' 全選/全清</button>';});
-  html+='</div>';
-  wrap.innerHTML=html;
-  onSrmChange();
+// ── Single project + SKU table ───────────────────────────────────────────────
+function initProject(){
+  document.getElementById('proj-sku-tbody').innerHTML=_buildSkuRowHtml(1);
+  document.getElementById('reports-container').innerHTML='';
+  _reportCardCount=0;
+  addReportCard();
 }
-function onSrmChange(){
-  ALL_RPT_IDS.forEach(function(rpt){
-    var needed=!!document.querySelector('[data-srm-rpt="'+rpt+'"]:checked');
-    var panel=document.getElementById('ritems-'+rpt);
-    if(panel)panel.style.display=needed?'block':'none';
-  });
-}
-function togAllSkusReport(rpt){
-  var cbs=document.querySelectorAll('[data-srm-rpt="'+rpt+'"]');
-  var allOn=true;
-  cbs.forEach(function(cb){if(!cb.checked)allOn=false;});
-  cbs.forEach(function(cb){cb.checked=!allOn;});
-  onSrmChange();
-}
-function togRptDetail(rpt){
-  var panel=document.getElementById('ritems-'+rpt);
-  if(!panel)return;
-  var collapsed=panel.classList.toggle('ri-collapsed');
-  var btn=panel.querySelector('.ri-toggle-btn');
-  if(btn)btn.textContent=collapsed?'▼ 展開細項':'▲ 收合';
-}
-function togRptGrp(secId,show,rpt){
-  // 只做全選/全清，不隱藏 section（讓使用者可個別勾選細項）
-  var body=document.getElementById('rpt-sec-'+secId);
-  if(!body)return;
-  body.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=show;});
-}
-function togAllRptItems(rpt){
-  rptAllState[rpt]=!rptAllState[rpt];
-  var state=rptAllState[rpt];
-  document.querySelectorAll('[data-rpt="'+rpt+'"]').forEach(function(cb){cb.checked=state;});
-  document.querySelectorAll('#ritems-'+rpt+' [data-rpt-grp]').forEach(function(cb){
-    cb.checked=state;
-    // 不隱藏 section，只同步父類 checkbox 狀態
-  });
-}
-function getReportItems(rpt){
-  var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
-  var result=items.map(function(x,i){return (i+1)+'. '+x;}).join('\n');
-  if(rpt==='tpr'){
-    var fanMap={battery:'Battery Life',benchmark:'Benchmark',gamefps:'Game FPS'};
-    Object.keys(fanMap).forEach(function(cat){
-      var fans=Array.prototype.slice.call(document.querySelectorAll('[data-tpr-fan="'+cat+'"]:checked')).map(function(c){return c.value;});
-      if(fans.length)result+='\n   '+fanMap[cat]+' Fan: '+fans.join(', ');
-    });
-  }
-  if(rpt==='sow'){
-    var sowFans=Array.prototype.slice.call(document.querySelectorAll('[data-sow-fan]:checked')).map(function(c){return c.value;});
-    if(sowFans.length)result+='\n   Fan modes: '+sowFans.join(', ');
-  }
-  if(rpt==='hwinfo'){
-    var hwFans=Array.prototype.slice.call(document.querySelectorAll('[data-hwinfo-fan]:checked')).map(function(c){return c.value;});
-    if(hwFans.length)result+='\n   Fan modes: '+hwFans.join(', ');
-  }
-  var note=v('note-'+rpt);
-  if(note)result+='\n※ '+note;
-  return result;
-}
-function getSkusForReport(rpt){
-  return Array.prototype.slice.call(document.querySelectorAll('[data-srm-rpt="'+rpt+'"]:checked')).map(function(cb){return cb.getAttribute('data-srm-sku');});
-}
-function reportNeeded(rpt){
-  return !!document.querySelector('[data-srm-rpt="'+rpt+'"]:checked');
-}
-function addSkuRow(){
-  skuCount++;var tbody=document.getElementById('sku-tbody');var tr=document.createElement('tr');
-  var n=skuCount<10?'0'+skuCount:skuCount;
-  tr.innerHTML='<td class="col-i">'+n+'</td>'+
+function _buildSkuRowHtml(n){
+  var num=n<10?'0'+n:''+n;
+  return '<tr><td class="col-i">'+num+'</td>'+
     '<td><input type="text" placeholder="SKUXX" required/></td>'+
     '<td><input type="text" placeholder="Win11 24H2"/></td>'+
     '<td><input type="text" placeholder=\'14" FHD 144Hz\'/></td>'+
@@ -1833,132 +1191,42 @@ function addSkuRow(){
     '<td><input type="text" placeholder="X.X.XXXX"/></td>'+
     '<td><input type="text" placeholder="XXX.XX"/></td>'+
     '<td><input type="text" placeholder="—"/></td>'+
-    '<td><button class="del-btn" onclick="delRow(this)">×</button></td>';
-  tbody.appendChild(tr);
+    '<td><button class="del-btn" onclick="delProjSkuRow(this)">×</button></td></tr>';
 }
-function delRow(btn){
-  var rows=document.querySelectorAll('#sku-tbody tr');if(rows.length<=1)return;
+function addProjSkuRow(){
+  var tbody=document.getElementById('proj-sku-tbody');
+  var n=tbody.querySelectorAll('tr').length+1;
+  var tmp=document.createElement('tbody');tmp.innerHTML=_buildSkuRowHtml(n);
+  tbody.appendChild(tmp.querySelector('tr'));
+}
+function delProjSkuRow(btn){
+  var tbody=document.getElementById('proj-sku-tbody');
+  if(tbody.querySelectorAll('tr').length<=1)return;
   btn.closest('tr').remove();
-  document.querySelectorAll('#sku-tbody tr').forEach(function(r,i){var n=i+1<10?'0'+(i+1):i+1;r.cells[0].textContent=n;});
-  skuCount=document.querySelectorAll('#sku-tbody tr').length;
+  tbody.querySelectorAll('tr').forEach(function(r,i){r.cells[0].textContent=i+1<10?'0'+(i+1):''+(i+1);});
 }
-function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
-function buildSummary(){
-  // Form info
-  document.getElementById('s-report-id').textContent=currentReportId||'—';
-  document.getElementById('s-mode').textContent=isRetest?'RETEST':'NEW';
-  document.getElementById('s-createdate').textContent=today();
-  if(isRetest){var rr=document.getElementById('retest-reason');var rv=rr?rr.value:'';var rt=rv==='data-gap'?'數據落差過大 — '+v('retest-gap-item'):rv==='other'?'其它 — '+v('retest-other-text'):rv;document.getElementById('s-retest-reason').textContent=rt||'—';document.getElementById('s-retest-reason-row').classList.remove('hidden');}
-  document.getElementById('s-dept').textContent=v('dept')||'—';
-  document.getElementById('s-req').textContent=v('requester')||'—';
-  document.getElementById('s-email').textContent=v('req-email')||'—';
-  document.getElementById('s-contact').textContent=v('contact')||'—';
-  document.getElementById('s-sched').textContent=v('sch_start')||'—';
-  document.getElementById('s-due').textContent=v('report_due')||'—';
-  // Projects
-  var projs=getAllProjectsData();
-  var pw=document.getElementById('s-projects-wrap');
-  if(pw){
-    var ph='';
-    projs.forEach(function(p,i){
-      ph+='<div class="scard"><h3>Project '+(i+1)+(p.projName?' — '+esc(p.projName):'')+'</h3>';
-      ph+='<div class="srow"><span class="sl">PROD_LINE</span><span class="sv">'+esc(p.prodLine||'—')+'</span></div>';
-      ph+='<div class="srow"><span class="sl">SUB_SERIES</span><span class="sv">'+esc(p.subSeries||'—')+'</span></div>';
-      ph+='<div class="srow"><span class="sl">PROJ_NAME</span><span class="sv" style="color:var(--cyan);">'+esc(p.projName||'—')+'</span></div>';
-      ph+='<div class="srow"><span class="sl">PROJ_CODE</span><span class="sv">'+esc(p.projCode||'—')+'</span></div>';
-      ph+='<div class="srow"><span class="sl">PHASE</span><span class="sv">'+esc(p.phase||'—')+'</span></div>';
-      if(p.skus&&p.skus.length){
-        ph+='<div style="margin-top:10px;font-family:var(--font-head);font-size:13px;color:var(--text3);letter-spacing:0.06em;margin-bottom:6px;">SKU MACHINES ('+p.skus.length+')</div>';
-        p.skus.forEach(function(s,si){
-          ph+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);font-family:var(--font-mono);font-size:15px;">';
-          ph+=(si+1<10?'0'+(si+1):si+1)+'. '+esc(s.name||'(未填)');
-          if(s.cpu)ph+=' &nbsp;|&nbsp; '+esc(s.cpu);
-          if(s.gpu)ph+=' / '+esc(s.gpu);
-          if(s.bios)ph+=' &nbsp;|&nbsp; BIOS:'+esc(s.bios);
-          ph+='</div>';
-        });
-      }
-      ph+='</div>';
-    });
-    pw.innerHTML=ph||'<div class="scard"><p style="color:var(--text3);font-family:var(--font-mono);">// 尚未設定任何專案</p></div>';
-  }
-  // All SKUs flat list
-  var allSkus=[];
-  projs.forEach(function(p){if(p.skus)p.skus.forEach(function(s){if(s.name)allSkus.push(s);});});
-  document.getElementById('s-sku-count').textContent=allSkus.length;
-  var sh='';
-  allSkus.forEach(function(s,i){
-    sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);">';
-    sh+=(i+1<10?'0'+(i+1):i+1)+'. '+esc(s.name||'(未填)');
-    if(s.cpu)sh+=' &nbsp;|&nbsp; '+esc(s.cpu);
-    if(s.gpu)sh+=' / '+esc(s.gpu);
-    if(s.bios)sh+=' &nbsp;|&nbsp; BIOS:'+esc(s.bios);
-    sh+='</div>';
-  });
-  document.getElementById('s-sku-list').innerHTML=sh||'—';
-  // SKU×Report matrix
-  var rpts=currentSeriesType==='consumer'?['perf','battery']:['acc','tpr','sow','hwinfo'];
-  var rptCls={acc:'blue',tpr:'amber',sow:'green',hwinfo:'purple',perf:'green',battery:'cyan'};
-  var rptShort={acc:'ACC',tpr:'TPR',sow:'SOW',hwinfo:'HW Info',perf:'Performance',battery:'Battery Life'};
-  // show/hide summary cards
-  ['acc','tpr','sow','hwinfo'].forEach(function(r){var c=document.getElementById('s-card-'+r);if(c)c.style.display=currentSeriesType==='gaming'?'':'none';});
-  ['perf','battery'].forEach(function(r){var c=document.getElementById('s-card-'+r);if(c)c.style.display=currentSeriesType==='consumer'?'':'none';});
-  var skuNames=getAllSkuNames();
-  var mhtml='<div style="overflow-x:auto;"><table class="srm-table" style="margin-bottom:4px;"><thead><tr><th>SKU</th>';
-  rpts.forEach(function(rpt){mhtml+='<th><span class="rc-tag rc-tag-'+rptCls[rpt]+'">'+rptShort[rpt]+'</span></th>';});
-  mhtml+='</tr></thead><tbody>';
-  skuNames.forEach(function(sku){
-    mhtml+='<tr><td>'+esc(sku)+'</td>';
-    rpts.forEach(function(rpt){
-      var on=!!document.querySelector('[data-srm-sku="'+sku+'"][data-srm-rpt="'+rpt+'"]:checked');
-      var col={acc:'var(--blue)',tpr:'var(--amber)',sow:'var(--green)',hwinfo:'var(--purple)'}[rpt];
-      mhtml+='<td style="color:'+(on?col:'var(--text3)')+';">'+(on?'✓':'—')+'</td>';
-    });
-    mhtml+='</tr>';
-  });
-  mhtml+='</tbody></table></div>';
-  document.getElementById('s-reports').innerHTML=mhtml||'<span style="color:var(--red);">未選擇任何報告</span>';
-  // Per-report detail cards (all 6 report types)
-  ['acc','tpr','sow','hwinfo','perf','battery'].forEach(function(rpt){
-    var card=document.getElementById('s-card-'+rpt);
-    if(reportNeeded(rpt)){
-      var skusForRpt=getSkusForReport(rpt);
-      var items=Array.prototype.slice.call(document.querySelectorAll('[data-rpt="'+rpt+'"]:checked')).map(function(c){return c.value;});
-      var html='<div style="font-size:14px;color:var(--text2);font-family:var(--font-mono);">SKU：'+skusForRpt.map(function(s){return '<span class="ttag" style="font-size:14px;">'+esc(s)+'</span>';}).join(' ')+'</div>';
-      html+='<div style="font-size:13px;color:var(--text3);margin-top:6px;">共 '+items.length+' 項測試細項（預設全選）</div>';
-      if(!items.length)html='<span style="color:var(--red);font-family:var(--font-mono);font-size:14px;">// 未勾選任何細項</span>';
-      document.getElementById('s-'+rpt).innerHTML=html;
-      if(rpt==='tpr'){
-        var mapData={};
-        document.querySelectorAll('[data-tpr-sub]').forEach(function(cb){if(cb.checked){var sub=cb.getAttribute('data-tpr-sub');var sku=cb.getAttribute('data-tpr-sku');if(!mapData[sub])mapData[sub]=[];mapData[sub].push(sku);}});
-        var keys=Object.keys(mapData);
-        if(keys.length){
-          var thtml='<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;"><div style="font-family:var(--font-head);font-size:13px;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">子測項 × SKU：</div>';
-          keys.forEach(function(sub){thtml+='<div style="font-size:14px;margin-bottom:4px;"><span style="color:var(--amber);font-family:var(--font-mono);">'+esc(sub)+'</span> → ';mapData[sub].forEach(function(sku){thtml+='<span class="ttag" style="font-size:13px;">'+esc(sku)+'</span>';});thtml+='</div>';});
-          thtml+='</div>';
-          document.getElementById('s-tpr-map').innerHTML=thtml;
-        } else {document.getElementById('s-tpr-map').innerHTML='';}
-      }
-      if(card)card.style.display='';
-    } else {
-      if(card)card.style.display='none';
+function onProdLineChange(){
+  var pl=document.getElementById('prodline').value;
+  var ssSel=document.getElementById('subseries');
+  var opts='<option value="">--- 選擇 Chipset / Sub-series ---</option>';
+  if(pl&&PROJECT_DATA[pl])Object.keys(PROJECT_DATA[pl]).forEach(function(ss){opts+='<option value="'+esc(ss)+'">'+esc(ss)+'</option>';});
+  ssSel.innerHTML=opts;
+}
+function getProjectData(){
+  var skus=[];
+  document.querySelectorAll('#proj-sku-tbody tr').forEach(function(row){
+    var inp=row.querySelectorAll('input');
+    if(inp[0]&&inp[0].value.trim()){
+      skus.push({name:inp[0].value.trim(),os:inp[1]?inp[1].value.trim():'',panel:inp[2]?inp[2].value.trim():'',
+        cpu:inp[3]?inp[3].value.trim():'',gpu:inp[4]?inp[4].value.trim():'',ram:inp[5]?inp[5].value.trim():'',
+        bios:inp[6]?inp[6].value.trim():'',vbios:inp[7]?inp[7].value.trim():'',dcd:inp[8]?inp[8].value.trim():'',
+        vgadrv:inp[9]?inp[9].value.trim():'',note:inp[10]?inp[10].value.trim():''});
     }
   });
+  return {prodLine:v('prodline'),subSeries:v('subseries'),projCode:v('projcode'),phase:v('projphase'),skus:skus};
 }
-function goPage(n){
-  if(n===3)buildSkuReportMatrix();
-  if(n===4)buildSummary();
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.getElementById('page'+n).classList.add('active');
-  ['step1-tab','step2-tab','step3-tab','step4-tab'].forEach(function(id,i){
-    var el=document.getElementById(id);if(!el)return;
-    var sn=document.getElementById('sn'+(i+1));
-    el.classList.remove('active','done');
-    if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');if(sn)sn.innerHTML='✓';}else{if(sn)sn.innerHTML=String(i+1);}
-  });
-  window.scrollTo(0,0);
+function getSkuNames(){
+  return getProjectData().skus.map(function(s){return s.name;}).filter(Boolean);
 }
 function handleFileSelect(input){
   var file=input.files[0];
@@ -1975,6 +1243,201 @@ function clearFile(){
   document.getElementById('sku-file').value='';
   document.getElementById('file-preview').style.display='none';
   document.getElementById('file-preview-name').textContent='';
+}
+
+// ── Report cards (Layer 3 / Page 2) ──────────────────────────────────────────
+var _reportCardCount=0;
+function addReportCard(){
+  var container=document.getElementById('reports-container');
+  if(container.querySelectorAll('[data-report-card]').length>=5){alert('最多可新增 5 份 Report。');return;}
+  _reportCardCount++;
+  var div=document.createElement('div');
+  div.setAttribute('data-report-card',_reportCardCount);
+  div.innerHTML=_buildReportCardHtml(_reportCardCount);
+  container.appendChild(div);
+  _refreshReportCardNumbers();
+  _refreshReportSkuChecklists();
+}
+function removeReportCard(btn){
+  var cards=document.querySelectorAll('[data-report-card]');
+  if(cards.length<=1)return;
+  btn.closest('[data-report-card]').remove();
+  _refreshReportCardNumbers();
+}
+function _refreshReportCardNumbers(){
+  document.querySelectorAll('[data-report-card]').forEach(function(card,i){
+    var title=card.querySelector('.rcard-title');
+    if(title)title.textContent='REPORT '+(i+1);
+  });
+  var addBtn=document.getElementById('add-report-btn');
+  if(addBtn)addBtn.style.display=document.querySelectorAll('[data-report-card]').length>=5?'none':'';
+}
+function _calcMinSubmitDate(startVal){
+  var d=startVal?new Date(startVal):new Date();
+  d.setDate(d.getDate()+(startVal?5:6));
+  var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);
+  var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();
+  return d.getFullYear()+'-'+mm+'-'+dd;
+}
+function _buildReportCardHtml(n){
+  var rmBtn='<button onclick="removeReportCard(this)" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:22px;line-height:1;padding:0 6px;" title="移除">×</button>';
+  return '<div class="panel" style="margin-bottom:16px;">'+
+    '<div class="panel-header"><div class="panel-title rcard-title">REPORT '+n+'</div>'+rmBtn+'</div>'+
+    '<div class="panel-body">'+
+    '<div class="field" style="margin-bottom:12px;"><label>Report 名稱（選填）</label>'+
+    '<input type="text" class="rpt-label" placeholder="例：Battery Life Report"/></div>'+
+    '<div class="field" style="margin-bottom:12px;"><label>Report 底板檔案<span class="req">*</span></label>'+
+    '<input type="file" class="rpt-file" onchange="handleReportFileSelect(this)"/>'+
+    '<div class="rpt-file-preview" style="display:none;margin-top:6px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);">'+
+    '<span class="rpt-file-name" style="font-family:var(--font-mono);font-size:14px;color:var(--green);"></span></div></div>'+
+    '<div class="g2" style="margin-bottom:12px;">'+
+    '<div class="field"><label>測試開始日期<span class="req">*</span></label>'+
+    '<input type="text" class="rpt-start" placeholder="年/月/日" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="updRptDueMin(this)"/></div>'+
+    '<div class="field"><label>提交日期<span class="req">*</span></label>'+
+    '<input type="text" class="rpt-submit" placeholder="年/月/日" min="'+_calcMinSubmitDate('')+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="onRptSubmitChange(this)"/>'+
+    '<span class="hint">如需求測試日期低於5天，請另行和窗口溝通</span></div>'+
+    '</div>'+
+    '<div class="field" style="margin-bottom:12px;"><label>測試機台<span class="req">*</span> <span style="font-weight:400;color:var(--text3);font-family:var(--font-mono);font-size:13px;">// 通常 1~10 台</span></label>'+
+    '<div class="rpt-sku-list" style="display:flex;flex-wrap:wrap;gap:8px;">— 請先在上一頁填入 SKU —</div></div>'+
+    '<div class="field"><label>Note</label>'+
+    '<textarea class="rpt-note" placeholder="例：略過 3DMark 不測；機台注意事項：BD2 需接變壓器測試…" style="min-height:60px;"></textarea></div>'+
+    '</div></div>';
+}
+function handleReportFileSelect(input){
+  var card=input.closest('[data-report-card]');
+  var file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){alert('檔案大小超過 5MB，請縮小後再上傳。');input.value='';return;}
+  card.querySelector('.rpt-file-name').textContent='📎 '+file.name+' ('+Math.round(file.size/1024)+' KB)';
+  card.querySelector('.rpt-file-preview').style.display='block';
+}
+function onRptSubmitChange(submitInput){
+  var min=submitInput.getAttribute('min');
+  if(submitInput.value && min && submitInput.value<min){
+    submitInput.value='';
+    alert('⚠ 提交日期須至少為測試開始日後第 5 天，已自動清除，請重新選擇；如需更早提交，請另行和窗口溝通。');
+  }
+}
+function updRptDueMin(startInput){
+  var card=startInput.closest('[data-report-card]');
+  var submitInput=card.querySelector('.rpt-submit');
+  var minDate=_calcMinSubmitDate(startInput.value);
+  submitInput.setAttribute('min',minDate);
+  if(submitInput.value && submitInput.value<minDate){
+    submitInput.value='';
+    alert('⚠ 提交日期須至少為測試開始日後第 5 天，已自動清除，請重新選擇。');
+  }
+}
+function _refreshReportSkuChecklists(){
+  var names=getSkuNames();
+  document.querySelectorAll('.rpt-sku-list').forEach(function(list){
+    var checked={};
+    list.querySelectorAll('input[type=checkbox]').forEach(function(cb){if(cb.checked)checked[cb.value]=true;});
+    if(!names.length){list.innerHTML='— 請先在上一頁填入 SKU —';return;}
+    list.innerHTML=names.map(function(nm){
+      return '<label class="crow" style="margin-right:4px;"><input type="checkbox" value="'+esc(nm)+'"'+(checked[nm]?' checked':'')+'> '+esc(nm)+'</label>';
+    }).join('');
+  });
+}
+function getReportsData(){
+  var result=[];
+  document.querySelectorAll('[data-report-card]').forEach(function(card){
+    var fileInput=card.querySelector('.rpt-file');
+    var file=fileInput&&fileInput.files&&fileInput.files[0];
+    var skus=[];
+    card.querySelectorAll('.rpt-sku-list input[type=checkbox]:checked').forEach(function(cb){skus.push(cb.value);});
+    result.push({
+      label:card.querySelector('.rpt-label').value.trim(),
+      fileName:file?file.name:'',
+      file:file||null,
+      testStart:card.querySelector('.rpt-start').value,
+      submitDate:card.querySelector('.rpt-submit').value,
+      note:card.querySelector('.rpt-note').value.trim(),
+      skus:skus
+    });
+  });
+  return result;
+}
+function getExtraTests(){
+  if(currentSeriesType!=='consumer')return [];
+  var result=[];
+  document.querySelectorAll('.extra-test-cb:checked').forEach(function(cb){result.push(cb.value);});
+  return result;
+}
+
+function buildSummary(){
+  document.getElementById('s-report-id').textContent=currentReportId||'—';
+  document.getElementById('s-mode').textContent=isRetest?'RETEST':'NEW';
+  document.getElementById('s-createdate').textContent=today();
+  if(isRetest){var rr=document.getElementById('retest-reason');var rv=rr?rr.value:'';var rt=rv==='data-gap'?'數據落差過大 — '+v('retest-gap-item'):rv==='other'?'其它 — '+v('retest-other-text'):rv;document.getElementById('s-retest-reason').textContent=rt||'—';document.getElementById('s-retest-reason-row').classList.remove('hidden');}
+  document.getElementById('s-dept').textContent=v('dept')||'—';
+  document.getElementById('s-req').textContent=v('requester')||'—';
+  document.getElementById('s-email').textContent=v('req-email')||'—';
+  document.getElementById('s-contact').textContent=v('contact')||'—';
+  // Project
+  var p=getProjectData();
+  var pw=document.getElementById('s-projects-wrap');
+  if(pw){
+    var ph='<div class="scard"><h3>Project'+(p.projCode?' — '+esc(p.projCode):'')+'</h3>';
+    ph+='<div class="srow"><span class="sl">SERIES</span><span class="sv">'+(currentSeriesType==='consumer'?'Consumer':'Gaming')+'</span></div>';
+    ph+='<div class="srow"><span class="sl">PROD_LINE</span><span class="sv">'+esc(p.prodLine||'—')+'</span></div>';
+    ph+='<div class="srow"><span class="sl">SUB_SERIES</span><span class="sv">'+esc(p.subSeries||'—')+'</span></div>';
+    ph+='<div class="srow"><span class="sl">PROJ_CODE</span><span class="sv">'+esc(p.projCode||'—')+'</span></div>';
+    ph+='<div class="srow"><span class="sl">PHASE</span><span class="sv">'+esc(p.phase||'—')+'</span></div>';
+    ph+='</div>';
+    pw.innerHTML=ph;
+  }
+  document.getElementById('s-sku-count').textContent=p.skus.length;
+  var sh='';
+  p.skus.forEach(function(s,i){
+    sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border);color:var(--cyan);">';
+    sh+=(i+1<10?'0'+(i+1):i+1)+'. '+esc(s.name||'(未填)');
+    if(s.cpu)sh+=' &nbsp;|&nbsp; '+esc(s.cpu);
+    if(s.gpu)sh+=' / '+esc(s.gpu);
+    if(s.bios)sh+=' &nbsp;|&nbsp; BIOS:'+esc(s.bios);
+    sh+='</div>';
+  });
+  document.getElementById('s-sku-list').innerHTML=sh||'—';
+  // Extra single-item tests (Consumer only)
+  var etWrap=document.getElementById('s-extra-tests-wrap');
+  if(etWrap){
+    var extraTests=getExtraTests();
+    etWrap.innerHTML=extraTests.length?('<div class="scard"><h3>額外單項測試</h3><div style="font-size:16px;color:var(--text2);">'+extraTests.map(esc).join('、')+'</div></div>'):'';
+  }
+  // Reports
+  var reports=getReportsData();
+  var rw=document.getElementById('s-reports-wrap');
+  if(rw){
+    var rh='';
+    reports.forEach(function(r,i){
+      rh+='<div class="scard"><h3>Report '+(i+1)+(r.label?' — '+esc(r.label):'')+'</h3>';
+      rh+='<div class="srow"><span class="sl">檔案</span><span class="sv">'+(r.fileName?esc(r.fileName):'<span style="color:var(--red);">未上傳</span>')+'</span></div>';
+      rh+='<div class="srow"><span class="sl">測試開始日</span><span class="sv">'+esc(r.testStart||'—')+'</span></div>';
+      rh+='<div class="srow"><span class="sl">提交日期</span><span class="sv">'+esc(r.submitDate||'—')+'</span></div>';
+      rh+='<div class="srow"><span class="sl">測試機台</span><span class="sv">'+(r.skus.length?r.skus.map(esc).join(', '):'—')+'</span></div>';
+      if(r.note)rh+='<div class="srow"><span class="sl">NOTE</span><span class="sv">'+esc(r.note)+'</span></div>';
+      rh+='</div>';
+    });
+    rw.innerHTML=rh||'<div class="scard"><p style="color:var(--text3);font-family:var(--font-mono);">// 尚未新增任何 Report</p></div>';
+  }
+  document.getElementById('s-notes').textContent=v('extra_notes')||'—';
+}
+function goPage(n){
+  if(n===2){
+    _refreshReportSkuChecklists();
+    var extraTests=document.getElementById('consumer-extra-tests');
+    if(extraTests)extraTests.classList.toggle('hidden',currentSeriesType!=='consumer');
+  }
+  if(n===3)buildSummary();
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page'+n).classList.add('active');
+  ['step1-tab','step2-tab','step3-tab'].forEach(function(id,i){
+    var el=document.getElementById(id);if(!el)return;
+    var sn=document.getElementById('sn'+(i+1));
+    el.classList.remove('active','done');
+    if(i+1===n){el.classList.add('active');}else if(i+1<n){el.classList.add('done');if(sn)sn.innerHTML='✓';}else{if(sn)sn.innerHTML=String(i+1);}
+  });
+  window.scrollTo(0,0);
 }
 
 // ── 專案層級資料 ──────────────────────────────────────────────────────────────
@@ -2111,37 +1574,35 @@ function submitForm(){
   if(!v('dept'))miss.push('需求部門');
   if(!v('requester'))miss.push('需求人姓名');
   if(!v('req-email'))miss.push('需求人Email');
-  if(!v('sch_start'))miss.push('測試時段');
-  if(!v('report_due'))miss.push('截止日');
-  if(!document.querySelector('[data-srm-rpt]:checked'))miss.push('測試報告（至少選擇一組 SKU × 報告）');
-  var projs=getAllProjectsData();
-  var validProjs=projs.filter(function(p){return p.projName&&p.phase&&p.skus&&p.skus.length&&p.skus[0].name;});
-  if(!validProjs.length)miss.push('專案（至少一個專案需填寫名稱、Phase 及 SKU）');
+  var proj=getProjectData();
+  if(!proj.prodLine)miss.push('專案系列');
+  if(!proj.subSeries)miss.push('專案平台');
+  if(!proj.projCode)miss.push('Project Code');
+  if(!proj.phase)miss.push('Phase');
+  if(!proj.skus.length)miss.push('SKU 機台（至少一台）');
+  var reports=getReportsData();
+  if(!reports.length)miss.push('Report（至少一份）');
+  reports.forEach(function(r,i){
+    if(!r.file)miss.push('Report '+(i+1)+'：底板檔案');
+    if(!r.testStart)miss.push('Report '+(i+1)+'：測試開始日期');
+    if(!r.submitDate)miss.push('Report '+(i+1)+'：提交日期');
+    if(!r.skus.length)miss.push('Report '+(i+1)+'：測試機台');
+  });
   if(isRetest&&!v('retest-reason'))miss.push('複測原因');
   if(miss.length){alert('以下欄位未填寫:\n'+miss.join('\n'));return;}
   paSubmit();
 }
 function paSubmit(){
   var PA_URL='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f72524dfbf1649b69aace89bc5b37b57/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jkj-f6ttMbePYMiAg_vXWc2MKT6ESEwVlRAUNICZyEw';
-  var projs=getAllProjectsData();
-  var firstProj=projs[0]||{};
-  // Flat SKU list across all projects (backward compat)
-  var sku='',skuMachineCount=0;
-  projs.forEach(function(p){
-    (p.skus||[]).forEach(function(s){
-      if(s.name){
-        skuMachineCount++;
-        sku+=skuMachineCount+'. '+s.name+
-          (s.cpu?' CPU:'+s.cpu:'')+
-          (s.gpu?' GPU:'+s.gpu:'')+' | ';
-      }
-    });
+  var proj=getProjectData();
+  var reports=getReportsData();
+  var sku='';
+  proj.skus.forEach(function(s,i){
+    sku+=(i+1)+'. '+s.name+(s.cpu?' CPU:'+s.cpu:'')+(s.gpu?' GPU:'+s.gpu:'')+' | ';
   });
-  // Build filename: RESULT_{PROJNAMES}_{PHASES}_{NEW|RETEST}_{ID}_{YYMMDD}.XLSX
-  var projNames=projs.map(function(p){return (p.projCode||'').replace(/\s+/g,'_').toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
-  var phases=projs.map(function(p){return (p.phase||'').toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
-  var fName='RESULT'+(projNames.length?'_'+projNames.join('_'):'')+
-    (phases.length?'_'+phases.join('_'):'')+
+  // Build filename: RESULT_{PROJCODE}_{PHASE}_{NEW|RETEST}_{ID}_{YYMMDD}.XLSX
+  var fName='RESULT'+(proj.projCode?'_'+proj.projCode.replace(/\s+/g,'_').toUpperCase():'')+
+    (proj.phase?'_'+proj.phase.toUpperCase():'')+
     '_'+(isRetest?'RETEST':'NEW')+
     '_'+currentReportId+'_'+getTodayYYMMDD()+'.XLSX';
   var retestTxt='';
@@ -2154,150 +1615,81 @@ function paSubmit(){
   var btn=document.querySelector('[onclick="submitForm()"]');
   if(btn){btn.disabled=true;btn.textContent='送出中...';}
   var payload={
-    Title:projNames.length?projNames.join('_'):('REPORT_'+currentReportId),
+    Title:proj.projCode||('REPORT_'+currentReportId),
     ReportID:currentReportId,
     ReportFileName:fName,
     FormType:isRetest?'複測':'新建',
-    ProductLine:firstProj.prodLine||'',
-    SubSeries:firstProj.subSeries||'',
-    ProjectName:projs.map(function(p){return p.projName||'';}).filter(Boolean).join('_')||'',
-    ProjectCode:projNames.length?projNames.join('_'):'',
-    Phase:phases.length?phases.join('_'):'',
-    FanMode:'',
+    ProductLine:proj.prodLine,
+    SubSeries:proj.subSeries,
+    ProjectName:proj.projCode,
+    ProjectCode:proj.projCode,
+    Phase:proj.phase,
     Dept:v('dept'),
     Requester:v('requester'),
     RequesterEmail:v('req-email'),
     EEContact:v('contact'),
-    PLContact:'',
-    QAContact:'',
-    ScheduleStart:v('sch_start')||'',
-    ScheduleEnd:'',
-    ReportDeadline:v('report_due')||'',
     SKUList:sku,
-    AllProjects:JSON.stringify(projs),
     SeriesType:currentSeriesType,
-    ReportACC:getSkusForReport('acc').join(', '),
-    ACCItems:reportNeeded('acc')?getReportItems('acc'):'',
-    ReportTPR:getSkusForReport('tpr').join(', '),
-    TPRItems:reportNeeded('tpr')?getReportItems('tpr'):'',
-    TPRSkuMap:'',
-    ReportSOW:getSkusForReport('sow').join(', '),
-    SOWItems:reportNeeded('sow')?getReportItems('sow'):'',
-    ReportHWInfo:getSkusForReport('hwinfo').join(', '),
-    HWInfoItems:reportNeeded('hwinfo')?getReportItems('hwinfo'):'',
-    ReportPerf:getSkusForReport('perf').join(', '),
-    PerfItems:reportNeeded('perf')?getReportItems('perf'):'',
-    ReportBattery:getSkusForReport('battery').join(', '),
-    BatteryItems:reportNeeded('battery')?getReportItems('battery'):'',
+    ExtraSingleTests:getExtraTests().join(', '),
     Notes:v('extra_notes'),
     RetestReason:retestTxt,
     Status:'Pending',
-    SubmittedDate:getTaiwanDateTimeStr()
-  };
-  var fileInput=document.getElementById('sku-file');
-  var file=fileInput&&fileInput.files&&fileInput.files[0];
-  function doSubmit(fileBase64,fileName){
-    if(fileBase64){payload.SkuFileBase64=fileBase64;payload.SkuFileName=fileName;}
-    fetch(PA_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-    .then(function(r){
-      if(!r.ok)throw new Error('Error '+r.status);
-      if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
-      alert('表單已成功送出！\nReport ID：'+currentReportId+'\n需求人：'+v('requester')+'\n檔名：'+fName+'\n\n實驗室將於 1 個工作天內確認排程並回覆。');
-      setTimeout(function(){window.location.href='index.html';},1500);
+    SubmittedDate:getTaiwanDateTimeStr(),
+    Reports:reports.map(function(r,i){
+      return {Name:r.label||('Report '+(i+1)),SortOrder:i+1,ReportNote:r.note,
+        TestStartDate:r.testStart,SubmitDate:r.submitDate,
+        ReportSkuList:r.skus.join(', '),ReportFileName:r.fileName};
     })
-    .catch(function(err){
-      if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
-      alert('送出失敗：'+err.message);
-    });
-  }
-  function proceedWithFile(b64Excel){
-    if(b64Excel){
-      payload.ReqExcelBase64=b64Excel;
-      payload.ReqExcelName='REQ_'+fName.replace(/^RESULT_/i,'').replace(/\.XLSX$/i,'.xlsx');
-    }
-    if(file){
+  };
+  var skuFileInput=document.getElementById('sku-file');
+  var skuFile=skuFileInput&&skuFileInput.files&&skuFileInput.files[0];
+  function fileToBase64(file){
+    return new Promise(function(resolve){
+      if(!file){resolve(null);return;}
       var reader=new FileReader();
-      reader.onload=function(e){doSubmit(e.target.result.split(',')[1],file.name);};
-      reader.onerror=function(){
-        if(confirm('檔案讀取失敗，是否略過附件直接送出？')){doSubmit(null,null);}
-        else{if(btn){btn.disabled=false;btn.textContent='確認送出需求';}}
-      };
+      reader.onload=function(e){resolve(e.target.result.split(',')[1]);};
+      reader.onerror=function(){resolve(null);};
       reader.readAsDataURL(file);
-    } else {
-      doSubmit(null,null);
-    }
+    });
   }
-  // 先產生需求單 Excel，再送出
-  getReqExcelB64(payload).then(proceedWithFile);
-}
-function renderSchedule(){
-  document.getElementById('sch-total').textContent='...';
-  document.getElementById('sch-sku').textContent='...';
-  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var items=data.value||(data.d&&data.d.results)||[];
-    /* 統計專案數與機台數 */
-    var projSet={},totalSku=0;
-    items.forEach(function(item){
-      var code=item.ProjectCode||item.Title||'';
-      if(typeof code==='object')code=code.Title||code.Value||'';
-      if(code)projSet[code]=true;
-      var skuList=item.SKUList||'';
-      /* 數 "1." "2." ... 的出現次數 = SKU 台數；找不到就算 1 台 */
-      var cnt=(skuList.match(/\d+\./g)||[]).length||1;
-      totalSku+=cnt;
-    });
-    document.getElementById('sch-total').textContent=Object.keys(projSet).length;
-    document.getElementById('sch-sku').textContent=totalSku;
-    /* 時間軸 */
-    var today=new Date();
-    var tStart=new Date(today.getFullYear(),today.getMonth(),1);
-    var tEnd=new Date(today.getFullYear(),today.getMonth()+2,0);
-    var tRange=tEnd-tStart;
-    function pct(d){return Math.max(0,Math.min(100,(d-tStart)/tRange*100));}
-    var mLabels='';
-    for(var mi=0;mi<2;mi++){
-      var md=new Date(today.getFullYear(),today.getMonth()+mi,1);
-      mLabels+='<div class="schedule-month-label">'+md.getFullYear()+'/'+(md.getMonth()+1)+'</div>';
-    }
-    document.getElementById('schedule-months').innerHTML=mLabels;
-    var todayPct=pct(today);
-    var rows='<div class="schedule-timeline" style="position:relative;">';
-    rows+='<div class="today-line" style="left:'+todayPct+'%;"></div>';
-    var hasRows=false;
-    items.forEach(function(item){
-      var startStr=item.ScheduleStart||'';
-      if(!startStr)return;
-      var start=new Date(startStr);
-      if(isNaN(start.getTime()))return;
-      var endStr=item.ReportDeadline||item.ScheduleEnd||'';
-      var end=endStr?new Date(endStr):new Date(start.getTime()+14*864e5);
-      if(isNaN(end.getTime()))end=new Date(start.getTime()+14*864e5);
-      var left=pct(start),right=pct(end),width=Math.max(2,right-left);
-      var status=today<start?'pending':(today<=end?'active':'done');
-      var code=item.ProjectCode||item.Title||'—';
-      if(typeof code==='object')code=code.Title||code.Value||'—';
-      var phase=item.Phase||'';
-      if(typeof phase==='object')phase=phase.Title||phase.Value||'';
-      var cnt=((item.SKUList||'').match(/\d+\./g)||[]).length||1;
-      var label=code+(phase?' '+phase:'');
-      rows+='<div class="schedule-row">';
-      rows+='<div class="schedule-proj">'+esc(label)+' ('+cnt+'台)</div>';
-      rows+='<div class="schedule-track"><div class="schedule-bar status-'+status+'" style="left:'+left+'%;width:'+width+'%;">'+esc(code)+'</div></div>';
-      rows+='</div>';
-      hasRows=true;
-    });
-    if(!hasRows)rows+='<div style="padding:12px 0;color:var(--text3);font-family:var(--font-mono);font-size:14px;">// 目前尚無排程資料</div>';
-    rows+='</div>';
-    document.getElementById('schedule-rows').innerHTML=rows;
+  Promise.all(reports.map(function(r){return fileToBase64(r.file);}))
+  .then(function(reportB64List){
+    reportB64List.forEach(function(b64,i){if(b64)payload.Reports[i].FileBase64=b64;});
+    return fileToBase64(skuFile);
   })
-  .catch(function(){
-    document.getElementById('sch-total').textContent='—';
-    document.getElementById('sch-sku').textContent='—';
+  .then(function(skuB64){
+    if(skuB64){payload.SkuFileBase64=skuB64;payload.SkuFileName=skuFile.name;}
+    return fetch(PA_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('Error '+r.status);
+    if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
+    alert('表單已成功送出！\nReport ID：'+currentReportId+'\n需求人：'+v('requester')+'\n檔名：'+fName+'\n\n實驗室將於 1 個工作天內確認排程並回覆。');
+    setTimeout(function(){window.location.href='index.html';},1500);
+  })
+  .catch(function(err){
+    if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
+    alert('送出失敗：'+err.message);
   });
 }
-renderSchedule();
+// ── 專案系列負責人（介面：之後由 gantt.html 的系列負責人設定串接，目前為範例假資料）──
+function getSeriesOwners(){
+  // TODO: 串接 gantt.html 系列負責人設定（例如共用的 SharePoint 清單或 PA flow），目前回傳假資料
+  return [
+    {series:'Gaming - Strix', owner:'Sandra'},
+    {series:'Gaming - TUF', owner:'Allen'},
+    {series:'Consumer - Zenbook', owner:'Sally'},
+    {series:'Consumer - Vivobook', owner:'Enya'}
+  ];
+}
+function renderSeriesOwners(){
+  var wrap=document.getElementById('series-owners-list');
+  if(!wrap)return;
+  wrap.innerHTML=getSeriesOwners().map(function(o){
+    return '<div class="so-item"><span class="so-series">'+esc(o.series)+'</span><span class="so-arrow">→</span><span class="so-owner">'+esc(o.owner)+'</span></div>';
+  }).join('');
+}
+renderSeriesOwners();
 var _adminAuth=false;
 // Auto-open admin if arriving from result page after password auth
 document.addEventListener('DOMContentLoaded',function(){
@@ -3373,159 +2765,14 @@ function initReportId(){
   updateFilenamePreview();
 }
 function updateFilenamePreview(){
-  var projs=getAllProjectsData();
-  var names=projs.map(function(p){return (p.projCode||'').trim().toUpperCase();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
-  var phases=[];projs.forEach(function(p){if(p.phase&&phases.indexOf(p.phase.toUpperCase())<0)phases.push(p.phase.toUpperCase());});
+  var proj=getProjectData();
   var mode=isRetest?'UPDATE':'NEW';
   var id=currentReportId||'??';
   var date=getTodayYYMMDD();
-  var parts=['RESULT'].concat(names.length?names:['...']).concat(phases.length?phases:['...']).concat([mode,id,date]);
+  var parts=['RESULT',proj.projCode?proj.projCode.trim().toUpperCase():'...',proj.phase?proj.phase.trim().toUpperCase():'...',mode,id,date];
   var fname=parts.join('_')+'.XLSX';
   var el=document.getElementById('report-filename-preview');
   if(el)el.textContent=fname;
-}
-
-// ── Multi-Project Card Builder ───────────────────────────────────────────────
-var _projCardCount=0;
-function initProjectCards(){
-  _projCardCount=0;
-  var container=document.getElementById('projects-container');
-  if(container)container.innerHTML='';
-  _addProjectCardDom();
-}
-function addProjectCard(){_addProjectCardDom();updateFilenamePreview();}
-function _addProjectCardDom(){
-  _projCardCount++;
-  var n=_projCardCount;
-  var container=document.getElementById('projects-container');
-  if(!container)return;
-  var div=document.createElement('div');
-  div.setAttribute('data-proj-card',n);
-  div.innerHTML=_buildProjectCardInnerHtml(n);
-  container.appendChild(div);
-  _updateProjectCardNumbers();
-}
-function removeProjectCard(btn){
-  var cards=document.querySelectorAll('[data-proj-card]');
-  if(cards.length<=1)return;
-  btn.closest('[data-proj-card]').remove();
-  _updateProjectCardNumbers();
-  updateFilenamePreview();
-}
-function _updateProjectCardNumbers(){
-  document.querySelectorAll('[data-proj-card]').forEach(function(card,i){
-    var title=card.querySelector('.pcard-title');
-    if(title)title.textContent='PROJECT '+(i+1);
-  });
-}
-function _buildProjectCardInnerHtml(n){
-  var ss='width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:16px;';
-  var plOpts='<option value="">--- 選擇 Product Line ---</option>';
-  var allowedPLs=currentSeriesType==='consumer'?['Consumer']:['Strix','TUF'];
-  allowedPLs.forEach(function(pl){plOpts+='<option value="'+esc(pl)+'">'+esc(pl)+'</option>';});
-  var rmBtn=n>1?'<button onclick="removeProjectCard(this)" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:22px;line-height:1;padding:0 6px;" title="移除">×</button>':'';
-  return '<div class="panel" style="margin-bottom:16px;">'+
-    '<div class="panel-header"><div class="panel-title pcard-title">PROJECT '+n+'</div>'+rmBtn+'</div>'+
-    '<div class="panel-body">'+
-    '<div class="g2" style="margin-bottom:12px;">'+
-    '<div class="field"><label>Product Line<span class="req">*</span></label>'+
-    '<select class="proj-pl" onchange="onProjCardPLChange(this)" style="'+ss+'">'+plOpts+'</select></div>'+
-    '<div class="field"><label>Chipset / Sub-series<span class="req">*</span></label>'+
-    '<select class="proj-ss" style="'+ss+'"><option value="">--- 請先選擇 Product Line ---</option></select></div>'+
-    '</div>'+
-    '<div class="field" style="margin-bottom:12px;">'+
-    '<label>Project Name<span class="req">*</span></label>'+
-    '<input type="text" class="proj-name" placeholder="例：FX611H（務必全以大寫輸入）" style="width:100%;" oninput="updateFilenamePreview()"/>'+
-    '</div>'+
-    '<div class="field" style="margin-bottom:12px;"><label>Phase<span class="req">*</span></label>'+
-    '<input type="text" class="proj-phase" placeholder="例：PR1、ER2（務必全以大寫輸入）" style="width:100%;" oninput="updateFilenamePreview()"/></div>'+
-    '<div class="sec">測試機台 SKU</div>'+
-    '<p class="sku-hint">// 欄位較多，可左右滑動</p>'+
-    '<div class="sku-wrap"><table><thead><tr>'+
-    '<th class="col-i">#</th><th style="min-width:88px;">SKU 型號</th><th style="min-width:80px;">OS 版本</th>'+
-    '<th style="min-width:88px;">Panel</th><th style="min-width:130px;">CPU</th><th style="min-width:78px;">GPU</th>'+
-    '<th style="min-width:52px;">RAM</th><th style="min-width:82px;">BIOS</th><th style="min-width:82px;">VBIOS</th>'+
-    '<th style="min-width:82px;">DCD</th><th style="min-width:100px;">VGA Driver</th><th style="min-width:78px;">備註</th>'+
-    '<th class="col-d"></th></tr></thead>'+
-    '<tbody class="proj-sku-tbody">'+_buildSkuRowHtml(1)+'</tbody></table></div>'+
-    '<button class="add-row-btn" onclick="addProjSkuRow(this)">＋ ADD MACHINE</button>'+
-    '</div></div>';
-}
-function _buildSkuRowHtml(n){
-  var num=n<10?'0'+n:''+n;
-  return '<tr><td class="col-i">'+num+'</td>'+
-    '<td><input type="text" placeholder="SKUXX" required/></td>'+
-    '<td><input type="text" placeholder="Win11 24H2"/></td>'+
-    '<td><input type="text" placeholder=\'14" FHD 144Hz\'/></td>'+
-    '<td><input type="text" placeholder="Intel Core Ultra 7"/></td>'+
-    '<td><input type="text" placeholder="RTX 4070"/></td>'+
-    '<td><input type="text" placeholder="32GB"/></td>'+
-    '<td><input type="text" placeholder="X.XX.XXX"/></td>'+
-    '<td><input type="text" placeholder="XX.XX.XX"/></td>'+
-    '<td><input type="text" placeholder="X.X.XXXX"/></td>'+
-    '<td><input type="text" placeholder="XXX.XX"/></td>'+
-    '<td><input type="text" placeholder="—"/></td>'+
-    '<td><button class="del-btn" onclick="delProjSkuRow(this)">×</button></td></tr>';
-}
-function addProjSkuRow(btn){
-  var tbody=btn.closest('[data-proj-card]').querySelector('.proj-sku-tbody');
-  var n=tbody.querySelectorAll('tr').length+1;
-  var tmp=document.createElement('tbody');tmp.innerHTML=_buildSkuRowHtml(n);
-  tbody.appendChild(tmp.querySelector('tr'));
-}
-function delProjSkuRow(btn){
-  var tbody=btn.closest('.proj-sku-tbody');
-  if(tbody.querySelectorAll('tr').length<=1)return;
-  btn.closest('tr').remove();
-  tbody.querySelectorAll('tr').forEach(function(r,i){r.cells[0].textContent=i+1<10?'0'+(i+1):''+(i+1);});
-}
-function onProjCardPLChange(select){
-  var card=select.closest('[data-proj-card]');
-  var pl=select.value;
-  var ssSel=card.querySelector('.proj-ss');
-  var opts='<option value="">--- 選擇 Chipset / Sub-series ---</option>';
-  if(pl&&PROJECT_DATA[pl])Object.keys(PROJECT_DATA[pl]).forEach(function(ss){opts+='<option value="'+esc(ss)+'">'+esc(ss)+'</option>';});
-  ssSel.innerHTML=opts;
-  // 自動同步系列類型：Consumer PL → consumer mode，其餘 → gaming mode
-  if(pl){setSeriesType(pl==='Consumer'?'consumer':'gaming');}
-}
-function getAllProjectsData(){
-  var result=[];
-  document.querySelectorAll('[data-proj-card]').forEach(function(card){
-    var pl=card.querySelector('.proj-pl').value;
-    var ss=card.querySelector('.proj-ss').value;
-    var name=card.querySelector('.proj-name').value.trim();
-    var codeEl=card.querySelector('.proj-code');
-    var code=codeEl?codeEl.value.trim():name;
-    var phase=card.querySelector('.proj-phase').value.trim();
-    var skus=[];
-    card.querySelectorAll('.proj-sku-tbody tr').forEach(function(row){
-      var inp=row.querySelectorAll('input');
-      if(inp[0]&&inp[0].value.trim()){
-        skus.push({name:inp[0].value.trim(),os:inp[1]?inp[1].value.trim():'',panel:inp[2]?inp[2].value.trim():'',
-          cpu:inp[3]?inp[3].value.trim():'',gpu:inp[4]?inp[4].value.trim():'',ram:inp[5]?inp[5].value.trim():'',
-          bios:inp[6]?inp[6].value.trim():'',vbios:inp[7]?inp[7].value.trim():'',dcd:inp[8]?inp[8].value.trim():'',
-          vgadrv:inp[9]?inp[9].value.trim():'',note:inp[10]?inp[10].value.trim():''});
-      }
-    });
-    result.push({prodLine:pl,subSeries:ss,projName:name,projCode:code,phase:phase,skus:skus});
-  });
-  return result;
-}
-function getAllSkuNames(){
-  var projs=getAllProjectsData();
-  var multiProj=projs.length>1;
-  var skus=[],seen={};
-  projs.forEach(function(p){
-    var prefix=multiProj?((p.projCode||p.projName||'?')+' / '):'';
-    p.skus.forEach(function(s){
-      if(s.name){
-        var key=prefix+s.name;
-        if(!seen[key]){seen[key]=true;skus.push(key);}
-      }
-    });
-  });
-  return skus;
 }
 
 // ── Retest: lookup by Report ID ──────────────────────────────────────────────
@@ -3562,19 +2809,6 @@ function lookupByReportId(){
     alert('查詢失敗：'+err.message);
   });
 }
-// Init collapsible report detail panels
-document.querySelectorAll('.report-items').forEach(function(panel){
-  var rpt=panel.id.replace('ritems-','');
-  var header=panel.querySelector('.ri-header');
-  if(!header||panel.querySelector('.ri-toggle-btn'))return;
-  var btn=document.createElement('button');
-  btn.type='button';
-  btn.className='ri-toggle-btn';
-  btn.textContent='▼ 展開細項';
-  btn.onclick=function(){togRptDetail(rpt);};
-  header.appendChild(btn);
-  panel.classList.add('ri-collapsed');
-});
 </script>
 </body>
 </html>
