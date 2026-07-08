@@ -1059,7 +1059,8 @@ function lookupFormByName(projName){
     schedEnd:match.ScheduleEnd||'',
     notes:match.Notes||'',
     prodLine:match.ProductLine||'',
-    subSeries:match.SubSeries||''
+    subSeries:match.SubSeries||'',
+    skuList:match.SKUList||''
   };
   document.getElementById('fc-title').textContent=proj.name||'—';
   document.getElementById('fc-code').textContent=proj.code||projName;
@@ -1151,6 +1152,25 @@ function loadRetestData(){
           var opt2=document.createElement('option');opt2.value=data.subSeries;opt2.textContent=data.subSeries;ssEl.appendChild(opt2);
         }
         ssEl.value=data.subSeries;
+      }
+    }
+    // 帶入前次的 SKU 機台清單，省略重複填寫
+    if(data.skuList){
+      var prevSkus=_xSkus(data.skuList);
+      if(prevSkus.length){
+        var tbody=document.getElementById('proj-sku-tbody');
+        tbody.innerHTML='';
+        prevSkus.forEach(function(s,i){
+          var tmp=document.createElement('tbody');tmp.innerHTML=_buildSkuRowHtml(i+1);
+          var row=tmp.querySelector('tr');
+          var inp=row.querySelectorAll('input');
+          inp[0].value=s.name||'';
+          inp[2].value=s.panel||'';
+          inp[3].value=s.cpu||'';
+          inp[4].value=s.gpu||'';
+          inp[5].value=s.ddr||'';
+          tbody.appendChild(row);
+        });
       }
     }
   }
@@ -2795,7 +2815,7 @@ function lookupByReportId(){
       requester:match.Requester||'',dept:match.Dept||'',email:match.RequesterEmail||'',
       ee:match.EEContact||'',prodLine:match.ProductLine||'',subSeries:match.SubSeries||'',
       schedStart:match.ScheduleStart||'',notes:match.Notes||'',reportId:rid,
-      projects:match.AllProjects||''};
+      skuList:match.SKUList||'',projects:match.AllProjects||''};
     formDb['current'].seriesType=match.SeriesType||'gaming';
     document.getElementById('fc-title').textContent=(match.ProjectName||match.Title||'—')+' [ID: '+rid+']';
     document.getElementById('fc-code').textContent=match.ProjectCode||'—';
