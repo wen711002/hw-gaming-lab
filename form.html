@@ -739,7 +739,7 @@ document.getElementById('pw-input').focus();
           <div class="sku-wrap"><table><thead><tr>
             <th class="col-i">#</th><th style="min-width:88px;">SKU 型號</th><th style="min-width:80px;">OS 版本</th>
             <th style="min-width:88px;">Panel</th><th style="min-width:130px;">CPU</th><th style="min-width:78px;">GPU</th>
-            <th style="min-width:52px;">RAM</th><th style="min-width:82px;">BIOS</th><th style="min-width:82px;">VBIOS</th>
+            <th style="min-width:52px;">RAM</th><th style="min-width:82px;">BIOS</th><th style="min-width:82px;">EC ver</th>
             <th style="min-width:82px;">DCD</th><th style="min-width:100px;">VGA Driver</th><th style="min-width:78px;">備註</th>
             <th class="col-d"></th></tr></thead>
             <tbody id="proj-sku-tbody"></tbody></table></div>
@@ -770,6 +770,9 @@ document.getElementById('pw-input').focus();
           <p style="font-size:16px;color:var(--text2);line-height:1.8;">// 請依「提交急迫度／重要程度」由上而下新增 report（最多 5 份）。<br>// 每份 report 各自上傳底板檔案、填寫測試時程，並勾選對應的 SKU 機台。</p>
         </div>
       </div>
+      <div id="reports-container"></div>
+      <button class="add-row-btn" id="add-report-btn" onclick="addReportCard()" style="margin-bottom:20px;">＋ ADD REPORT</button>
+
       <div class="panel hidden" id="consumer-extra-tests">
         <div class="panel-header"><div class="panel-title">額外單項測試 <span style="font-size:14px;font-weight:400;color:var(--text3);font-family:var(--font-mono);">// 僅 Consumer 系列，勾選需另外測試的單項</span></div></div>
         <div class="panel-body">
@@ -777,8 +780,6 @@ document.getElementById('pw-input').focus();
           <label class="crow"><input type="checkbox" class="extra-test-cb" value="ATTO"> ATTO</label>
         </div>
       </div>
-      <div id="reports-container"></div>
-      <button class="add-row-btn" id="add-report-btn" onclick="addReportCard()" style="margin-bottom:20px;">＋ ADD REPORT</button>
 
       <div class="panel">
         <div class="panel-header"><div class="panel-title">補充說明</div></div>
@@ -815,8 +816,8 @@ document.getElementById('pw-input').focus();
         <h3>SKU Machines (<span id="s-sku-count">0</span> units)</h3>
         <div id="s-sku-list" style="font-size:16px;line-height:2;font-family:var(--font-mono);"></div>
       </div>
-      <div id="s-extra-tests-wrap"></div>
       <div id="s-reports-wrap"></div>
+      <div id="s-extra-tests-wrap"></div>
       <div class="scard">
         <h3>補充說明</h3>
         <div id="s-notes" style="font-size:16px;color:var(--text2);white-space:pre-wrap;">—</div>
@@ -1017,7 +1018,7 @@ function loadRetestFromSP(){
   fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    var allData=data.value||data.d&&data.d.results||[];
+    var allData=Array.isArray(data)?data:(data.value||data.d&&data.d.results||[]);
     _rtAllData=allData.filter(function(i){return i.Status==='Accepted';});
     var seen={};var pls=[];
     _rtAllData.forEach(function(item){
@@ -1079,7 +1080,7 @@ function lookupForm(){
   .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
   .then(function(data){
     if(btn){btn.disabled=false;btn.textContent='LOAD';}
-    var items=data.value||data.d&&data.d.results||[];
+    var items=Array.isArray(data)?data:(data.value||data.d&&data.d.results||[]);
     // find latest record matching this project code
     var match=null;
     for(var i=0;i<items.length;i++){
@@ -1312,7 +1313,7 @@ function _buildReportCardHtml(n){
     '<span class="rpt-file-name" style="font-family:var(--font-mono);font-size:14px;color:var(--green);"></span></div></div>'+
     '<div class="g2" style="margin-bottom:12px;">'+
     '<div class="field"><label>測試開始日期<span class="req">*</span></label>'+
-    '<input type="text" class="rpt-start" placeholder="年/月/日" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="updRptDueMin(this)"/></div>'+
+    '<input type="text" class="rpt-start" placeholder="年/月/日" min="'+today()+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="updRptDueMin(this)"/></div>'+
     '<div class="field"><label>提交日期<span class="req">*</span></label>'+
     '<input type="text" class="rpt-submit" placeholder="年/月/日" min="'+_calcMinSubmitDate('')+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="onRptSubmitChange(this)"/>'+
     '<span class="hint">如需求測試日期低於5天，請另行和窗口溝通</span></div>'+
@@ -1339,6 +1340,11 @@ function onRptSubmitChange(submitInput){
   }
 }
 function updRptDueMin(startInput){
+  if(startInput.value && startInput.value<today()){
+    startInput.value='';
+    alert('⚠ 測試開始日期不可早於今天，已自動清除，請重新選擇。');
+    return;
+  }
   var card=startInput.closest('[data-report-card]');
   var submitInput=card.querySelector('.rpt-submit');
   var minDate=_calcMinSubmitDate(startInput.value);
@@ -2839,7 +2845,7 @@ function lookupByReportId(){
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
     if(btn){btn.disabled=false;btn.textContent='LOAD';}
-    var items=data.value||(data.d&&data.d.results)||[];
+    var items=Array.isArray(data)?data:(data.value||(data.d&&data.d.results)||[]);
     var match=null;
     var ridPadded=rid.length<2?'0'+rid:rid;
     for(var i=0;i<items.length;i++){var ri=items[i].ReportID||'';if(ri===rid||ri===ridPadded){match=items[i];break;}}
