@@ -1764,7 +1764,7 @@ function loadAdminData(){
   .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
   .then(function(data){
     document.getElementById('admin-loading').style.display='none';
-    var all=data.value||data.d&&data.d.results||[];
+    var all=Array.isArray(data)?data:(data.value||data.d&&data.d.results||[]);
     // 排序：依 SubmittedDate 或 Created，最新在前
     all.sort(function(a,b){
       var da=new Date(a.SubmittedDate||a.Created||0);
@@ -1780,6 +1780,37 @@ function loadAdminData(){
         return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
       catch(e){return(raw+'').replace('T',' ').slice(0,16);}
     }
+    function buildReportsHtml(item){
+      var reports=item.Reports;
+      if(!Array.isArray(reports)||!reports.length)return'';
+      reports=reports.slice().sort(function(a,b){return(a.SortOrder||0)-(b.SortOrder||0);});
+      var rows=reports.map(function(r){
+        var name=esc(r.ReportName||'Report');
+        var note=esc(r.ReportNote||'');
+        var start=(r.TestStartDate||'').slice(0,10);
+        var submit=(r.SubmitDate||'').slice(0,10);
+        var skus=esc(r.ReportSkuList||'');
+        var atts=Array.isArray(r.AttachmentFiles)?r.AttachmentFiles:[];
+        var fileLinks=atts.map(function(f){
+          var url='https://inventeccorp.sharepoint.com'+(f.ServerRelativeUrl||'');
+          return'<a href="'+esc(url)+'" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:underline;">📎 '+esc(f.FileName||'檔案')+'</a>';
+        }).join('&nbsp;&nbsp;');
+        var row='<div style="padding:8px 10px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r6);margin-top:6px;">';
+        row+='<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">';
+        row+='<span style="font-family:var(--font-mono);color:var(--text2);">'+name+'</span>';
+        row+='<span style="color:var(--text3);font-size:14px;">'+(start?'開始：'+start:'')+(submit?'　提交：'+submit:'')+'</span>';
+        row+='</div>';
+        if(skus)row+='<div style="color:var(--text3);font-size:14px;margin-top:2px;">SKU：'+skus+'</div>';
+        if(note)row+='<div style="color:var(--amber);font-size:14px;margin-top:2px;">備註：'+note+'</div>';
+        if(fileLinks)row+='<div style="margin-top:4px;">'+fileLinks+'</div>';
+        row+='</div>';
+        return row;
+      }).join('');
+      return'<div style="margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;">'+
+        '<div style="font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--text3);letter-spacing:0.05em;margin-bottom:2px;">📄 REPORTS（'+reports.length+'）</div>'+
+        rows+
+      '</div>';
+    }
     function buildCard(item,isPending){
       var itemId=item.ID||item.Id||item.id||'';
       _adminItems[itemId]=item;
@@ -1792,7 +1823,8 @@ function loadAdminData(){
       var isRetest=item.FormType==='複測';
       var dt=fmtDt(item.SubmittedDate||item.Created||'');
       var dlStr=item.ReportDeadline?(item.ReportDeadline+'').slice(0,10):'';
-      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'">';
+      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" style="flex-direction:column;align-items:stretch;">';
+      h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
       h+='<div>';
       h+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase);
       if(isRetest)h+=' &nbsp;<span style="font-size:14px;background:rgba(255,179,71,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;">RETEST</span>';
@@ -1807,6 +1839,8 @@ function loadAdminData(){
       h+='<button class="ab ab-delay" onclick="delayItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">⏰ 延期</button>';
       if(isPending)h+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
       h+='</div></div></div>';
+      h+=buildReportsHtml(item);
+      h+='</div>';
       return h;
     }
     // Pending
