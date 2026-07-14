@@ -573,12 +573,12 @@ document.getElementById('pw-input').focus();
     <div class="panel-body">
       <div class="retest-lookup">
         <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border2);">
-          <div style="font-family:var(--font-head);font-size:15px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Report ID 快速查詢</div>
+          <div style="font-family:var(--font-head);font-size:15px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Project Code 快速查詢</div>
           <div class="lookup-row">
-            <input type="text" id="rt-report-id" placeholder="輸入 Report ID，例：01、02…" style="font-family:var(--font-mono);"/>
+            <input type="text" id="rt-report-id" placeholder="輸入 Project Code(專案代號)，例：S5408QA" style="font-family:var(--font-mono);"/>
             <button class="btn btn-sec" onclick="lookupByReportId()" style="white-space:nowrap;font-size:16px;padding:9px 20px;">LOAD</button>
           </div>
-          <div style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 直接輸入舊 Report ID 帶出所有既有資料</div>
+          <div style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 直接輸入 Project Code 帶出最新一筆既有資料</div>
         </div>
         <h3>或依專案篩選</h3>
         <div class="field" style="margin-bottom:10px;">
@@ -2835,29 +2835,28 @@ function updateFilenamePreview(){
   if(el)el.textContent=fname;
 }
 
-// ── Retest: lookup by Report ID ──────────────────────────────────────────────
+// ── Retest: lookup by Project Code ────────────────────────────────────────
 function lookupByReportId(){
-  var rid=(document.getElementById('rt-report-id').value||'').trim();
-  if(!rid){alert('請輸入 Report ID');return;}
+  var code=(document.getElementById('rt-report-id').value||'').trim().toUpperCase();
+  if(!code){alert('請輸入 Project Code');return;}
   var btn=document.querySelector('[onclick="lookupByReportId()"]');
   if(btn){btn.disabled=true;btn.textContent='查詢中...';}
-  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryReportId:rid,allStatus:true})})
+  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queryCode:code,allStatus:true,queryAll:true})})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
     if(btn){btn.disabled=false;btn.textContent='LOAD';}
     var items=Array.isArray(data)?data:(data.value||(data.d&&data.d.results)||[]);
-    var match=null;
-    var ridPadded=rid.length<2?'0'+rid:rid;
-    for(var i=0;i<items.length;i++){var ri=items[i].ReportID||'';if(ri===rid||ri===ridPadded){match=items[i];break;}}
-    if(!match){alert('找不到 Report ID：'+rid);return;}
+    var matches=items.filter(function(it){return (it.ProjectCode||'').toUpperCase()===code;});
+    if(!matches.length){alert('找不到 Project Code：'+code);return;}
+    var match=matches.sort(function(a,b){return (b.ID||0)-(a.ID||0);})[0];
     formDb['current']={name:match.ProjectName||match.Title||'',code:match.ProjectCode||'',
       phase:match.Phase||'',date:(match.SubmittedDate||match.Created||'').slice(0,10),
       requester:match.Requester||'',dept:match.Dept||'',email:match.RequesterEmail||'',
       ee:match.EEContact||'',prodLine:match.ProductLine||'',subSeries:match.SubSeries||'',
-      schedStart:match.ScheduleStart||'',notes:match.Notes||'',reportId:rid,
+      schedStart:match.ScheduleStart||'',notes:match.Notes||'',
       skuList:match.SKUList||'',projects:match.AllProjects||''};
     formDb['current'].seriesType=match.SeriesType||'gaming';
-    document.getElementById('fc-title').textContent=(match.ProjectName||match.Title||'—')+' [ID: '+rid+']';
+    document.getElementById('fc-title').textContent=match.ProjectName||match.Title||'—';
     document.getElementById('fc-code').textContent=match.ProjectCode||'—';
     document.getElementById('fc-phase').textContent=match.Phase||'—';
     document.getElementById('fc-date').textContent=(match.SubmittedDate||match.Created||'—').slice(0,10);
