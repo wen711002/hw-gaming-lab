@@ -84,33 +84,18 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .btn-sec{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
 .btn-sec:hover{border-color:var(--border3);color:var(--text);}
 .btn-grn{background:linear-gradient(135deg,var(--green),#00b37a);color:#000;}
-.btn-amber{background:linear-gradient(135deg,var(--amber),#e6901a);color:#000;}
 
-/* RESULT TABLE */
-.result-wrap{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);overflow:hidden;}
-.result-meta{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;gap:24px;flex-wrap:wrap;align-items:center;}
-.meta-item{font-size:14px;color:var(--text2);font-family:var(--font-mono);}
-.meta-item span{color:var(--blue);}
-.result-actions{margin-left:auto;display:flex;gap:8px;}
-.table-scroll{overflow-x:auto;}
-table.result-table{width:100%;border-collapse:collapse;font-size:14px;}
-table.result-table th{background:var(--bg3);color:var(--text2);padding:10px 14px;text-align:center;font-family:var(--font-head);font-size:13px;letter-spacing:0.06em;border-bottom:1px solid var(--border2);white-space:nowrap;position:sticky;top:0;}
-table.result-table th.col-item{text-align:left;min-width:200px;}
-table.result-table th.col-unit{min-width:60px;}
-table.result-table td{padding:8px 14px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;}
-table.result-table td.col-item{text-align:left;color:var(--text2);}
-table.result-table td.col-unit{color:var(--text3);font-size:13px;}
-table.result-table td.val{font-family:var(--font-mono);color:var(--cyan);}
-table.result-table td.val.empty{color:var(--text3);}
-table.result-table tr.cat-header td{background:var(--bg3);color:var(--amber);font-family:var(--font-head);font-weight:700;letter-spacing:0.08em;font-size:14px;padding:10px 14px;}
-table.result-table tr:hover td{background:rgba(76,158,245,0.04);}
-.sku-header{font-size:13px;line-height:1.5;}
-.sku-sub{font-size:11px;color:var(--text3);font-family:var(--font-mono);}
+/* RESULT FOLDER CARD */
+.folder-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:28px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+.folder-card h3{font-family:var(--font-head);font-size:18px;font-weight:700;letter-spacing:0.05em;color:var(--text);margin-bottom:6px;}
+.folder-card p{color:var(--text2);font-size:14px;font-family:var(--font-mono);word-break:break-all;}
 
-/* COMPARE TABLE */
-table.compare-table th.proj-header{background:rgba(168,85,247,0.15);color:var(--purple);border-bottom:2px solid var(--purple);}
-table.compare-table td.best{color:var(--green);font-weight:700;}
-table.compare-table td.worst{color:var(--red);}
+/* LOG LIST */
+.log-list{display:flex;flex-direction:column;gap:10px;}
+.log-item{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:16px 20px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.log-item .li-main{flex:1;min-width:240px;}
+.log-item .li-meta{font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px;}
+.log-item .li-note{color:var(--text);font-size:15px;white-space:pre-wrap;}
 
 /* EMPTY / LOADING */
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3);}
@@ -118,37 +103,6 @@ table.compare-table td.worst{color:var(--red);}
 .empty-state p{font-size:16px;}
 .loading-bar{text-align:center;padding:40px;color:var(--text3);font-family:var(--font-mono);animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
-
-/* COMPARE MULTI SELECT */
-.proj-sel-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.proj-sel-chip{padding:5px 14px;border-radius:20px;font-size:13px;font-family:var(--font-mono);background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all 0.2s;}
-.proj-sel-chip.sel{background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.5);color:var(--purple);}
-.proj-sel-chip:hover{border-color:var(--border3);color:var(--text);}
-.sel-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-.sel-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:4px;font-size:13px;font-family:var(--font-mono);color:var(--purple);}
-.sel-tag .rm{cursor:pointer;color:var(--text3);font-size:15px;line-height:1;}
-.sel-tag .rm:hover{color:var(--red);}
-
-/* UPLOAD MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;}
-.modal-overlay.show{display:flex;}
-.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:32px;width:100%;max-width:560px;position:relative;}
-.modal-title{font-family:var(--font-head);font-size:22px;font-weight:700;letter-spacing:0.06em;color:var(--text);margin-bottom:20px;}
-.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;}
-.modal-close:hover{color:var(--text);}
-.upload-area{border:2px dashed var(--border2);border-radius:var(--r8);padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:16px;}
-.upload-area:hover,.upload-area.drag{border-color:var(--blue);background:rgba(76,158,245,0.05);}
-.upload-area .ui{font-size:36px;margin-bottom:10px;}
-.upload-area p{color:var(--text2);font-size:15px;}
-.upload-area .hint{font-size:13px;color:var(--text3);margin-top:4px;font-family:var(--font-mono);}
-.upload-preview{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);padding:10px 14px;font-family:var(--font-mono);font-size:14px;color:var(--text2);display:none;margin-bottom:16px;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:13px;color:var(--text3);letter-spacing:0.06em;font-family:var(--font-head);margin-bottom:6px;}
-.field input,.field select,.field textarea{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;outline:none;}
-.field input:focus,.field select:focus{border-color:var(--blue);}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:10px;display:none;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:2px;transition:width 0.3s;}
 </style>
 </head>
 <body>
@@ -206,312 +160,66 @@ document.getElementById('pw-input').focus();
   <!-- HEADER -->
   <div class="page-header">
     <h1>Result <span>Viewer</span></h1>
-    <p>查看單一專案測試結果，或跨專案比對看板</p>
+    <p>查詢專案測試結果，或進行跨專案比對</p>
   </div>
 
   <!-- MODE SELECTOR -->
   <div class="mode-wrap" id="mode-wrap">
-    <div class="mode-card single" onclick="enterMode('single')">
-      <div class="mc-icon">📄</div>
-      <div class="mc-title">單一專案結果</div>
-      <div class="mc-desc">查看單一專案的完整測試報告，顯示所有 SKU 測試數據，可下載 Excel。</div>
-      <div class="mc-tags">
-        <span class="mc-tag">單一專案</span>
-        <span class="mc-tag">完整報告</span>
-        <span class="mc-tag">SKU 比較</span>
-        <span class="mc-tag">下載 Excel</span>
-      </div>
+    <div class="mode-card single" onclick="enterMode('lookup')">
+      <div class="mc-icon">📥</div>
+      <div class="mc-title">整份 Result 下載</div>
+      <div class="mc-desc">輸入專案代碼，查出該專案所有測試結果通知紀錄，並直接前往 SharePoint 對應資料夾下載完整結果。</div>
     </div>
     <div class="mode-card compare" onclick="enterMode('compare')">
       <div class="mc-icon">📊</div>
-      <div class="mc-title">比對看板</div>
-      <div class="mc-desc">跨專案、跨 Phase、複測前後比對，選取特定測項並排比較數據。</div>
+      <div class="mc-title">Result 比對</div>
+      <div class="mc-desc">跨專案、跨 Phase、複測前後比對 — 詳細設計進行中。</div>
       <div class="mc-tags">
-        <span class="mc-tag">跨專案比對</span>
-        <span class="mc-tag">Phase 篩選</span>
-        <span class="mc-tag">複測比對</span>
-        <span class="mc-tag">匯出 CSV</span>
-      </div>
-    </div>
-    <div class="mode-card" style="border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.04);" onclick="enterMode('download')">
-      <div class="mc-icon">📥</div>
-      <div class="mc-title" style="color:var(--purple);">報告下載</div>
-      <div class="mc-desc">選擇專案與版本，一鍵下載完整測試結果 Excel，無須先進入檢視模式。</div>
-      <div class="mc-tags">
-        <span class="mc-tag">一鍵下載</span>
-        <span class="mc-tag">選版本</span>
-        <span class="mc-tag">Excel 原檔</span>
+        <span class="mc-tag">即將推出</span>
       </div>
     </div>
   </div>
 
-  <!-- REPORT DOWNLOAD PANEL -->
-  <div class="panel-wrap" id="panel-download" style="display:none;">
+  <!-- LOOKUP / DOWNLOAD PANEL -->
+  <div class="panel-wrap" id="panel-lookup">
     <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
     <div class="filter-box">
-      <h3>選擇報告並下載</h3>
+      <h3>輸入專案代碼查詢</h3>
       <div class="filter-row">
         <div class="filter-field">
-          <label>PRODUCT LINE</label>
-          <select id="dl-product-line" onchange="onDlPLChange()">
-            <option value="">--- 選擇 Product Line ---</option>
-            <option value="Strix">Strix</option>
-            <option value="TUF">TUF</option>
-            <option value="Consumer">Consumer</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label>CHIPSET / SUB-SERIES</label>
-          <select id="dl-sub-series" onchange="onDlSSChange()">
-            <option value="">--- 請先選擇 Product Line ---</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label>專案名稱</label>
-          <select id="dl-proj-name" onchange="onDlProjChange()">
-            <option value="">--- 請先選擇 Chipset ---</option>
-          </select>
-        </div>
-      </div>
-      <div class="filter-row" id="dl-file-row" style="display:none;">
-        <div class="filter-field">
-          <label>版本</label>
-          <select id="dl-file-sel">
-            <option value="">--- 選擇版本 ---</option>
-          </select>
+          <label>專案代碼（PROJECT CODE）</label>
+          <input type="text" id="lookup-code" placeholder="例：G814JV" onkeydown="if(event.key==='Enter')runLookup()"/>
         </div>
         <div style="display:flex;align-items:flex-end;">
-          <button class="btn btn-pri" onclick="downloadReport()" id="dl-btn">⬇ 下載 Excel</button>
+          <button class="btn btn-pri" onclick="runLookup()">🔍 查詢</button>
         </div>
       </div>
     </div>
-    <div id="dl-status-area"></div>
-  </div>
-
-  <!-- SINGLE PROJECT PANEL -->
-  <div class="panel-wrap" id="panel-single">
-    <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
-    <div class="filter-box">
-      <h3>選擇專案</h3>
-      <div class="filter-row">
-        <div class="filter-field">
-          <label>PRODUCT LINE</label>
-          <select id="s-product-line" onchange="onSinglePLChange()">
-            <option value="">--- 選擇 Product Line ---</option>
-            <option value="Strix">Strix</option>
-            <option value="TUF">TUF</option>
-            <option value="Consumer">Consumer</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label>CHIPSET / SUB-SERIES</label>
-          <select id="s-sub-series" onchange="onSingleSSChange()">
-            <option value="">--- 請先選擇 Product Line ---</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label>專案名稱</label>
-          <select id="s-proj-name" onchange="onSingleProjChange()">
-            <option value="">--- 請先選擇 Chipset ---</option>
-          </select>
-        </div>
-      </div>
-      <div class="filter-row" id="s-file-row" style="display:none;">
-        <div class="filter-field">
-          <label>版本（NEW=首版 / R1=複測1 / R2=複測2）</label>
-          <select id="s-file-sel">
-            <option value="">--- 選擇版本 ---</option>
-          </select>
-        </div>
-        <div class="filter-field" style="min-width:150px;max-width:180px;">
-          <label>報告類別篩選</label>
-          <select id="s-report-type">
-            <option value="all">全部報告</option>
-            <option value="acc">ACC</option>
-            <option value="tpr">TPR</option>
-            <option value="sow">SOW</option>
-            <option value="hwi">HW Info</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:flex-end;gap:8px;">
-          <button class="btn btn-pri" onclick="loadSingleResult()">載入結果 →</button>
-          <button class="btn btn-grn" id="s-dl-btn" style="display:none;" onclick="downloadLoadedExcel()">⬇ 下載</button>
-        </div>
-      </div>
-    </div>
-    <div id="single-result-area">
+    <div id="lookup-result-area">
       <div class="empty-state">
-        <div class="ei">📄</div>
-        <p>請從上方選擇專案與版本後，點擊「載入結果」</p>
+        <div class="ei">📥</div>
+        <p>請輸入專案代碼後點擊「查詢」</p>
       </div>
     </div>
   </div>
 
-  <!-- COMPARE PANEL -->
+  <!-- COMPARE PANEL (placeholder) -->
   <div class="panel-wrap" id="panel-compare">
     <button class="back-btn" onclick="backToMode()">← 返回選擇</button>
-    <div class="filter-box">
-      <h3>選擇比對專案（最多 5 個）</h3>
-      <div class="filter-row">
-        <div class="filter-field">
-          <label>PRODUCT LINE</label>
-          <select id="c-product-line" onchange="onComparePLChange()">
-            <option value="">--- 選擇 Product Line ---</option>
-            <option value="Strix">Strix</option>
-            <option value="TUF">TUF</option>
-            <option value="Consumer">Consumer</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label>CHIPSET / SUB-SERIES</label>
-          <select id="c-sub-series" onchange="onCompareSSChange()">
-            <option value="">--- 請先選擇 Product Line ---</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label>專案名稱</label>
-          <select id="c-proj-name">
-            <option value="">--- 請先選擇 Chipset ---</option>
-          </select>
-        </div>
-        <div class="filter-field" style="min-width:120px;max-width:160px;">
-          <label>版本</label>
-          <select id="c-file-sel">
-            <option value="">--- ---</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:flex-end;">
-          <button class="btn btn-sec" onclick="addCompareItem()">＋ 加入比對</button>
-        </div>
-      </div>
-      <div class="sel-tags" id="compare-tags"></div>
-      <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div class="filter-field" style="max-width:200px;">
-          <label>篩選報告類別</label>
-          <select id="c-cat-filter">
-            <option value="all">全部</option>
-            <option value="acc">ACC</option>
-            <option value="tpr">TPR</option>
-            <option value="sow">SOW</option>
-            <option value="hwi">HW Info</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:flex-end;gap:8px;">
-          <button class="btn btn-pri" onclick="runCompare()" id="compare-btn" disabled>執行比對 →</button>
-          <button class="btn btn-sec" onclick="exportCompareCSV()" id="export-btn" style="display:none;">⬇ 匯出 CSV</button>
-        </div>
-      </div>
-    </div>
-    <div id="compare-result-area">
-      <div class="empty-state">
-        <div class="ei">📊</div>
-        <p>請從上方加入 2~5 個專案版本，再點「執行比對」</p>
-      </div>
+    <div class="empty-state">
+      <div class="ei">📊</div>
+      <p>Result 比對功能設計中，敬請期待。</p>
     </div>
   </div>
 
 </div><!-- /main-content -->
 </div><!-- /outer -->
 
-<!-- UPLOAD MODAL (Admin only) -->
-<div class="modal-overlay" id="upload-modal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeUploadModal()">×</button>
-    <div class="modal-title">📤 Result 上傳</div>
-    <div class="upload-area" id="upload-area" onclick="document.getElementById('result-file-input').click()" ondragover="onDragOver(event)" ondrop="onDrop(event)">
-      <div class="ui">📊</div>
-      <p>點擊選擇或拖曳 Excel 檔案至此</p>
-      <div class="hint">// 格式：PROJECTNAME_PHASE_RESULT_NEW_YYMMDD.XLSX 或 _R1_YYMMDD.XLSX</div>
-      <input type="file" id="result-file-input" accept=".xlsx,.xls" style="display:none;" onchange="onFileSelect(this)"/>
-    </div>
-    <div class="upload-preview" id="upload-preview"></div>
-    <div class="field">
-      <label>PRODUCT LINE<span style="color:var(--red);">*</span></label>
-      <select id="upload-pl" onchange="onUploadPLChange()">
-        <option value="">--- 選擇 Product Line ---</option>
-        <option value="Strix">Strix</option>
-        <option value="TUF">TUF</option>
-        <option value="Consumer">Consumer</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>CHIPSET / SUB-SERIES<span style="color:var(--red);">*</span></label>
-      <select id="upload-ss" onchange="onUploadSSChange()">
-        <option value="">--- 請先選擇 Product Line ---</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>專案名稱<span style="color:var(--red);">*</span></label>
-      <select id="upload-proj">
-        <option value="">--- 請先選擇 Chipset ---</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>上傳者</label>
-      <select id="uploader-name">
-        <option value="Sandra">Yu.Sandra</option>
-        <option value="Allen">Allen</option>
-        <option value="Sally">Sally</option>
-        <option value="Enya">Enya</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>通知 Email<span style="color:var(--red);">*</span></label>
-      <input type="email" id="upload-req-email" placeholder="需求人信箱，上傳後自動發送通知"/>
-      <span style="font-size:12px;color:var(--text3);font-family:var(--font-mono);">// Result 上傳完成後，系統將自動寄送通知至此信箱</span>
-    </div>
-    <div class="field">
-      <label>備註（選填）</label>
-      <input type="text" id="upload-note" placeholder="例：新增 BD2 資料、修正 FPS 數值…"/>
-    </div>
-    <div class="progress-bar" id="upload-progress-bar">
-      <div class="progress-fill" id="upload-progress-fill" style="width:0%"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-sec" onclick="closeUploadModal()">取消</button>
-      <button class="btn btn-pri" onclick="submitUpload()" id="upload-submit-btn">確認上傳</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ── Project hierarchy data ────────────────────────────────────────────────────
-var PROJECT_DATA = {
-  'Strix': {
-    'Intel': ['Intel NVL-HX(G8-Scar)-BD1','Intel NVL-HX(G6-Scar)-BD1','Intel NVL-HX(G8/G6-G)-BD1','Intel NVL-HX(G8/G6-G)-BD2','Intel RPL Next (G8/G6-G)-BD2'],
-    'AMD':   ['Gator Range (G6/G8-AMD)-BD1','Gator Range (G6/G8-AMD)-BD2']
-  },
-  'TUF': {
-    'Intel': ['Intel NVL-HX-BD2(FX 16")','Intel RPL-BD2(FX 16")','Intel NVL-BD1 (18")','Intel NVL-BD1 (16")'],
-    'AMD':   ['AMD Hawk Point-BD2(FA/FX 16")','AMD Gator Range/Fire Range-BD1(FA/FX 16")','AMD Gator Range/Fire Range-BD2(FA/FX 16")','AMD Gator Range/Fire Range-BD1(FA 18")','AMD Gator Range/Fire Range-BD2(FA 18")','Madusa Point-BD2 (FA402)']
-  },
-  'Consumer': {
-    'Zenbook':  ['Zenbook A-Qcom_Gtymur (COB)','Zenbook A-Qcom_Gtymur (SIP)','Zenbook A-Qcom_Kalambo','Zenbook S-Intel_NV_LAKE','Zenbook S-AMD_Medusa Point','Zenbook SE-Intel NV LAKE','Zenbook SE-AMD_Medusa Point','Zenbook SE-AMD_RMB+FP7','Zenbook SE-Intel_PTL','Zenbook SE-AMD Gorgon Point','Zenbook SE-Qcom_Purwa SE'],
-    'Vivobook': ['Vivobook S_Intel_NV LAKE','Vivobook S_AMD_Medusa Point','Vivobook S-Qcom_Purwa SE','Vivobook S_AMD_RMB+FP7']
-  }
-};
-
-// Uploaded results index: projName → [{label, url, filename}]
-// This is populated from SharePoint GameLabResults list
-var RESULT_INDEX = {}; // will be loaded from SP
-
-// Compare selection
-var compareItems = []; // [{label, projName, filename, url}]
-
-// ── Utility ──────────────────────────────────────────────────────────────────
-function buildSelect(id, opts, placeholder){
-  var el=document.getElementById(id); if(!el) return;
-  el.innerHTML='<option value="">'+placeholder+'</option>';
-  opts.forEach(function(o){var x=document.createElement('option');x.value=o;x.textContent=o;el.appendChild(x);});
-}
-function getSubSeries(pl){ return pl&&PROJECT_DATA[pl]?Object.keys(PROJECT_DATA[pl]):[]; }
-function getProjects(pl,ss){ return pl&&ss&&PROJECT_DATA[pl]&&PROJECT_DATA[pl][ss]?PROJECT_DATA[pl][ss]:[]; }
-
 // ── Mode switching ────────────────────────────────────────────────────────────
 function enterMode(mode){
   document.getElementById('mode-wrap').style.display='none';
-  ['single','compare','download'].forEach(function(m){
+  ['lookup','compare'].forEach(function(m){
     var el=document.getElementById('panel-'+m);
     if(el){el.classList.remove('active');el.style.display='none';}
   });
@@ -520,355 +228,81 @@ function enterMode(mode){
 }
 function backToMode(){
   document.getElementById('mode-wrap').style.display='flex';
-  ['single','compare','download'].forEach(function(m){
+  ['lookup','compare'].forEach(function(m){
     var el=document.getElementById('panel-'+m);
     if(el){el.classList.remove('active');el.style.display='none';}
   });
 }
 
-// ── Single Project ─────────────────────────────────────────────────────────
-function onSinglePLChange(){
-  var pl=document.getElementById('s-product-line').value;
-  buildSelect('s-sub-series',getSubSeries(pl),'--- 請先選擇 Chipset ---');
-  buildSelect('s-proj-name',[],'--- 請先選擇 Chipset ---');
-  buildSelect('s-file-sel',[],'--- 選擇版本 ---');
-  document.getElementById('s-file-row').style.display='none';
-}
-function onSingleSSChange(){
-  var pl=document.getElementById('s-product-line').value;
-  var ss=document.getElementById('s-sub-series').value;
-  buildSelect('s-proj-name',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
-  buildSelect('s-file-sel',[],'--- 選擇版本 ---');
-  document.getElementById('s-file-row').style.display='none';
-}
-function onSingleProjChange(){
-  var proj=document.getElementById('s-proj-name').value;
-  if(!proj){ document.getElementById('s-file-row').style.display='none'; return; }
-  var files=RESULT_INDEX[proj]||[];
-  if(files.length){
-    buildSelect('s-file-sel',files.map(function(f){return f.label;}),'--- 選擇版本 ---');
-  } else {
-    buildSelect('s-file-sel',[],'// 尚無上傳結果');
-  }
-  document.getElementById('s-file-row').style.display='flex';
+// ── Result Lookup (by Project Code) ─────────────────────────────────────────
+var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
+var PA_GET_FILE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/30ae0af6532742de8324b0c1cab152d7/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=8hbfVKWko1G2kztMukuO9McyNqb5sYX8a9vPHosjmV0';
+var SP_SITE='https://inventeccorp.sharepoint.com/sites/IEC1-HWGamingLab';
+
+function fmtDt(raw){
+  if(!raw)return'—';
+  try{var d=new Date(raw),p=function(n){return n<10?'0'+n:String(n);};
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+  catch(e){return(raw+'').replace('T',' ').slice(0,16);}
 }
 
-function loadSingleResult(){
-  var proj=document.getElementById('s-proj-name').value;
-  var label=document.getElementById('s-file-sel').value;
-  if(!proj||!label){alert('請選擇專案與版本。');return;}
-  var files=RESULT_INDEX[proj]||[];
-  var entry=null;
-  for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
-  if(!entry){alert('找不到對應檔案。');return;}
-  var area=document.getElementById('single-result-area');
-  area.innerHTML='<div class="loading-bar">讀取中，請稍候...</div>';
-  document.getElementById('s-dl-btn').style.display='none';
-  fetchAndRenderSingle(entry, proj, label, area);
-}
-
-// Fetch Excel via PA proxy (bypasses SharePoint CORS/auth restrictions)
-function fetchFileViaPA(filename){
-  return fetch(PA_GET_FILE,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({FileName:filename})
-  })
+function runLookup(){
+  var code=document.getElementById('lookup-code').value.trim().toUpperCase();
+  if(!code){alert('請輸入專案代碼。');return;}
+  var area=document.getElementById('lookup-result-area');
+  area.innerHTML='<div class="loading-bar">查詢中，請稍候...</div>';
+  fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    if(!data.FileBase64) throw new Error('回應中缺少 FileBase64');
-    var b64=data.FileBase64;
-    var bin=atob(b64);
-    var bytes=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    return bytes.buffer;
-  });
-}
-
-// ── Sheet type helpers ────────────────────────────────────────────────────────
-function getMatchingSheets(names, rtype){
-  return names.filter(function(n){
-    var nu=n.toUpperCase();
-    if(nu==='COVER'||nu==='_TMP') return false;
-    if(rtype==='all') return true;
-    if(rtype==='acc') return nu.indexOf('ACC')===0;
-    if(rtype==='tpr') return nu.indexOf('TPR')===0;
-    if(rtype==='sow') return nu.indexOf('SOW')===0;
-    if(rtype==='hwi') return nu.indexOf('HW')===0;
-    return false;
-  });
-}
-
-function fetchAndRenderSingle(entry, proj, label, area){
-  fetchFileViaPA(entry.filename)
-  .then(function(buf){
-    var wb=XLSX.read(buf,{type:'array'});
-    var rtype=document.getElementById('s-report-type').value;
-    var sheets=getMatchingSheets(wb.SheetNames, rtype);
-    if(!sheets.length){throw new Error('所選報告類別在此檔案中無對應 Sheet');}
-    window._lastExcelBuf=buf;
-    window._lastExcelName=label+'.xlsx';
-    document.getElementById('s-dl-btn').style.display='inline-flex';
-    var html='<div style="display:flex;flex-direction:column;gap:16px;">';
-    sheets.forEach(function(sname){
-      var ws=wb.Sheets[sname];
-      if(!ws) return;
-      var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-      html+=renderSheetSection(sname,data);
+    var items=data.value||(data.d&&data.d.results)||[];
+    var matched=items.filter(function(i){return(i.Title||'').toUpperCase()===code;});
+    matched.sort(function(a,b){
+      var da=new Date(a.UploadedAt||a.Created||0),db=new Date(b.UploadedAt||b.Created||0);
+      return db-da;
     });
-    html+='</div>';
-    area.innerHTML=html;
+    renderLookupResult(code,matched,area);
   })
   .catch(function(e){
-    area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>載入失敗：'+e.message+'</p></div>';
+    area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>查詢失敗：'+escH(e.message)+'</p></div>';
   });
 }
 
-function renderSheetSection(sname, data){
-  var isHWI=sname.toUpperCase().indexOf('HW')===0;
-  var headerRow=data[1]||[];
-  var skuCols=[];
-  for(var c=2;c<headerRow.length;c++){
-    if(headerRow[c]!==null&&headerRow[c]!==undefined)
-      skuCols.push({ci:c,name:String(headerRow[c])});
+function renderLookupResult(code,items,area){
+  var folderUrl=SP_SITE+'/GameLabResultFiles/'+encodeURIComponent(code);
+  var html='<div class="folder-card">';
+  html+='<div><h3>📁 '+escH(code)+' — 完整結果資料夾</h3><p>'+escH(folderUrl)+'</p></div>';
+  html+='<a class="btn btn-pri" href="'+escH(folderUrl)+'" target="_blank" rel="noopener">⬇ 前往 SharePoint 下載整份 Result</a>';
+  html+='</div>';
+
+  if(!items.length){
+    html+='<div class="empty-state"><div class="ei">📭</div><p>此專案尚無完成通知紀錄，若已請實驗室人員確認檔案是否已放置於上方資料夾。</p></div>';
+    area.innerHTML=html;
+    return;
   }
 
-  var html='<div class="result-wrap">';
-  html+='<div class="result-meta"><div class="meta-item"><span>'+escH(sname)+'</span></div></div>';
-  html+='<div class="table-scroll"><table class="result-table">';
-
-  if(isHWI){
-    html+='<thead><tr><th class="col-item" style="min-width:160px;">項目</th><th class="col-item">數值</th></tr></thead><tbody>';
-    for(var r=2;r<data.length;r++){
-      var row=data[r]||[];
-      if(row[0]===null&&row[1]===null) continue;
-      html+='<tr><td class="col-item">'+escH(String(row[0]!==null?row[0]:''))+'</td>';
-      html+='<td class="val">'+escH(String(row[1]!==null&&row[1]!==undefined?row[1]:'—'))+'</td></tr>';
+  html+='<div class="log-list">';
+  items.forEach(function(item){
+    var note=escH(item.Note||'');
+    var by=escH(item.Uploader||'—');
+    var dt=fmtDt(item.UploadedAt);
+    var fname=item.FileName||'';
+    var isStatus=fname==='部份完成'||fname==='全部完成';
+    var statusTag=isStatus?'<span style="font-size:13px;padding:1px 8px;border-radius:10px;margin-right:8px;'+(fname==='全部完成'?'background:rgba(0,229,160,0.15);color:var(--green);':'background:rgba(255,179,71,0.15);color:var(--amber);')+'">'+escH(fname)+'</span>':'';
+    html+='<div class="log-item">';
+    html+='<div class="li-main">';
+    html+='<div class="li-meta">'+statusTag+dt+'　by '+by+(!isStatus&&fname?'　📎 '+escH(fname):'')+'</div>';
+    if(note)html+='<div class="li-note">'+note+'</div>';
+    html+='</div>';
+    if(item.FileUrl0){
+      html+='<a class="btn btn-sec" href="'+escH(item.FileUrl0)+'" target="_blank" rel="noopener">🔗 查看</a>';
     }
-  } else {
-    html+='<thead><tr><th class="col-item">測試項目</th>';
-    skuCols.forEach(function(s){html+='<th>'+escH(s.name)+'</th>';});
-    html+='</tr></thead><tbody>';
-    for(var r=2;r<data.length;r++){
-      var row=data[r]||[];
-      var no=row[0],item=row[1];
-      if(no===null&&item===null) continue;
-      html+='<tr><td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(no!==null?no:''))+'</span>'+escH(String(item!==null?item:''))+'</td>';
-      skuCols.forEach(function(s){
-        var v=row[s.ci];
-        html+=(v===null||v===undefined||v==='')?'<td class="val empty">—</td>':'<td class="val">'+escH(String(v))+'</td>';
-      });
-      html+='</tr>';
-    }
-  }
-  html+='</tbody></table></div></div>';
-  return html;
-}
-
-function downloadLoadedExcel(){
-  if(!window._lastExcelBuf){alert('請先載入結果。');return;}
-  var blob=new Blob([window._lastExcelBuf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=window._lastExcelName||'result.xlsx';a.click();
-}
-
-// ── Compare Dashboard ─────────────────────────────────────────────────────────
-function onComparePLChange(){
-  var pl=document.getElementById('c-product-line').value;
-  buildSelect('c-sub-series',getSubSeries(pl),'--- 請先選擇 Chipset ---');
-  buildSelect('c-proj-name',[],'--- 請先選擇 Chipset ---');
-  buildSelect('c-file-sel',[],'--- ---');
-}
-function onCompareSSChange(){
-  var pl=document.getElementById('c-product-line').value;
-  var ss=document.getElementById('c-sub-series').value;
-  buildSelect('c-proj-name',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
-  buildSelect('c-file-sel',[],'--- ---');
-  document.getElementById('c-proj-name').onchange=function(){
-    var proj=this.value;
-    var files=RESULT_INDEX[proj]||[];
-    buildSelect('c-file-sel',files.map(function(f){return f.label;}),'--- 選擇版本 ---');
-  };
-}
-
-function addCompareItem(){
-  var proj=document.getElementById('c-proj-name').value;
-  var label=document.getElementById('c-file-sel').value;
-  if(!proj||!label){alert('請選擇專案與版本。');return;}
-  if(compareItems.length>=5){alert('最多加入 5 個比對項目。');return;}
-  var dup=compareItems.some(function(x){return x.proj===proj&&x.label===label;});
-  if(dup){alert('此版本已加入比對清單。');return;}
-  var files=RESULT_INDEX[proj]||[];
-  var entry=null;
-  for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
-  if(!entry){alert('找不到對應檔案。');return;}
-  compareItems.push({proj:proj,label:label,filename:entry.filename,url:entry.url});
-  renderCompareTags();
-  document.getElementById('compare-btn').disabled=compareItems.length<2;
-}
-
-function removeCompareItem(idx){
-  compareItems.splice(idx,1);
-  renderCompareTags();
-  document.getElementById('compare-btn').disabled=compareItems.length<2;
-  if(compareItems.length<2){
-    document.getElementById('export-btn').style.display='none';
-    document.getElementById('compare-result-area').innerHTML='<div class="empty-state"><div class="ei">📊</div><p>請從上方加入 2~5 個專案版本，再點「執行比對」</p></div>';
-  }
-}
-
-function renderCompareTags(){
-  var box=document.getElementById('compare-tags');
-  box.innerHTML='';
-  compareItems.forEach(function(item,i){
-    var tag=document.createElement('span');
-    tag.className='sel-tag';
-    tag.innerHTML=item.proj+' · '+item.label+' <span class="rm" onclick="removeCompareItem('+i+')">×</span>';
-    box.appendChild(tag);
+    html+='</div>';
   });
-}
-
-function runCompare(){
-  if(compareItems.length<2){alert('請至少加入 2 個比對項目。');return;}
-  var area=document.getElementById('compare-result-area');
-  area.innerHTML='<div class="loading-bar">比對資料讀取中...</div>';
-  var cat=document.getElementById('c-cat-filter').value;
-  var promises=compareItems.map(function(item){
-    return fetchFileViaPA(item.filename).then(function(buf){
-      var wb=XLSX.read(buf,{type:'array'});
-      var sheets=getMatchingSheets(wb.SheetNames,cat);
-      if(!sheets.length) throw new Error(item.label+': 無對應報告類別 Sheet');
-      var allRows=[];
-      sheets.forEach(function(sname){
-        var ws=wb.Sheets[sname];if(!ws)return;
-        var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-        var hdr=data[1]||[];
-        var skuCols=[];
-        for(var c=2;c<hdr.length;c++){if(hdr[c]!==null&&hdr[c]!==undefined)skuCols.push(c);}
-        allRows.push({section:sname});
-        for(var r=2;r<data.length;r++){
-          var row=data[r]||[];var no=row[0],itm=row[1];
-          if(no===null&&itm===null) continue;
-          var vals=skuCols.map(function(c){var v=row[c];return(v!==null&&v!==undefined)?v:null;});
-          allRows.push({no:no,item:itm,firstVal:vals.length?vals[0]:null});
-        }
-      });
-      return {item:item,rows:allRows};
-    });
-  });
-  Promise.all(promises).then(function(results){
-    renderCompareTable(results,area);
-    document.getElementById('export-btn').style.display='inline-flex';
-    window._compareResults=results;
-  }).catch(function(e){
-    area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>比對失敗：'+e.message+'</p></div>';
-  });
-}
-
-function renderCompareTable(results,area){
-  var masterRows=results[0].rows;
-  var html='<div class="result-wrap"><div class="table-scroll">';
-  html+='<table class="result-table compare-table"><thead><tr>';
-  html+='<th class="col-item">測試項目</th>';
-  results.forEach(function(r){
-    html+='<th class="proj-header">'+escH(r.item.proj)+'<div class="sku-sub">'+escH(r.item.label)+'</div></th>';
-  });
-  html+='</tr></thead><tbody>';
-  masterRows.forEach(function(mrow){
-    if(mrow.section!==undefined){
-      html+='<tr class="cat-header"><td colspan="'+(1+results.length)+'">'+escH(mrow.section)+'</td></tr>';
-      return;
-    }
-    var rowVals=results.map(function(r){
-      for(var i=0;i<r.rows.length;i++){if(r.rows[i].item===mrow.item)return r.rows[i].firstVal;}
-      return null;
-    });
-    var numVals=rowVals.filter(function(v){return v!==null&&!isNaN(parseFloat(v));}).map(parseFloat);
-    var maxV=numVals.length?Math.max.apply(null,numVals):null;
-    var minV=numVals.length?Math.min.apply(null,numVals):null;
-    html+='<tr><td class="col-item"><span style="color:var(--text3);font-family:var(--font-mono);font-size:12px;margin-right:8px;">'+escH(String(mrow.no!==null?mrow.no:''))+'</span>'+escH(String(mrow.item||''))+'</td>';
-    rowVals.forEach(function(v){
-      if(v===null||v===undefined){html+='<td class="val empty">—</td>';return;}
-      var fv=parseFloat(v);
-      if(numVals.length>1&&fv===maxV) html+='<td class="val best">'+escH(String(v))+'</td>';
-      else if(numVals.length>1&&fv===minV) html+='<td class="val worst">'+escH(String(v))+'</td>';
-      else html+='<td class="val">'+escH(String(v))+'</td>';
-    });
-    html+='</tr>';
-  });
-  html+='</tbody></table></div></div>';
+  html+='</div>';
   area.innerHTML=html;
 }
 
-function exportCompareCSV(){
-  if(!window._compareResults) return;
-  var BOM='\uFEFF';
-  var lines=[];
-  var header=['測試項目'].concat(window._compareResults.map(function(r){return r.item.proj+' ('+r.item.label+')';}));
-  lines.push(header.map(function(h){return '"'+h+'"';}).join(','));
-  var masterRows=window._compareResults[0].rows;
-  masterRows.forEach(function(mrow){
-    if(mrow.section!==undefined) return;
-    var vals=window._compareResults.map(function(r){
-      for(var i=0;i<r.rows.length;i++){if(r.rows[i].item===mrow.item)return r.rows[i].firstVal!==null?r.rows[i].firstVal:'';}
-      return '';
-    });
-    lines.push(['"'+(mrow.no!==null?mrow.no+' ':'')+String(mrow.item||'')+'"'].concat(vals.map(function(v){return '"'+v+'"';})).join(','));
-  });
-  var blob=new Blob([BOM+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='GameLab_Compare_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-}
-
-// ── Report Download Panel ────────────────────────────────────────────────────
-function onDlPLChange(){
-  var pl=document.getElementById('dl-product-line').value;
-  buildSelect('dl-sub-series',getSubSeries(pl),'--- 請先選擇 Chipset ---');
-  buildSelect('dl-proj-name',[],'--- 請先選擇 Chipset ---');
-  buildSelect('dl-file-sel',[],'--- 選擇版本 ---');
-  document.getElementById('dl-file-row').style.display='none';
-}
-function onDlSSChange(){
-  var pl=document.getElementById('dl-product-line').value;
-  var ss=document.getElementById('dl-sub-series').value;
-  buildSelect('dl-proj-name',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
-  buildSelect('dl-file-sel',[],'--- 選擇版本 ---');
-  document.getElementById('dl-file-row').style.display='none';
-}
-function onDlProjChange(){
-  var proj=document.getElementById('dl-proj-name').value;
-  if(!proj){document.getElementById('dl-file-row').style.display='none';return;}
-  var files=RESULT_INDEX[proj]||[];
-  buildSelect('dl-file-sel',files.map(function(f){return f.label;}),'--- 選擇版本 ---');
-  document.getElementById('dl-file-row').style.display='flex';
-}
-function downloadReport(){
-  var proj=document.getElementById('dl-proj-name').value;
-  var label=document.getElementById('dl-file-sel').value;
-  if(!proj||!label){alert('請選擇專案與版本。');return;}
-  var files=RESULT_INDEX[proj]||[];
-  var entry=null;
-  for(var i=0;i<files.length;i++){if(files[i].label===label){entry=files[i];break;}}
-  if(!entry){alert('找不到對應檔案。');return;}
-  var btn=document.getElementById('dl-btn');
-  btn.disabled=true;btn.textContent='下載中...';
-  var statusArea=document.getElementById('dl-status-area');
-  statusArea.innerHTML='<div class="loading-bar">連線中，請稍候...</div>';
-  fetchFileViaPA(entry.filename)
-  .then(function(buf){
-    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download=entry.filename;a.click();
-    btn.disabled=false;btn.textContent='⬇ 下載 Excel';
-    statusArea.innerHTML='<div style="padding:12px 0;color:var(--green);font-family:var(--font-mono);font-size:14px;">下載完成：'+escH(entry.filename)+'</div>';
-  })
-  .catch(function(e){
-    btn.disabled=false;btn.textContent='⬇ 下載 Excel';
-    statusArea.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>下載失敗：'+e.message+'</p></div>';
-  });
-}
-
-// ── Admin / Upload ─────────────────────────────────────────────────────────
+// ── Admin ─────────────────────────────────────────────────────────────────
 var _adminAuth=false;
 function openAdmin(){
   if(_adminAuth){sessionStorage.setItem('adminAuth','1');window.location.href='form.html#admin';return;}
@@ -877,178 +311,9 @@ function openAdmin(){
   if(pw==='GL#31#'){_adminAuth=true;sessionStorage.setItem('adminAuth','1');window.location.href='form.html#admin';}
   else{alert('❌ 密碼錯誤，請重新輸入。');}
 }
-function showUploadModal(){document.getElementById('upload-modal').classList.add('show');}
-function closeUploadModal(){
-  document.getElementById('upload-modal').classList.remove('show');
-  document.getElementById('upload-pl').value='';
-  buildSelect('upload-ss',[],'--- 請先選擇 Product Line ---');
-  buildSelect('upload-proj',[],'--- 請先選擇 Chipset ---');
-}
-
-var _uploadFile=null;
-function onDragOver(e){e.preventDefault();document.getElementById('upload-area').classList.add('drag');}
-function onDrop(e){
-  e.preventDefault();document.getElementById('upload-area').classList.remove('drag');
-  var f=e.dataTransfer.files[0];if(f) setUploadFile(f);
-}
-function onFileSelect(input){if(input.files[0]) setUploadFile(input.files[0]);}
-function setUploadFile(f){
-  _uploadFile=f;
-  var p=document.getElementById('upload-preview');
-  p.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)';
-  p.style.display='block';
-  readMetaFromExcel(f);
-}
-
-function readMetaFromExcel(file){
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      var ws=wb.Sheets['SKU Table'];
-      if(!ws) return;
-      var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-      // Row 9  (0-index 8): F9=ProductLine(col5)
-      // Row 10 (0-index 9): C10=SubSeries(col2), F10=ProjectName(col5)
-      var pl=String((data[8]||[])[5]||'').trim();
-      var ss=String((data[9]||[])[2]||'').trim();
-      var proj=String((data[9]||[])[5]||'').trim();
-      if(!pl) return;
-      var plSel=document.getElementById('upload-pl');
-      plSel.value=pl;
-      onUploadPLChange();
-      if(!ss) return;
-      var ssSel=document.getElementById('upload-ss');
-      ssSel.value=ss;
-      onUploadSSChange();
-      if(proj) document.getElementById('upload-proj').value=proj;
-    }catch(ex){}
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function onUploadPLChange(){
-  var pl=document.getElementById('upload-pl').value;
-  buildSelect('upload-ss',getSubSeries(pl),'--- 請先選擇 Chipset ---');
-  buildSelect('upload-proj',[],'--- 請先選擇 Chipset ---');
-}
-function onUploadSSChange(){
-  var pl=document.getElementById('upload-pl').value;
-  var ss=document.getElementById('upload-ss').value;
-  buildSelect('upload-proj',getProjects(pl,ss).slice().sort(),'--- 選擇專案 ---');
-}
-
-function submitUpload(){
-  if(!_uploadFile){alert('請先選擇要上傳的 Excel 檔案。');return;}
-  var fname=_uploadFile.name.toUpperCase();
-  if(!fname.endsWith('.XLSX')&&!fname.endsWith('.XLS')){
-    alert('請上傳 .xlsx 或 .xls 格式的檔案。');return;
-  }
-  var pl=document.getElementById('upload-pl').value;
-  var ss=document.getElementById('upload-ss').value;
-  var projName=document.getElementById('upload-proj').value;
-  if(!pl||!ss||!projName){alert('請選擇 Product Line、Chipset 與專案名稱。');return;}
-  var uploader=document.getElementById('uploader-name').value;
-  var reqEmail=document.getElementById('upload-req-email').value.trim();
-  if(!reqEmail){alert('請填寫通知 Email。');return;}
-  var note=document.getElementById('upload-note').value;
-  var btn=document.getElementById('upload-submit-btn');
-  btn.disabled=true;btn.textContent='上傳中...';
-  var bar=document.getElementById('upload-progress-bar');
-  var fill=document.getElementById('upload-progress-fill');
-  bar.style.display='block';fill.style.width='30%';
-
-  var reader=new FileReader();
-  reader.onload=function(e){
-    fill.style.width='60%';
-    var base64=e.target.result.split(',')[1];
-    var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
-    fetch(PA_UPLOAD,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        FileName:fname,
-        FileBase64:base64,
-        Uploader:uploader,
-        ReqEmail:reqEmail,
-        Note:note,
-        UploadedAt:new Date().toISOString(),
-        ProductLine:pl,
-        SubSeries:ss,
-        ProjectName:projName
-      })
-    })
-    .then(function(r){
-      fill.style.width='100%';
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return r.json();
-    })
-    .then(function(){
-      btn.disabled=false;btn.textContent='確認上傳';
-      bar.style.display='none';fill.style.width='0%';
-      alert('✅ 上傳成功！\n\n檔案：'+fname+'\n通知信已自動發送給申請人。');
-      closeUploadModal();
-      _uploadFile=null;
-      document.getElementById('upload-preview').style.display='none';
-      document.getElementById('result-file-input').value='';
-      loadResultIndex(); // refresh index
-    })
-    .catch(function(err){
-      btn.disabled=false;btn.textContent='確認上傳';
-      bar.style.display='none';fill.style.width='0%';
-      alert('上傳失敗：'+err.message);
-    });
-  };
-  reader.readAsDataURL(_uploadFile);
-}
-
-// ── Load Result Index from SharePoint ────────────────────────────────────────
-var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
-var PA_GET_FILE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/30ae0af6532742de8324b0c1cab152d7/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=8hbfVKWko1G2kztMukuO9McyNqb5sYX8a9vPHosjmV0';
-function loadResultIndex(){
-  fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var items=data.value||data.d&&data.d.results||[];
-    RESULT_INDEX={};
-    items.forEach(function(item){
-      // ProjectName = long descriptive name matching PROJECT_DATA keys
-      // Title = project code (F607BA) — not used for lookup
-      var proj=item.ProjectName||'';
-      var fname=item.FileName||'';
-      var url=item.FileUrl||'';
-      if(!proj||!fname||!url) return;
-      if(!RESULT_INDEX[proj]) RESULT_INDEX[proj]=[];
-      var label=fname.replace(/\.XLSX$/i,'').replace(/\.XLS$/i,'');
-      RESULT_INDEX[proj].push({label:label,filename:fname,url:url});
-    });
-    // Rebuild dropdowns to only show projects with uploaded results
-    var filtered={};
-    Object.keys(PROJECT_DATA).forEach(function(pl){
-      Object.keys(PROJECT_DATA[pl]).forEach(function(ss){
-        var valid=PROJECT_DATA[pl][ss].filter(function(p){return RESULT_INDEX[p]&&RESULT_INDEX[p].length>0;});
-        if(valid.length>0){if(!filtered[pl])filtered[pl]={};filtered[pl][ss]=valid;}
-      });
-    });
-    PROJECT_DATA=filtered;
-    var pls=Object.keys(PROJECT_DATA);
-    ['s-product-line','c-product-line'].forEach(function(id){
-      var sel=document.getElementById(id);if(!sel)return;
-      sel.innerHTML='<option value="">--- 選擇 Product Line ---</option>';
-      pls.forEach(function(pl){var o=document.createElement('option');o.value=pl;o.textContent=pl;sel.appendChild(o);});
-    });
-  })
-  .catch(function(){
-    // silent fail - user will see empty dropdowns
-  });
-}
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-// ── Init ─────────────────────────────────────────────────────────────────────
-loadResultIndex();
-
 </script>
 </body>
 </html>

@@ -527,7 +527,7 @@ document.getElementById('pw-input').focus();
   <div class="admin-bar">
     <div class="admin-bar-info">
       <p>⚙ 實驗室管理人員入口</p>
-      <span>接單審核 · 上傳結果</span>
+      <span>接單審核 · Result 完成通知</span>
     </div>
     <button class="btn btn-sec" style="font-size:16px;padding:7px 16px;" onclick="openAdmin()">開啟後台管理 →</button>
   </div>
@@ -825,7 +825,7 @@ document.getElementById('pw-input').focus();
     <p class="modal-sub">// Gaming 加速實驗室 — 內部管理人員專用</p>
     <div class="btabs">
       <button class="btab active" id="tab-review" onclick="switchTab('tab-review')">接單審核</button>
-      <button class="btab" id="tab-result" onclick="switchTab('tab-result')">Result 上傳</button>
+      <button class="btab" id="tab-result" onclick="switchTab('tab-result')">Result 完成通知</button>
     </div>
     <div class="btab-panel active" id="btab-review">
       <div class="admin-subtabs">
@@ -841,32 +841,9 @@ document.getElementById('pw-input').focus();
       <div class="admin-subpanel" id="admin-list-accepted"></div>
     </div>
     <div class="btab-panel" id="btab-result">
-      <div id="admin-upload-area" onclick="document.getElementById('admin-result-file').click()" ondragover="event.preventDefault()" ondrop="adminOnDrop(event)" style="border:2px dashed var(--border2);border-radius:var(--r8);padding:24px;text-align:center;background:var(--bg3);cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;">
-        <div style="font-size:32px;margin-bottom:8px;">📊</div>
-        <p style="color:var(--text2);font-size:16px;margin-bottom:4px;">點擊選擇或拖曳 Excel 檔案至此</p>
-        <div style="font-size:14px;color:var(--text3);font-family:var(--font-mono);">// 格式：PROJECTNAME_PHASE_RESULT_NEW_YYMMDD.XLSX 或 _R1_YYMMDD.XLSX</div>
-        <input type="file" id="admin-result-file" accept=".xlsx,.xls" style="display:none;" onchange="adminOnFileSelect(this)"/>
-      </div>
-      <div id="admin-upload-preview" style="display:none;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);margin-bottom:12px;font-family:var(--font-mono);font-size:15px;color:var(--green);"></div>
-      <div class="field" style="margin-bottom:12px;">
-        <label style="font-size:15px;color:var(--text2);">上傳者</label>
-        <select id="admin-uploader" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;">
-          <option value="Sandra">Yu.Sandra</option>
-          <option value="Allen">Allen</option>
-          <option value="Sally">Sally</option>
-          <option value="Enya">Enya</option>
-        </select>
-      </div>
-      <div class="field" style="margin-bottom:12px;">
-        <label style="font-size:15px;color:var(--text2);">通知 Email<span class="req">*</span></label>
-        <input type="email" id="admin-req-email" placeholder="需求人信箱，上傳後自動發送通知" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;"/>
-        <span class="hint">Result 上傳完成後，系統將自動寄送通知至此信箱</span>
-      </div>
-      <div class="field" style="margin-bottom:16px;">
-        <label style="font-size:15px;color:var(--text2);">備註（選填）</label>
-        <input type="text" id="admin-upload-note" placeholder="例：新增 BD2 資料、修正 FPS 數值…" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;width:100%;"/>
-      </div>
-      <button class="btn btn-pri" onclick="adminSubmitUpload()" style="width:100%;">確認上傳</button>
+      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 測試結果請直接放入 SharePoint 文件的對應專案資料夾。填寫完成後，在此針對「已接單」專案發送完成通知即可。</p>
+      <div id="admin-loading-result" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
+      <div id="admin-list-result"></div>
     </div>
   </div>
 </div>
@@ -897,6 +874,7 @@ document.getElementById('pw-input').focus();
 var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 var PA_DELAY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/09b7285c6c594487bdb0d49f19ef9152/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iV6Xmitmm1EUWn6k3ePGXOEdZCgK0JjskjarwKzz9-I';
+var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
 var currentSeriesType='gaming'; // 'gaming' | 'consumer'
 
 function syncProdLineOptions(){
@@ -1716,11 +1694,29 @@ function loadAdminData(){
   document.getElementById('admin-loading').style.display='block';
   document.getElementById('admin-list-pending').innerHTML='';
   document.getElementById('admin-list-accepted').innerHTML='';
-  fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();})
-  .then(function(data){
+  Promise.all([
+    fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();}),
+    fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(function(r){return r.ok?r.json():{value:[]};})
+      .catch(function(){return{value:[]};})
+  ])
+  .then(function(both){
+    var data=both[0];
+    var resultData=both[1];
     document.getElementById('admin-loading').style.display='none';
     var all=Array.isArray(data)?data:(data.value||data.d&&data.d.results||[]);
+    var resultItems=resultData.value||(resultData.d&&resultData.d.results)||[];
+    var historyMap={};
+    resultItems.forEach(function(ri){
+      var code=(ri.Title||'').toUpperCase();
+      if(!code)return;
+      if(!historyMap[code])historyMap[code]=[];
+      historyMap[code].push(ri);
+    });
+    Object.keys(historyMap).forEach(function(k){
+      historyMap[k].sort(function(a,b){return new Date(b.UploadedAt||0)-new Date(a.UploadedAt||0);});
+    });
     // 排序：依 SubmittedDate 或 Created，最新在前
     all.sort(function(a,b){
       var da=new Date(a.SubmittedDate||a.Created||0);
@@ -1798,6 +1794,60 @@ function loadAdminData(){
       h+='</div>';
       return h;
     }
+    function buildResultHistoryHtml(hist){
+      if(!hist||!hist.length){
+        return'<div style="margin-top:10px;padding:8px 10px;background:var(--bg1);border:1px dashed var(--border);border-radius:var(--r6);color:var(--text3);font-size:14px;">// 尚無完成通知紀錄</div>';
+      }
+      var rows=hist.map(function(h){
+        var isFull=h.FileName==='全部完成';
+        var badge='<span style="font-size:13px;padding:1px 8px;border-radius:10px;'+(isFull?'background:rgba(0,229,160,0.15);color:var(--green);':'background:rgba(255,179,71,0.15);color:var(--amber);')+'">'+esc(h.FileName||'—')+'</span>';
+        var dt=fmtDt(h.UploadedAt);
+        var by=esc(h.Uploader||'—');
+        var note=esc(h.Note||'');
+        var row='<div style="padding:6px 10px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r6);margin-top:6px;font-size:14px;">';
+        row+='<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:center;">';
+        row+=badge+'<span style="color:var(--text3);font-family:var(--font-mono);">'+dt+'　by '+by+'</span>';
+        row+='</div>';
+        if(note)row+='<div style="color:var(--text2);margin-top:4px;">'+note+'</div>';
+        row+='</div>';
+        return row;
+      }).join('');
+      return'<div style="margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;">'+
+        '<div style="font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--text3);letter-spacing:0.05em;margin-bottom:2px;">🕘 完成通知紀錄（'+hist.length+'）</div>'+
+        rows+
+      '</div>';
+    }
+    function buildResultCard(item,historyMap){
+      var itemId=item.ID||item.Id||item.id||'';
+      var projCode=item.ProjectCode;
+      if(projCode&&typeof projCode==='object')projCode=projCode.Title||projCode.Value||'';
+      projCode=projCode||item.Title||'—';
+      var phase=item.Phase;
+      if(phase&&typeof phase==='object')phase=phase.Title||phase.Value||'';
+      phase=phase||'—';
+      var hist=historyMap[String(projCode).toUpperCase()]||[];
+      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" data-pname="'+esc(item.ProjectName||'')+'" data-pline="'+esc(item.ProductLine||'')+'" data-sseries="'+esc(item.SubSeries||'')+'" style="flex-direction:column;align-items:stretch;">';
+      h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
+      h+='<div>';
+      h+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase)+'</div>';
+      h+='<div class="si-sub">'+(item.RequesterEmail||'—')+'</div>';
+      h+='</div></div>';
+      h+=buildReportsHtml(item);
+      h+=buildResultHistoryHtml(hist);
+      h+='<div style="margin-top:10px;">';
+      h+='<label style="font-size:15px;color:var(--text2);display:block;margin-bottom:4px;">本次完成說明（部份完成時請說明已完成的測項/SKU，通知信會附上此說明）</label>';
+      h+='<textarea class="result-note" rows="2" placeholder="例：SKU1 ACC/TPR 已完成，SKU2 尚未測試" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;resize:vertical;"></textarea>';
+      h+='</div>';
+      h+='<div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">';
+      h+='<select class="result-completer" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;">';
+      h+='<option value="Sandra">Yu.Sandra</option><option value="Allen">Allen</option><option value="Sally">Sally</option><option value="Enya">Enya</option>';
+      h+='</select>';
+      h+='<button class="btn btn-sec" style="flex:1;" onclick="adminResultComplete(this,\'部份完成\')">📤 部份完成，發送通知</button>';
+      h+='<button class="btn btn-pri" style="flex:1;" onclick="adminResultComplete(this,\'全部完成\')">✅ 全部完成，發送通知</button>';
+      h+='</div>';
+      h+='</div>';
+      return h;
+    }
     // Pending
     document.getElementById('pending-count').textContent=pending.length;
     if(!pending.length){
@@ -1812,9 +1862,17 @@ function loadAdminData(){
     } else {
       document.getElementById('admin-list-accepted').innerHTML=accepted.map(function(i){return buildCard(i,false);}).join('');
     }
+    // Result 完成通知（沿用已接單專案清單）
+    document.getElementById('admin-loading-result').style.display='none';
+    if(!accepted.length){
+      document.getElementById('admin-list-result').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有進行中的專案</p>';
+    } else {
+      document.getElementById('admin-list-result').innerHTML=accepted.map(function(i){return buildResultCard(i,historyMap);}).join('');
+    }
   })
   .catch(function(err){
     document.getElementById('admin-loading').style.display='none';
+    document.getElementById('admin-loading-result').style.display='none';
     document.getElementById('admin-list-pending').innerHTML='<p style="color:var(--red);padding:20px 0;">載入失敗：'+err.message+'</p>';
   });
 }
@@ -1890,39 +1948,46 @@ function confirmDelay(){
     alert('延期設定失敗：'+err.message);
   });
 }
-// ── Admin Result Upload ────────────────────────────────────────────────
-var _adminUploadFile=null;
-var _adminMeta={prodLine:'',subSeries:'',projName:''};
-
-function adminSetFile(f){
-  _adminUploadFile=f;
-  var prev=document.getElementById('admin-upload-preview');
-  prev.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)';
-  prev.style.display='block';
-  adminReadMetaFromExcel(f);
-}
-function adminOnFileSelect(input){if(input.files[0])adminSetFile(input.files[0]);}
-function adminOnDrop(e){
-  e.preventDefault();
-  var f=e.dataTransfer.files[0];if(f)adminSetFile(f);
-}
-function adminReadMetaFromExcel(file){
-  _adminMeta={prodLine:'',subSeries:'',projName:''};
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      var ws=wb.Sheets['SKU Table'];
-      if(!ws)return;
-      var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-      // Row 9 (index 8): F9=ProductLine(col5)
-      // Row 10 (index 9): C10=SubSeries(col2), F10=ProjectName(col5)
-      _adminMeta.prodLine =String((data[8]||[])[5]||'').trim();
-      _adminMeta.subSeries=String((data[9]||[])[2]||'').trim();
-      _adminMeta.projName =String((data[9]||[])[5]||'').trim();
-    }catch(ex){}
-  };
-  reader.readAsArrayBuffer(file);
+// ── Admin Result Complete Notification ───────────────────────────────────
+function adminResultComplete(btn,type){
+  var card=btn.closest('.sub-item');
+  var id=card.dataset.id;
+  var email=card.dataset.email;
+  var code=card.dataset.code;
+  var pname=card.dataset.pname;
+  var pline=card.dataset.pline;
+  var sseries=card.dataset.sseries;
+  var note=card.querySelector('.result-note').value.trim();
+  var completedBy=card.querySelector('.result-completer').value;
+  if(!id){alert('找不到專案 ID，請重新整理後再試。');return;}
+  if(type==='部份完成'&&!note){alert('請填寫本次完成的測項/SKU說明。');return;}
+  if(type==='全部完成'&&!confirm('確定要通知「全部完成」嗎？\n此為最終確認通知，請確認所有測試項目皆已完成。')){return;}
+  var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
+  var btns=card.querySelectorAll('button.btn');
+  btns.forEach(function(b){b.disabled=true;});
+  var origText=btn.textContent;
+  btn.textContent='處理中...';
+  fetch(PA_UPLOAD,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    ItemId:parseInt(id),
+    ProjectCode:code,
+    ProjectName:pname,
+    ProductLine:pline,
+    SubSeries:sseries,
+    ReqEmail:email,
+    Note:note,
+    CompletedBy:completedBy,
+    CompletedAt:new Date().toISOString(),
+    CompletionType:type
+  })})
+  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);
+    alert('✅ 已發送「'+type+'」通知給：'+email);
+    loadAdminData();
+  })
+  .catch(function(err){
+    btns.forEach(function(b){b.disabled=false;});
+    btn.textContent=origText;
+    alert('發送失敗：'+err.message);
+  });
 }
 // ── Request Summary Excel Generator ──────────────────────────────────────
 function buildReqSummaryWorkbook(pl){
@@ -2056,34 +2121,6 @@ function _xSkus(s){
     var o={name:m[1],cpu:'',gpu:'',panel:'',ddr:''};var rest=m[2];
     var q=rest.match(/CPU:([^\s|]+)/i);if(q)o.cpu=q[1];q=rest.match(/GPU:([^\s|]+)/i);if(q)o.gpu=q[1];
     q=rest.match(/Panel:([^\s|]+)/i);if(q)o.panel=q[1];q=rest.match(/DDR:([^\s|]+)/i);if(q)o.ddr=q[1];r.push(o);});return r;}
-function adminSubmitUpload(){
-  var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
-  if(!_adminUploadFile){alert('請先選擇 Excel 檔案。');return;}
-  if(PA_UPLOAD.indexOf('YOUR_PA')>-1){alert('⚠️ PA_UPLOAD URL 尚未設定，請聯絡系統管理員。');return;}
-  var uploader=document.getElementById('admin-uploader').value;
-  var reqEmail=document.getElementById('admin-req-email').value.trim();
-  if(!reqEmail){alert('請填寫通知 Email。');return;}
-  var note=document.getElementById('admin-upload-note').value.trim();
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var b64=e.target.result.split(',')[1];
-    fetch(PA_UPLOAD,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      FileName:_adminUploadFile.name.toUpperCase(),
-      FileBase64:b64,
-      Uploader:uploader,
-      ReqEmail:reqEmail,
-      Note:note,
-      UploadedAt:new Date().toISOString(),
-      ProductLine:_adminMeta.prodLine,
-      SubSeries:_adminMeta.subSeries,
-      ProjectName:_adminMeta.projName
-    })})
-    .then(function(r){if(!r.ok)throw new Error('Error '+r.status);alert('✅ Result 上傳成功！\n檔案：'+_adminUploadFile.name);_adminUploadFile=null;document.getElementById('admin-upload-preview').style.display='none';document.getElementById('admin-result-file').value='';})
-    .catch(function(err){alert('上傳失敗：'+err.message);});
-  };
-  reader.readAsDataURL(_adminUploadFile);
-}
-
 // ── Report ID ────────────────────────────────────────────────────────────────
 var currentReportId='';
 function getTodayYYMMDD(){var d=new Date();var yy=String(d.getFullYear()).slice(2);var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();return yy+mm+dd;}
