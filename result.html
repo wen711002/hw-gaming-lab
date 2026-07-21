@@ -269,14 +269,17 @@ function runLookup(){
 }
 
 function renderLookupResult(code,items,area){
-  var folderUrl=(items[0]&&items[0].FileUrl)?items[0].FileUrl:SP_SITE+'/GameLabResultFiles/'+encodeURIComponent(code);
-  var html='<div class="folder-card">';
-  html+='<div><h3>📁 '+escH(code)+' — 完整結果資料夾</h3><p>'+escH(folderUrl)+'</p></div>';
-  html+='<a class="btn btn-pri" href="'+escH(folderUrl)+'" target="_blank" rel="noopener">⬇ 前往 SharePoint 下載整份 Result</a>';
-  html+='</div>';
+  var html='';
+  var folderUrl=items[0]&&items[0].FileUrl;
+  if(folderUrl){
+    html+='<div class="folder-card">';
+    html+='<div><h3>📁 '+escH(code)+' — 完整結果資料夾</h3><p>'+escH(folderUrl)+'</p></div>';
+    html+='<a class="btn btn-pri" href="'+escH(folderUrl)+'" target="_blank" rel="noopener">⬇ 前往 SharePoint 下載整份 Result</a>';
+    html+='</div>';
+  }
 
   if(!items.length){
-    html+='<div class="empty-state"><div class="ei">📭</div><p>此專案尚無完成通知紀錄，若已請實驗室人員確認檔案是否已放置於上方資料夾。</p></div>';
+    html+='<div class="empty-state"><div class="ei">📭</div><p>此專案尚無完成通知紀錄，尚未產生結果資料夾連結，請聯繫實驗室人員確認進度。</p></div>';
     area.innerHTML=html;
     return;
   }
