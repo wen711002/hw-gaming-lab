@@ -466,10 +466,11 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 <script>
 function checkPW(){
   var v=document.getElementById('pw-input').value;
-  if(v==='IECGL666666'){document.getElementById('pw-modal').style.display='none';}
+  if(v==='IECGL666666'){sessionStorage.setItem('siteAuth','1');document.getElementById('pw-modal').style.display='none';}
   else{document.getElementById('pw-err').textContent='密碼錯誤，請重新輸入';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
 }
-document.getElementById('pw-input').focus();
+if(sessionStorage.getItem('siteAuth')==='1'){document.getElementById('pw-modal').style.display='none';}
+else{document.getElementById('pw-input').focus();}
 </script>
 <div class="outer">
 

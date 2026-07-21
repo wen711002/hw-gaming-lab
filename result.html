@@ -118,10 +118,11 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 <script>
 function checkPW(){
   var v=document.getElementById('pw-input').value;
-  if(v==='IECGL666666'){document.getElementById('pw-modal').style.display='none';}
+  if(v==='IECGL666666'){sessionStorage.setItem('siteAuth','1');document.getElementById('pw-modal').style.display='none';}
   else{document.getElementById('pw-err').textContent='密碼錯誤，請重新輸入';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
 }
-document.getElementById('pw-input').focus();
+if(sessionStorage.getItem('siteAuth')==='1'){document.getElementById('pw-modal').style.display='none';}
+else{document.getElementById('pw-input').focus();}
 </script>
 <div class="outer">
 
@@ -268,7 +269,7 @@ function runLookup(){
 }
 
 function renderLookupResult(code,items,area){
-  var folderUrl=SP_SITE+'/GameLabResultFiles/'+encodeURIComponent(code);
+  var folderUrl=(items[0]&&items[0].FileUrl)?items[0].FileUrl:SP_SITE+'/GameLabResultFiles/'+encodeURIComponent(code);
   var html='<div class="folder-card">';
   html+='<div><h3>📁 '+escH(code)+' — 完整結果資料夾</h3><p>'+escH(folderUrl)+'</p></div>';
   html+='<a class="btn btn-pri" href="'+escH(folderUrl)+'" target="_blank" rel="noopener">⬇ 前往 SharePoint 下載整份 Result</a>';
@@ -293,8 +294,8 @@ function renderLookupResult(code,items,area){
     html+='<div class="li-meta">'+statusTag+dt+'　by '+by+(!isStatus&&fname?'　📎 '+escH(fname):'')+'</div>';
     if(note)html+='<div class="li-note">'+note+'</div>';
     html+='</div>';
-    if(item.FileUrl0){
-      html+='<a class="btn btn-sec" href="'+escH(item.FileUrl0)+'" target="_blank" rel="noopener">🔗 查看</a>';
+    if(item.FileUrl){
+      html+='<a class="btn btn-sec" href="'+escH(item.FileUrl)+'" target="_blank" rel="noopener">🔗 查看</a>';
     }
     html+='</div>';
   });
