@@ -238,7 +238,9 @@ function backToMode(){
 // ── Result Lookup (by Project Code) ─────────────────────────────────────────
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
 var PA_GET_FILE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/30ae0af6532742de8324b0c1cab152d7/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=8hbfVKWko1G2kztMukuO9McyNqb5sYX8a9vPHosjmV0';
+var PA_LIST_FILES='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/05/workflows/34dbc0e4b4b4445e94a5c2c2fcaa70c9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=HdYw06Vz4bUIe-vkFFxoY7rSqA6-NXCBVkvS4eRiMqU';
 var SP_SITE='https://inventeccorp.sharepoint.com/sites/IEC1-HWGamingLab';
+var SP_HOST='https://inventeccorp.sharepoint.com';
 
 function fmtDt(raw){
   if(!raw)return'—';
@@ -252,23 +254,31 @@ function runLookup(){
   if(!code){alert('請輸入專案代碼。');return;}
   var area=document.getElementById('lookup-result-area');
   area.innerHTML='<div class="loading-bar">查詢中，請稍候...</div>';
-  fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(data){
+  Promise.all([
+    fetch(PA_QUERY_RESULTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}),
+    fetch(PA_LIST_FILES,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ProjectCode:code})})
+      .then(function(r){return r.ok?r.json():{value:[]};})
+      .catch(function(){return {value:[]};})
+  ]).then(function(results){
+    var data=results[0];
+    var fileData=results[1];
     var items=data.value||(data.d&&data.d.results)||[];
     var matched=items.filter(function(i){return(i.Title||'').toUpperCase()===code;});
     matched.sort(function(a,b){
       var da=new Date(a.UploadedAt||a.Created||0),db=new Date(b.UploadedAt||b.Created||0);
       return db-da;
     });
-    renderLookupResult(code,matched,area);
+    var files=(fileData&&fileData.value)||(fileData&&fileData.d&&fileData.d.results)||[];
+    files.sort(function(a,b){return new Date(b.TimeLastModified||0)-new Date(a.TimeLastModified||0);});
+    renderLookupResult(code,matched,files,area);
   })
   .catch(function(e){
     area.innerHTML='<div class="empty-state"><div class="ei">⚠️</div><p>查詢失敗：'+escH(e.message)+'</p></div>';
   });
 }
 
-function renderLookupResult(code,items,area){
+function renderLookupResult(code,items,files,area){
   var html='';
   var folderUrl=items[0]&&items[0].FileUrl;
   if(folderUrl){
@@ -276,6 +286,21 @@ function renderLookupResult(code,items,area){
     html+='<div><h3>📁 '+escH(code)+' — 完整結果資料夾</h3><p>'+escH(folderUrl)+'</p></div>';
     html+='<a class="btn btn-pri" href="'+escH(folderUrl)+'" target="_blank" rel="noopener">⬇ 前往 SharePoint 下載整份 Result</a>';
     html+='</div>';
+  }
+
+  if(files&&files.length){
+    html+='<div class="folder-card" style="display:block;">';
+    html+='<h3 style="margin-bottom:12px;">📄 本次測試結果檔案</h3>';
+    html+='<div class="log-list">';
+    files.forEach(function(f){
+      var fileUrl=SP_HOST+encodeURI(f.ServerRelativeUrl||'');
+      var dt=fmtDt(f.TimeLastModified);
+      html+='<div class="log-item">';
+      html+='<div class="li-main"><div class="li-meta">📄 '+escH(f.Name||'')+'</div><div class="li-note" style="color:var(--text2);font-size:12px;">最後修改：'+dt+'</div></div>';
+      html+='<a class="btn btn-sec" href="'+escH(fileUrl)+'" target="_blank" rel="noopener">⬇ 下載</a>';
+      html+='</div>';
+    });
+    html+='</div></div>';
   }
 
   if(!items.length){
