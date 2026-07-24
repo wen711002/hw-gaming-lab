@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HW Gaming Lab — 使用說明</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg0:#0b0e17;--bg1:#111827;--bg2:#161d2e;--bg3:#1e2a40;--bg4:#243047;
+  --text:#e8edf5;--text2:#8fa0bb;--text3:#4f6180;
+  --border:#ffffff10;--border2:#ffffff20;--border3:#ffffff35;
+  --blue:#4c9ef5;--blue-l:rgba(76,158,245,0.15);--blue-glow:rgba(76,158,245,0.25);
+  --cyan:#00d4ff;--cyan-glow:rgba(0,212,255,0.2);
+  --green:#00e5a0;--green-glow:rgba(0,229,160,0.2);
+  --amber:#ffb347;--amber-glow:rgba(255,179,71,0.2);
+  --red:#ff5c7a;--purple:#a855f7;--purple-glow:rgba(168,85,247,0.2);
+  --font-head:'Rajdhani','Segoe UI',sans-serif;
+  --font-body:'Noto Sans TC','Segoe UI',sans-serif;
+  --font-mono:'Share Tech Mono','Courier New',monospace;
+  --r4:4px;--r6:6px;--r8:8px;--r12:12px;
+}
+body{font-family:var(--font-body);background:var(--bg0);color:var(--text);min-height:100vh;font-size:17px;line-height:1.6;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(76,158,245,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,158,245,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(76,158,245,0.07),transparent);pointer-events:none;z-index:0;}
+
+.outer{display:flex;min-height:100vh;position:relative;z-index:1;}
+.main-content{flex:1;overflow-x:hidden;display:flex;flex-direction:column;min-width:0;}
+
+.sidebar{width:64px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;position:sticky;top:0;height:100vh;flex-shrink:0;}
+.sidebar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:var(--r8);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;box-shadow:0 0 16px var(--blue-glow);}
+.nav-item{width:44px;height:44px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all 0.2s;font-size:20px;border:1px solid transparent;}
+.nav-item:hover{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
+.nav-item.active{background:var(--blue-glow);color:var(--blue);border-color:rgba(76,158,245,0.4);box-shadow:0 0 12px var(--blue-glow);}
+.nav-sep{width:32px;height:1px;background:var(--border);margin:8px 0;}
+.nav-label{font-size:11px;color:var(--text3);letter-spacing:0.06em;text-align:center;margin-top:2px;font-family:var(--font-head);}
+.sidebar-admin{margin-top:auto;padding-bottom:8px;}
+
+.page-header{padding:32px 40px 24px;border-bottom:1px solid var(--border);}
+.page-header h1{font-family:var(--font-head);font-size:32px;font-weight:700;letter-spacing:0.04em;color:var(--text);}
+.page-header h1 span{color:var(--blue);}
+.page-header p{color:var(--text2);margin-top:6px;font-size:16px;}
+
+.guide-wrap{padding:32px 40px 60px;max-width:980px;}
+
+.toc{display:flex;gap:12px;margin-bottom:36px;flex-wrap:wrap;}
+.toc a{padding:9px 18px;border-radius:20px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);text-decoration:none;font-family:var(--font-head);font-size:14px;letter-spacing:0.04em;font-weight:600;transition:all .2s;}
+.toc a:hover{border-color:var(--blue);color:var(--blue);}
+
+.section-block{margin-bottom:56px;}
+.section-title{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.section-title .si{font-size:26px;}
+.section-title h2{font-family:var(--font-head);font-size:26px;font-weight:700;letter-spacing:0.03em;color:var(--text);}
+.section-sub{color:var(--text2);font-size:15px;margin-bottom:24px;padding-left:38px;}
+.section-title.sec-form h2{color:var(--cyan);}
+.section-title.sec-result h2{color:var(--purple);}
+
+.step-card{display:flex;gap:22px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:24px 26px;margin-bottom:16px;position:relative;overflow:hidden;}
+.step-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.sec-form-card::before{background:linear-gradient(var(--cyan),transparent);}
+.sec-result-card::before{background:linear-gradient(var(--purple),transparent);}
+.step-num{flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:18px;font-weight:700;}
+.sec-form-card .step-num{background:rgba(0,212,255,0.12);color:var(--cyan);border:1px solid rgba(0,212,255,0.35);}
+.sec-result-card .step-num{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.35);}
+.step-content{flex:1;min-width:0;}
+.step-content h3{font-family:var(--font-head);font-size:19px;font-weight:700;letter-spacing:0.02em;color:var(--text);margin-bottom:8px;}
+.step-content p{color:var(--text2);font-size:15px;line-height:1.75;margin-bottom:14px;}
+.step-content p:last-child{margin-bottom:0;}
+.step-content .tip{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--amber);background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.3);border-radius:6px;padding:5px 10px;margin-top:4px;}
+.step-content .warn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--red);background:rgba(255,92,122,0.1);border:1px solid rgba(255,92,122,0.3);border-radius:6px;padding:5px 10px;margin-top:4px;}
+
+/* mockup illustration */
+.mock{margin-top:16px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r8);padding:16px;font-family:var(--font-mono);}
+.mock-row{display:flex;gap:10px;flex-wrap:wrap;}
+.mock-card{flex:1;min-width:140px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);padding:12px 14px;}
+.mock-card.on{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset;}
+.mock-card .mt{font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;}
+.mock-card .ms{font-size:12px;color:var(--text3);}
+.mock-field{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);padding:8px 12px;font-size:13px;color:var(--text3);margin-bottom:8px;overflow-wrap:break-word;word-break:break-word;}
+.mock-field:last-child{margin-bottom:0;}
+.mock-field-label{font-size:11px;color:var(--text3);letter-spacing:.05em;margin-bottom:4px;display:block;}
+.mock-btn{display:inline-block;padding:8px 18px;border-radius:var(--r6);font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:.04em;}
+.mock-btn.pri{background:linear-gradient(135deg,var(--blue),#1a6fd4);color:#fff;}
+.mock-btn.sec{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+.mock-tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:10px;margin-right:6px;font-family:var(--font-head);font-weight:700;}
+.mock-tag.partial{background:rgba(255,179,71,0.15);color:var(--amber);}
+.mock-tag.full{background:rgba(0,229,160,0.15);color:var(--green);}
+.mock-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mock-steps{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.mock-step-pill{font-size:12px;padding:4px 10px;border-radius:12px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);}
+.mock-step-pill.done{color:var(--green);border-color:rgba(0,229,160,.4);}
+.mock-step-pill.cur{color:var(--blue);border-color:rgba(76,158,245,.5);background:var(--blue-l);}
+
+.contact-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:24px 28px;margin-top:8px;}
+.contact-box h3{font-family:var(--font-head);font-size:17px;color:var(--text);margin-bottom:8px;}
+.contact-box p{color:var(--text2);font-size:14px;line-height:1.7;}
+
+@media(max-width:720px){.step-card{flex-direction:column;}.mock-row{flex-direction:column;}.mock-grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="pw-modal" style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#141824;border:1px solid rgba(0,212,255,0.3);border-radius:12px;padding:40px 48px;text-align:center;min-width:320px;">
+    <div style="font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:#00d4ff;letter-spacing:0.1em;margin-bottom:8px;">HW GAMING LAB</div>
+    <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:28px;">請輸入存取密碼</div>
+    <input id="pw-input" type="password" placeholder="Password" style="width:100%;padding:10px 14px;background:#1e2635;border:1px solid rgba(0,212,255,0.3);border-radius:6px;color:#fff;font-size:16px;text-align:center;letter-spacing:0.2em;outline:none;margin-bottom:12px;" onkeydown="if(event.key==='Enter')checkPW()"/>
+    <div id="pw-err" style="color:#ff6b6b;font-size:13px;min-height:18px;margin-bottom:12px;"></div>
+    <button onclick="checkPW()" style="width:100%;padding:10px;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);border-radius:6px;color:#00d4ff;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;cursor:pointer;">ENTER</button>
+  </div>
+</div>
+<script>
+function checkPW(){
+  var v=document.getElementById('pw-input').value;
+  if(v==='IECGL666666'){sessionStorage.setItem('siteAuth','1');document.getElementById('pw-modal').style.display='none';}
+  else{document.getElementById('pw-err').textContent='密碼錯誤，請重新輸入';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
+}
+if(sessionStorage.getItem('siteAuth')==='1'){document.getElementById('pw-modal').style.display='none';}
+else{document.getElementById('pw-input').focus();}
+</script>
+<div class="outer">
+
+<div class="sidebar">
+  <div class="sidebar-logo">GL</div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Form" onclick="window.location.href='form.html'">📋</div>
+    <div class="nav-label">Form</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Result" onclick="window.location.href='result.html'">📊</div>
+    <div class="nav-label">Result</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Schedule" onclick="window.location.href='gantt.html'">📅</div>
+    <div class="nav-label">Schedule</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div style="text-align:center;">
+    <div class="nav-item" title="Admin" onclick="window.location.href='form.html#admin'">🔧</div>
+    <div class="nav-label">Admin</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="sidebar-admin" style="text-align:center;">
+    <div class="nav-item active" title="使用說明">📖</div>
+    <div class="nav-label">Guide</div>
+  </div>
+</div>
+
+<div class="main-content">
+
+  <div class="page-header">
+    <h1>使用 <span>指南</span></h1>
+    <p>需求申請（Form）與測試結果查詢（Result）操作說明</p>
+  </div>
+
+  <div class="guide-wrap">
+
+    <div class="toc">
+      <a href="#guide-form">📋 如何送出測試需求</a>
+      <a href="#guide-result">📊 如何查詢 / 下載測試結果</a>
+    </div>
+
+    <!-- ================= FORM GUIDE ================= -->
+    <div class="section-block" id="guide-form">
+      <div class="section-title sec-form">
+        <span class="si">📋</span><h2>Part 1 — 如何送出測試需求（Form）</h2>
+      </div>
+      <div class="section-sub">從左側導覽列點選「Form」進入需求申請表單</div>
+
+      <div class="step-card sec-form-card">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>選擇「新建測試表單」或「複測」</h3>
+          <p>第一次提出測試需求選「新建測試表單」，需從頭填寫完整專案與機台資訊；若是同一個專案已經測過、要追加測項或針對某些 SKU 重新驗證，請選「複測」。</p>
+          <div class="mock">
+            <div class="mock-row">
+              <div class="mock-card on"><div class="mt">📋 新建測試表單</div><div class="ms">全新專案需求，從頭填寫所有測試資訊與機台規格</div></div>
+              <div class="mock-card"><div class="mt">🔄 複測</div><div class="ms">沿用既有專案資料，修改或新增測試項目與複測原因</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card sec-form-card">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>（僅複測）輸入專案代碼，帶出既有資料</h3>
+          <p>選擇「複測」後，直接輸入 Project Code 並按「LOAD」，系統會自動帶出該專案最新一筆既有資料（需求人、專案資訊、SKU 等），不用重新輸入。找不到代碼時也可改用下方「依專案篩選」逐層選擇。</p>
+          <div class="mock">
+            <span class="mock-field-label">PROJECT CODE 快速查詢</span>
+            <div class="mock-row">
+              <div class="mock-field" style="flex:2;">輸入 Project Code（專案代號）</div>
+              <div class="mock-btn pri">LOAD</div>
+            </div>
+          </div>
+          <span class="tip">⚡ 複測時務必確認代入的是正確專案，避免混用到其他專案資料</span>
+        </div>
+      </div>
+
+      <div class="step-card sec-form-card">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>選擇產品系列（Gaming／Consumer）</h3>
+          <p>依專案所屬系列選擇 Gaming（Strix／TUF／ROG）或 Consumer（ZenBook／VivoBook），系統會依此篩選下一步「專案平台」的下拉選項。</p>
+          <div class="mock">
+            <div class="mock-row">
+              <div class="mock-card on"><div class="mt">🎮 Gaming</div><div class="ms">Strix / TUF / ROG 系列</div></div>
+              <div class="mock-card"><div class="mt">💻 Consumer</div><div class="ms">ZenBook / VivoBook 系列</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card sec-form-card">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>填寫基本資料（Step 1／3：基本資料）</h3>
+          <p>依序填入需求部門、需求人姓名與 Email（審核結果與所有通知都會寄到此信箱，請務必填對）、專案系列 / 平台、Project Code、Phase，接着在「此 Phase 測試機台 SKU」表格中新增每一台受測機的規格。</p>
+          <div class="mock">
+            <div class="mock-steps">
+              <span class="mock-step-pill cur">① 基本資料</span>
+              <span class="mock-step-pill">② Report 底稿上傳</span>
+              <span class="mock-step-pill">③ 確認送出</span>
+            </div>
+            <div class="mock-grid2">
+              <div><span class="mock-field-label">需求部門 *</span><div class="mock-field">填入 Teams 中顯示名稱</div></div>
+              <div><span class="mock-field-label">需求人 Email *</span><div class="mock-field">例：Yu.Sandra@inventec.com</div></div>
+            </div>
+          </div>
+          <span class="tip">💡 SKU 資料筆數會直接影響實驗室排程所需機台小時數，請盡量填寫完整</span>
+        </div>
+      </div>
+
+      <div class="step-card sec-form-card">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>新增 Report（Step 2／3：Report 底稿上傳）</h3>
+          <p>依「提交急迫度／重要程度」由上而下新增 Report（最多 5 份）。每一份 Report 都要各自上傳底板檔案、填寫測試開始日與提交日期、勾選這份 Report 對應要測的 SKU 機台，並可在 NOTE 補充「哪些測項可略過不測」等說明。需要更多份時按「＋ ADD REPORT」即可新增。</p>
+          <div class="mock">
+            <span class="mock-field-label">REPORT 1</span>
+            <div class="mock-field">REPORT 底板檔案 *　　選擇檔案</div>
+            <div class="mock-grid2">
+              <div class="mock-field">測試開始日期 *</div>
+              <div class="mock-field">提交日期 *</div>
+            </div>
+          </div>
+          <span class="warn">⚠ 複測時若上傳跟先前一樣的檔名，系統會自動改檔名避免覆蓋，不會影響實驗室已完成的結果</span>
+        </div>
+      </div>
+
+      <div class="step-card sec-form-card">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <h3>確認資訊並送出（Step 3／3：確認送出）</h3>
+          <p>系統會整理出完整的表單摘要（需求人、專案資訊、SKU、每份 Report 明細），請仔細核對後按「SUBMIT REQUEST」送出。送出後系統會自動發信通知實驗室管理人員，並顯示您的 Report ID 供後續追蹤。</p>
+          <div class="mock">
+            <div class="mock-steps">
+              <span class="mock-step-pill done">✓ 基本資料</span>
+              <span class="mock-step-pill done">✓ Report 底稿上傳</span>
+              <span class="mock-step-pill cur">③ 確認送出</span>
+            </div>
+            <div class="mock-row"><div class="mock-btn sec">← BACK</div><div class="mock-btn pri">SUBMIT REQUEST ✓</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RESULT GUIDE ================= -->
+    <div class="section-block" id="guide-result">
+      <div class="section-title sec-result">
+        <span class="si">📊</span><h2>Part 2 — 如何查詢 / 下載測試結果（Result）</h2>
+      </div>
+      <div class="section-sub">從左側導覽列點選「Result」查詢已提交專案的測試進度與結果檔案</div>
+
+      <div class="step-card sec-result-card">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>選擇「整份 Result 下載」</h3>
+          <p>進入 Result 頁面後，點選「整份 Result 下載」卡片，即可透過專案代碼查詢該專案所有測試結果通知紀錄，並直接前往 SharePoint 對應資料夾下載完整結果。</p>
+          <div class="mock">
+            <div class="mock-card on" style="max-width:320px;"><div class="mt">📥 整份 Result 下載</div><div class="ms">輸入專案代碼，查出該專案所有測試結果通知紀錄</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card sec-result-card">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>輸入專案代碼查詢</h3>
+          <p>在「專案代碼（PROJECT CODE）」欄位輸入您申請時使用的 Project Code（例：G814JV），按「查詢」。</p>
+          <div class="mock">
+            <span class="mock-field-label">專案代碼（PROJECT CODE）</span>
+            <div class="mock-row">
+              <div class="mock-field" style="flex:2;">例：G814JV</div>
+              <div class="mock-btn pri">🔍 查詢</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card sec-result-card">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>下載本次測試結果檔案，或前往完整資料夾</h3>
+          <p>查詢結果會列出「完整結果資料夾」連結（可直接前往 SharePoint 瀏覽全部檔案），以及「本次測試結果檔案」清單 — 這是即時列出資料夾內目前所有結果檔案，只要檔案還在，不論複測幾次都會持續顯示、可個別下載，不會因為複測次數增加而遺漏。</p>
+          <div class="mock">
+            <div class="mock-btn pri" style="margin-bottom:14px;display:block;width:fit-content;">⬇ 前往 SharePoint 下載整份 Result</div>
+            <div class="mock-field">
+              <div style="margin-bottom:8px;">📄 BatteryLife_Summary_UX3480AA.xlsx<br>最後修改：2026-07-23</div>
+              <span class="mock-btn sec">⬇ 下載</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card sec-result-card">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>檢視完成通知歷史紀錄</h3>
+          <p>頁面下方會列出實驗室每一次發出的「部份完成」／「全部完成」通知，包含時間、負責人與備註說明（例如哪些 SKU 已完成、哪些需要重新複驗）。每一次通知都會被永久保留、依時間新到舊排列，不會被新的通知覆蓋掉。</p>
+          <div class="mock">
+            <div class="mock-field">
+              <span class="mock-tag partial">部份完成</span> 2026-07-23 11:59 by Sandra<br>
+              <span style="color:var(--text2);">SKU1 完成，SKU4 需要重新複驗（NBC 亮度設定值有誤差）</span>
+            </div>
+            <div class="mock-field">
+              <span class="mock-tag full">全部完成</span> 2026-07-22 09:39 by Sandra<br>
+              <span style="color:var(--text2);">ER Battery Life Test Complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-box">
+      <h3>❓ 還有問題？</h3>
+      <p>若操作上遇到問題，或需要協助查詢排程進度，請直接聯繫實驗室負責窗口，或參考首頁「專案系列負責人」對照表找到對應系列的負責人。</p>
+    </div>
+
+  </div>
+</div>
+</div>
+</body>
+</html>
