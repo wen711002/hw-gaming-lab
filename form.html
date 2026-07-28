@@ -842,7 +842,8 @@ else{document.getElementById('pw-input').focus();}
       <div class="admin-subpanel" id="admin-list-accepted"></div>
     </div>
     <div class="btab-panel" id="btab-result">
-      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 測試結果請直接放入 SharePoint 文件的對應專案資料夾。填寫完成後，在此針對「已接單」專案發送完成通知即可。</p>
+      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 測試結果請直接放入 SharePoint 文件的對應專案資料夾。填寫完成後，在此針對「已接單」專案發送完成通知即可。已發送過「全部完成」的專案會自動從此清單移除。</p>
+      <input type="text" id="result-search" placeholder="🔍 輸入專案代碼（Project Code）搜尋…" oninput="_renderResultList(this.value)" style="width:100%;max-width:360px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 12px;margin-bottom:14px;outline:none;">
       <div id="admin-loading-result" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
       <div id="admin-list-result"></div>
     </div>
@@ -1646,6 +1647,7 @@ function renderSeriesOwners(){
 }
 renderSeriesOwners();
 var _adminAuth=false;
+var _renderResultList=function(){};
 // Auto-open admin if arriving from result page after password auth
 document.addEventListener('DOMContentLoaded',function(){
   if(window.location.hash==='#admin' && sessionStorage.getItem('adminAuth')==='1'){
@@ -1863,13 +1865,36 @@ function loadAdminData(){
     } else {
       document.getElementById('admin-list-accepted').innerHTML=accepted.map(function(i){return buildCard(i,false);}).join('');
     }
-    // Result 完成通知（沿用已接單專案清單）
+    // Result 完成通知（沿用已接單專案清單，排除已發送「全部完成」的專案，依 submit 時間新到舊排序）
     document.getElementById('admin-loading-result').style.display='none';
-    if(!accepted.length){
-      document.getElementById('admin-list-result').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有進行中的專案</p>';
-    } else {
-      document.getElementById('admin-list-result').innerHTML=accepted.map(function(i){return buildResultCard(i,historyMap);}).join('');
+    function projCodeOf(item){
+      var c=item.ProjectCode;
+      if(c&&typeof c==='object')c=c.Title||c.Value||'';
+      return(c||item.Title||'').toUpperCase();
     }
+    var resultAccepted=accepted.filter(function(i){
+      // historyMap 已依 UploadedAt 新到舊排序，只在「最新一筆」是全部完成時才隱藏；
+      // 同一 ProjectCode 之後若又有新的複測/部份完成動態，會自動重新出現在清單中
+      var hist=historyMap[projCodeOf(i)]||[];
+      return!(hist.length&&hist[0].FileName==='全部完成');
+    });
+    resultAccepted.sort(function(a,b){
+      var da=new Date(a.SubmittedDate||a.Created||0);
+      var db=new Date(b.SubmittedDate||b.Created||0);
+      return db-da;
+    });
+    _renderResultList=function(filterText){
+      var ft=(filterText||'').trim().toUpperCase();
+      var list=ft?resultAccepted.filter(function(i){return projCodeOf(i).indexOf(ft)>=0;}):resultAccepted;
+      if(!list.length){
+        document.getElementById('admin-list-result').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// '+(ft?'找不到符合的專案代碼':'目前沒有進行中的專案')+'</p>';
+      } else {
+        document.getElementById('admin-list-result').innerHTML=list.map(function(i){return buildResultCard(i,historyMap);}).join('');
+      }
+    };
+    var resultSearchInput=document.getElementById('result-search');
+    if(resultSearchInput)resultSearchInput.value='';
+    _renderResultList('');
   })
   .catch(function(err){
     document.getElementById('admin-loading').style.display='none';
