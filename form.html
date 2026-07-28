@@ -1829,7 +1829,8 @@ function loadAdminData(){
       if(phase&&typeof phase==='object')phase=phase.Title||phase.Value||'';
       phase=phase||'—';
       var hist=historyMap[String(projCode).toUpperCase()]||[];
-      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" data-pname="'+esc(item.ProjectName||'')+'" data-pline="'+esc(item.ProductLine||'')+'" data-sseries="'+esc(item.SubSeries||'')+'" style="flex-direction:column;align-items:stretch;">';
+      var isDone=hist.some(function(hh){return hh.FileName==='全部完成';});
+      var h='<div class="sub-item" id="result-card-'+itemId+'" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" data-pname="'+esc(item.ProjectName||'')+'" data-pline="'+esc(item.ProductLine||'')+'" data-sseries="'+esc(item.SubSeries||'')+'" style="flex-direction:column;align-items:stretch;'+(isDone?'display:none;':'')+'">';
       h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
       h+='<div>';
       h+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase)+'</div>';
@@ -1849,6 +1850,13 @@ function loadAdminData(){
       h+='<button class="btn btn-pri" style="flex:1;" onclick="adminResultComplete(this,\'全部完成\')">✅ 全部完成，發送通知</button>';
       h+='</div>';
       h+='</div>';
+      if(isDone){
+        var summary='<div class="sub-item" style="cursor:pointer;opacity:0.6;padding:10px 14px;" onclick="var c=document.getElementById(\'result-card-'+itemId+'\');var open=c.style.display===\'none\';c.style.display=open?\'flex\':\'none\';this.querySelector(\'.rc-toggle\').textContent=open?\'▾ 收合\':\'▸ 展開\';">'+
+          '<div class="si-title" style="font-size:15px;">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase)+' &nbsp;<span style="font-size:12px;padding:1px 8px;border-radius:10px;background:rgba(0,229,160,0.15);color:var(--green);">✅ 已全部完成</span></div>'+
+          '<span class="rc-toggle" style="font-size:13px;color:var(--text3);">▸ 展開</span>'+
+        '</div>';
+        return summary+h;
+      }
       return h;
     }
     // Pending
@@ -1865,19 +1873,14 @@ function loadAdminData(){
     } else {
       document.getElementById('admin-list-accepted').innerHTML=accepted.map(function(i){return buildCard(i,false);}).join('');
     }
-    // Result 完成通知（沿用已接單專案清單，排除已發送「全部完成」的專案，依 submit 時間新到舊排序）
+    // Result 完成通知（沿用已接單專案清單，依 submit 時間新到舊排序；已發送「全部完成」的專案自動收合為標題列）
     document.getElementById('admin-loading-result').style.display='none';
     function projCodeOf(item){
       var c=item.ProjectCode;
       if(c&&typeof c==='object')c=c.Title||c.Value||'';
       return(c||item.Title||'').toUpperCase();
     }
-    var resultAccepted=accepted.filter(function(i){
-      // historyMap 已依 UploadedAt 新到舊排序，只在「最新一筆」是全部完成時才隱藏；
-      // 同一 ProjectCode 之後若又有新的複測/部份完成動態，會自動重新出現在清單中
-      var hist=historyMap[projCodeOf(i)]||[];
-      return!(hist.length&&hist[0].FileName==='全部完成');
-    });
+    var resultAccepted=accepted.slice();
     resultAccepted.sort(function(a,b){
       var da=new Date(a.SubmittedDate||a.Created||0);
       var db=new Date(b.SubmittedDate||b.Created||0);
