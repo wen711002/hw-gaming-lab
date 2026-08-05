@@ -94,6 +94,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .schedule-bar.status-active{background:rgba(0,212,255,0.7);}
 .schedule-bar.status-done{background:rgba(100,200,100,0.5);}
 .schedule-note{font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-top:10px;text-align:right;}
+.announce-content{font-size:16px;line-height:1.7;color:var(--text2);white-space:pre-wrap;word-break:break-word;}
+.announce-content.empty{color:var(--text3);font-family:var(--font-mono);}
 .today-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,80,80,0.7);z-index:2;}
 
 /* STEPS BAR */
@@ -510,20 +512,20 @@ else{document.getElementById('pw-input').focus();}
     <p>請依序填寫各項資訊，完成後點擊「確認送出」提交至實驗室排程系統</p>
   </div>
 
-  <!-- SERIES OWNERS SECTION -->
-  <div class="schedule-section">
+  <!-- ANNOUNCEMENT BOARD -->
+  <div class="schedule-section announce-section">
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-      <div class="schedule-title">專案系列負責人</div>
+      <div class="schedule-title">📢 實驗室佈告欄</div>
     </div>
-    <div id="series-owners-list" class="series-owners-list"></div>
-    <div class="schedule-note">* 資料來源：排程甘特圖系列負責人設定（介面尚未串接，目前為範例資料）</div>
+    <div id="announce-content" class="announce-content">// 載入中...</div>
+    <div id="announce-meta" class="schedule-note"></div>
   </div>
 
   <!-- ADMIN BAR -->
   <div class="admin-bar">
     <div class="admin-bar-info">
       <p>⚙ 實驗室管理人員入口</p>
-      <span>接單審核 · Result 完成通知</span>
+      <span>接單審核 · Result 完成通知 · 公告設定</span>
     </div>
     <button class="btn btn-sec" style="font-size:16px;padding:7px 16px;" onclick="openAdmin()">開啟後台管理 →</button>
   </div>
@@ -822,6 +824,7 @@ else{document.getElementById('pw-input').focus();}
     <div class="btabs">
       <button class="btab active" id="tab-review" onclick="switchTab('tab-review')">接單審核</button>
       <button class="btab" id="tab-result" onclick="switchTab('tab-result')">Result 完成通知</button>
+      <button class="btab" id="tab-announce" onclick="switchTab('tab-announce')">公告設定</button>
     </div>
     <div class="btab-panel active" id="btab-review">
       <div class="admin-subtabs">
@@ -841,6 +844,14 @@ else{document.getElementById('pw-input').focus();}
       <input type="text" id="result-search" placeholder="🔍 輸入專案代碼（Project Code）搜尋…" oninput="_renderResultList(this.value)" style="width:100%;max-width:360px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 12px;margin-bottom:14px;outline:none;">
       <div id="admin-loading-result" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
       <div id="admin-list-result"></div>
+    </div>
+    <div class="btab-panel" id="btab-announce">
+      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 在此輸入要對 EE 佈達的事項（例如各系列專案的實驗室聯絡窗口），儲存後會立即顯示在 Form 頁首的「實驗室佈告欄」。</p>
+      <textarea id="announce-input" rows="8" placeholder="例：&#10;Gaming - Strix 系列聯絡窗口：Sandra&#10;Gaming - TUF 系列聯絡窗口：Sally&#10;Consumer - Zenbook 系列聯絡窗口：Sophia&#10;Consumer - Vivobook 系列聯絡窗口：Enya" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:10px 12px;resize:vertical;font-family:var(--font-mono);line-height:1.6;margin-bottom:12px;"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span id="announce-save-meta" style="font-size:13px;color:var(--text3);font-family:var(--font-mono);"></span>
+        <button class="btn btn-pri" id="announce-save-btn" onclick="saveAnnouncement()">📢 儲存並發布公告</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1623,24 +1634,74 @@ function paSubmit(){
     alert('送出失敗：'+err.message);
   });
 }
-// ── 專案系列負責人（介面：之後由 gantt.html 的系列負責人設定串接，目前為範例假資料）──
-function getSeriesOwners(){
-  // TODO: 串接 gantt.html 系列負責人設定（例如共用的 SharePoint 清單或 PA flow），目前回傳假資料
-  return [
-    {series:'Gaming - Strix', owner:'Sandra'},
-    {series:'Gaming - TUF', owner:'Sally'},
-    {series:'Consumer - Zenbook', owner:'Sophia'},
-    {series:'Consumer - Vivobook', owner:'Enya'}
-  ];
+// ── 實驗室佈告欄（內容由後台管理「公告設定」頁籤維護，存於 SharePoint GameLabAnnouncement 清單）──
+var PA_ANNOUNCEMENT_GET='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com/powerautomate/automations/direct/cu/01/workflows/2aa54ee2e29243ce99eb5670ce356240/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=NiyszdApIJcACJ3PNBKoiXSOA6Mk2SluXwK8yyTUxEQ';
+var PA_ANNOUNCEMENT_SET='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com/powerautomate/automations/direct/cu/00/workflows/0dc1e93e4e064bb18393a97e49661304/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jRQE1j92ZD6J_5EHT8t9CHodgxyveri1aBhKLwn3-ZU';
+function loadAnnouncement(){
+  var box=document.getElementById('announce-content');
+  var meta=document.getElementById('announce-meta');
+  if(!box)return;
+  fetch(PA_ANNOUNCEMENT_GET,{method:'POST'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var content=(d&&d.Content||'').trim();
+    if(content){
+      box.className='announce-content';
+      box.textContent=content;
+      meta.textContent=(d.UpdatedBy?'發布人：'+d.UpdatedBy+'　':'')+(d.UpdatedAt?'更新時間：'+d.UpdatedAt:'');
+    }else{
+      box.className='announce-content empty';
+      box.textContent='// 目前尚無公告';
+      meta.textContent='';
+    }
+  })
+  .catch(function(){
+    box.className='announce-content empty';
+    box.textContent='// 公告載入失敗';
+    meta.textContent='';
+  });
 }
-function renderSeriesOwners(){
-  var wrap=document.getElementById('series-owners-list');
-  if(!wrap)return;
-  wrap.innerHTML=getSeriesOwners().map(function(o){
-    return '<div class="so-item"><span class="so-series">'+esc(o.series)+'</span><span class="so-arrow">→</span><span class="so-owner">'+esc(o.owner)+'</span></div>';
-  }).join('');
+loadAnnouncement();
+function loadAnnouncementForEdit(){
+  var input=document.getElementById('announce-input');
+  var meta=document.getElementById('announce-save-meta');
+  if(!input)return;
+  input.value='// 載入中...';
+  fetch(PA_ANNOUNCEMENT_GET,{method:'POST'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    input.value=(d&&d.Content)||'';
+    meta.textContent=(d&&d.UpdatedBy)?('上次發布：'+d.UpdatedBy+(d.UpdatedAt?' — '+d.UpdatedAt:'')):'';
+  })
+  .catch(function(){
+    input.value='';
+    meta.textContent='載入失敗，請重新整理後再試';
+  });
 }
-renderSeriesOwners();
+function saveAnnouncement(){
+  var input=document.getElementById('announce-input');
+  var btn=document.getElementById('announce-save-btn');
+  var content=input.value.trim();
+  var updatedBy=prompt('請輸入您的姓名（將顯示於佈告欄下方）：','');
+  if(updatedBy===null)return;
+  btn.disabled=true;btn.textContent='處理中...';
+  fetch(PA_ANNOUNCEMENT_SET,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({content:content,updatedBy:updatedBy.trim()})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    btn.disabled=false;btn.textContent='📢 儲存並發布公告';
+    alert('✅ 公告已發布，Form 頁首將立即顯示最新內容。');
+    loadAnnouncementForEdit();
+    loadAnnouncement();
+  })
+  .catch(function(err){
+    btn.disabled=false;btn.textContent='📢 儲存並發布公告';
+    alert('發布失敗：'+err.message);
+  });
+}
 var _adminAuth=false;
 var _renderResultList=function(){};
 // Auto-open admin if arriving from result page after password auth
@@ -1678,9 +1739,10 @@ function switchTab(id){
   document.querySelectorAll('.btab').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.btab-panel').forEach(function(p){p.classList.remove('active');});
   document.getElementById(id).classList.add('active');
-  var map={'tab-review':'btab-review','tab-result':'btab-result'};
+  var map={'tab-review':'btab-review','tab-result':'btab-result','tab-announce':'btab-announce'};
   var panelId=map[id];
   if(panelId)document.getElementById(panelId).classList.add('active');
+  if(id==='tab-announce')loadAnnouncementForEdit();
 }
 function switchAdminSubtab(tab){
   document.querySelectorAll('.admin-subtab').forEach(function(t){t.classList.remove('active');});
