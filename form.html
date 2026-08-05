@@ -94,8 +94,11 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .schedule-bar.status-active{background:rgba(0,212,255,0.7);}
 .schedule-bar.status-done{background:rgba(100,200,100,0.5);}
 .schedule-note{font-size:13px;color:var(--text3);font-family:var(--font-mono);margin-top:10px;text-align:right;}
-.announce-content{font-size:16px;line-height:1.7;color:var(--text2);white-space:pre-wrap;word-break:break-word;}
-.announce-content.empty{color:var(--text3);font-family:var(--font-mono);}
+.announce-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r8);padding:12px 14px;margin-bottom:10px;}
+.announce-item:last-child{margin-bottom:0;}
+.announce-item-content{font-size:16px;line-height:1.7;color:var(--text2);white-space:pre-wrap;word-break:break-word;margin-bottom:6px;}
+.announce-item-meta{font-size:13px;color:var(--text3);font-family:var(--font-mono);}
+.announce-empty{color:var(--text3);font-family:var(--font-mono);font-size:15px;}
 .today-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,80,80,0.7);z-index:2;}
 
 /* STEPS BAR */
@@ -517,8 +520,10 @@ else{document.getElementById('pw-input').focus();}
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
       <div class="schedule-title">📢 實驗室佈告欄</div>
     </div>
-    <div id="announce-content" class="announce-content">// 載入中...</div>
-    <div id="announce-meta" class="schedule-note"></div>
+    <div id="announce-list">// 載入中...</div>
+    <div id="announce-more-wrap" style="display:none;text-align:center;margin-top:10px;">
+      <button class="btn btn-sec" id="announce-more-btn" onclick="toggleAnnounceMore()" style="font-size:14px;padding:6px 18px;">▾ 展開查看更多</button>
+    </div>
   </div>
 
   <!-- ADMIN BAR -->
@@ -846,12 +851,16 @@ else{document.getElementById('pw-input').focus();}
       <div id="admin-list-result"></div>
     </div>
     <div class="btab-panel" id="btab-announce">
-      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 在此輸入要對 EE 佈達的事項（例如各系列專案的實驗室聯絡窗口），儲存後會立即顯示在 Form 頁首的「實驗室佈告欄」。</p>
-      <textarea id="announce-input" rows="8" placeholder="例：&#10;Gaming - Strix 系列聯絡窗口：Sandra&#10;Gaming - TUF 系列聯絡窗口：Sally&#10;Consumer - Zenbook 系列聯絡窗口：Sophia&#10;Consumer - Vivobook 系列聯絡窗口：Enya" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:10px 12px;resize:vertical;font-family:var(--font-mono);line-height:1.6;margin-bottom:12px;"></textarea>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span id="announce-save-meta" style="font-size:13px;color:var(--text3);font-family:var(--font-mono);"></span>
-        <button class="btn btn-pri" id="announce-save-btn" onclick="saveAnnouncement()">📢 儲存並發布公告</button>
+      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 在此管理要對 EE 佈達的公告事項，可新增多筆、調整顯示順序。Form 頁首預設顯示 3 個月內最新 3 則，可展開查看更多。</p>
+      <div style="margin-bottom:16px;">
+        <textarea id="announce-new-input" rows="3" placeholder="輸入新公告內容…" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:10px 12px;resize:vertical;font-family:var(--font-mono);line-height:1.6;margin-bottom:8px;"></textarea>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="announce-new-author" placeholder="發布人姓名" style="flex:1;min-width:140px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 12px;">
+          <button class="btn btn-pri" onclick="createAnnouncement()">➕ 新增公告</button>
+        </div>
       </div>
+      <div id="announce-admin-loading" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
+      <div id="announce-admin-list"></div>
     </div>
   </div>
 </div>
@@ -1634,72 +1643,195 @@ function paSubmit(){
     alert('送出失敗：'+err.message);
   });
 }
-// ── 實驗室佈告欄（內容由後台管理「公告設定」頁籤維護，存於 SharePoint GameLabAnnouncement 清單）──
+// ── 實驗室佈告欄（多筆公告，內容由後台管理「公告設定」頁籤維護，存於 SharePoint GameLabAnnouncement 清單）──
 var PA_ANNOUNCEMENT_GET='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com/powerautomate/automations/direct/cu/01/workflows/2aa54ee2e29243ce99eb5670ce356240/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=NiyszdApIJcACJ3PNBKoiXSOA6Mk2SluXwK8yyTUxEQ';
+var PA_ANNOUNCEMENT_CREATE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/25/workflows/1d903c43c6f74f08b0ef0bb74d0c4984/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=aAYFwn-xEvP2ADICfvK4IyPQuHLiR8jiIluQkU9qtMw';
 var PA_ANNOUNCEMENT_SET='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com/powerautomate/automations/direct/cu/00/workflows/0dc1e93e4e064bb18393a97e49661304/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jRQE1j92ZD6J_5EHT8t9CHodgxyveri1aBhKLwn3-ZU';
+var PA_ANNOUNCEMENT_REORDER='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/00/workflows/777b69a61ffb4137bdf5d380c8850395/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7G_W9ChwcSvBzVSU1a4C6PxE5RknSbr6MzSXiU7DKrE';
+var PA_ANNOUNCEMENT_DELETE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/01/workflows/bc384166db7640a0a0e3a76c980da6dc/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=G3IiorC0qw3xbwGDu6jmHHV3VRmK19znItg7pYQVEYw';
+var ANNOUNCE_SHOW_COUNT=3;
+var _announceExpanded=false;
+var _announceCache=[];
+var _announceAdminCache=[];
+function parseAnnounceDate(s){
+  if(!s)return null;
+  var m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(s);
+  if(!m)return new Date(s);
+  return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]);
+}
+function sortAnnouncements(list){
+  list.sort(function(a,b){
+    var sa=(a.SortOrder||0),sb=(b.SortOrder||0);
+    if(sa!==sb)return sa-sb;
+    var da=parseAnnounceDate(a.UpdatedAt)||0;
+    var db=parseAnnounceDate(b.UpdatedAt)||0;
+    return db-da;
+  });
+  return list;
+}
+function renderAnnounceList(){
+  var box=document.getElementById('announce-list');
+  var moreWrap=document.getElementById('announce-more-wrap');
+  var moreBtn=document.getElementById('announce-more-btn');
+  if(!box)return;
+  var cutoff=new Date();
+  cutoff.setMonth(cutoff.getMonth()-3);
+  var visible=_announceCache.filter(function(a){
+    var d=parseAnnounceDate(a.UpdatedAt);
+    return !d||d>=cutoff;
+  });
+  if(!visible.length){
+    box.innerHTML='<div class="announce-empty">// 目前尚無公告</div>';
+    moreWrap.style.display='none';
+    return;
+  }
+  var shown=_announceExpanded?visible:visible.slice(0,ANNOUNCE_SHOW_COUNT);
+  box.innerHTML=shown.map(function(a){
+    var meta=(a.UpdatedBy?'發布人：'+esc(a.UpdatedBy)+'　':'')+(a.UpdatedAt?'更新時間：'+esc(a.UpdatedAt):'');
+    return '<div class="announce-item"><div class="announce-item-content">'+esc(a.Content||'')+'</div>'+(meta?'<div class="announce-item-meta">'+meta+'</div>':'')+'</div>';
+  }).join('');
+  if(visible.length>ANNOUNCE_SHOW_COUNT){
+    moreWrap.style.display='block';
+    moreBtn.textContent=_announceExpanded?'▴ 收合':'▾ 展開查看更多（3個月內共 '+visible.length+' 則）';
+  } else {
+    moreWrap.style.display='none';
+  }
+}
+function toggleAnnounceMore(){
+  _announceExpanded=!_announceExpanded;
+  renderAnnounceList();
+}
 function loadAnnouncement(){
-  var box=document.getElementById('announce-content');
-  var meta=document.getElementById('announce-meta');
+  var box=document.getElementById('announce-list');
   if(!box)return;
   fetch(PA_ANNOUNCEMENT_GET,{method:'POST'})
   .then(function(r){return r.json();})
   .then(function(d){
-    var content=(d&&d.Content||'').trim();
-    if(content){
-      box.className='announce-content';
-      box.textContent=content;
-      meta.textContent=(d.UpdatedBy?'發布人：'+d.UpdatedBy+'　':'')+(d.UpdatedAt?'更新時間：'+d.UpdatedAt:'');
-    }else{
-      box.className='announce-content empty';
-      box.textContent='// 目前尚無公告';
-      meta.textContent='';
-    }
+    _announceCache=sortAnnouncements(Array.isArray(d)?d:[]);
+    _announceExpanded=false;
+    renderAnnounceList();
   })
   .catch(function(){
-    box.className='announce-content empty';
-    box.textContent='// 公告載入失敗';
-    meta.textContent='';
+    box.innerHTML='<div class="announce-empty">// 公告載入失敗</div>';
   });
 }
 loadAnnouncement();
-function loadAnnouncementForEdit(){
-  var input=document.getElementById('announce-input');
-  var meta=document.getElementById('announce-save-meta');
-  if(!input)return;
-  input.value='// 載入中...';
+function loadAnnouncementAdmin(){
+  var loading=document.getElementById('announce-admin-loading');
+  var list=document.getElementById('announce-admin-list');
+  if(!list)return;
+  loading.style.display='block';
+  list.innerHTML='';
   fetch(PA_ANNOUNCEMENT_GET,{method:'POST'})
   .then(function(r){return r.json();})
   .then(function(d){
-    input.value=(d&&d.Content)||'';
-    meta.textContent=(d&&d.UpdatedBy)?('上次發布：'+d.UpdatedBy+(d.UpdatedAt?' — '+d.UpdatedAt:'')):'';
+    loading.style.display='none';
+    _announceAdminCache=sortAnnouncements(Array.isArray(d)?d:[]);
+    renderAnnounceAdminList();
   })
-  .catch(function(){
-    input.value='';
-    meta.textContent='載入失敗，請重新整理後再試';
+  .catch(function(err){
+    loading.style.display='none';
+    list.innerHTML='<p style="color:var(--red);padding:20px 0;">載入失敗：'+err.message+'</p>';
   });
 }
-function saveAnnouncement(){
-  var input=document.getElementById('announce-input');
-  var btn=document.getElementById('announce-save-btn');
+function renderAnnounceAdminList(){
+  var list=document.getElementById('announce-admin-list');
+  if(!list)return;
+  if(!_announceAdminCache.length){
+    list.innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前尚無公告項目</p>';
+    return;
+  }
+  list.innerHTML=_announceAdminCache.map(function(a,idx){
+    var id=a.ID||a.Id;
+    var meta=(a.UpdatedBy?'上次發布：'+esc(a.UpdatedBy)+'　':'')+(a.UpdatedAt?esc(a.UpdatedAt):'');
+    return '<div class="sub-item" style="flex-direction:column;align-items:stretch;" data-id="'+id+'">'+
+      '<textarea class="announce-admin-textarea" rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 10px;resize:vertical;font-family:var(--font-mono);line-height:1.6;margin-bottom:8px;">'+esc(a.Content||'')+'</textarea>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">'+
+        '<span style="font-size:13px;color:var(--text3);font-family:var(--font-mono);">'+meta+'</span>'+
+        '<div style="display:flex;gap:6px;">'+
+          '<button class="btn btn-sec" style="padding:5px 10px;font-size:14px;" onclick="moveAnnouncement(this,-1)"'+(idx===0?' disabled':'')+'>▲</button>'+
+          '<button class="btn btn-sec" style="padding:5px 10px;font-size:14px;" onclick="moveAnnouncement(this,1)"'+(idx===_announceAdminCache.length-1?' disabled':'')+'>▼</button>'+
+          '<button class="btn btn-sec" style="padding:5px 10px;font-size:14px;" onclick="saveAnnouncementItem(this)">💾 儲存</button>'+
+          '<button class="btn" style="padding:5px 10px;font-size:14px;color:var(--red);border-color:var(--red);" onclick="deleteAnnouncementItem(this)">🗑 刪除</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function createAnnouncement(){
+  var input=document.getElementById('announce-new-input');
+  var authorInput=document.getElementById('announce-new-author');
   var content=input.value.trim();
-  var updatedBy=prompt('請輸入您的姓名（將顯示於佈告欄下方）：','');
-  if(updatedBy===null)return;
-  btn.disabled=true;btn.textContent='處理中...';
-  fetch(PA_ANNOUNCEMENT_SET,{
+  var author=authorInput.value.trim();
+  if(!content){alert('請輸入公告內容');return;}
+  if(!author){alert('請輸入發布人姓名');return;}
+  fetch(PA_ANNOUNCEMENT_CREATE,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({content:content,updatedBy:updatedBy.trim()})
+    body:JSON.stringify({content:content,updatedBy:author})
   })
   .then(function(r){
     if(!r.ok)throw new Error('HTTP '+r.status);
-    btn.disabled=false;btn.textContent='📢 儲存並發布公告';
-    alert('✅ 公告已發布，Form 頁首將立即顯示最新內容。');
-    loadAnnouncementForEdit();
+    input.value='';authorInput.value='';
+    loadAnnouncementAdmin();
     loadAnnouncement();
   })
-  .catch(function(err){
-    btn.disabled=false;btn.textContent='📢 儲存並發布公告';
-    alert('發布失敗：'+err.message);
+  .catch(function(err){alert('新增失敗：'+err.message);});
+}
+function saveAnnouncementItem(btn){
+  var card=btn.closest('.sub-item');
+  var id=card.dataset.id;
+  var content=card.querySelector('.announce-admin-textarea').value.trim();
+  var updatedBy=prompt('請輸入您的姓名（將顯示於此則公告下方）：','');
+  if(updatedBy===null)return;
+  btn.disabled=true;
+  fetch(PA_ANNOUNCEMENT_SET,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:Number(id),content:content,updatedBy:updatedBy.trim()})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    loadAnnouncementAdmin();
+    loadAnnouncement();
+  })
+  .catch(function(err){btn.disabled=false;alert('儲存失敗：'+err.message);});
+}
+function deleteAnnouncementItem(btn){
+  var card=btn.closest('.sub-item');
+  var id=card.dataset.id;
+  if(!confirm('確定要刪除此則公告嗎？此操作無法復原。'))return;
+  btn.disabled=true;
+  fetch(PA_ANNOUNCEMENT_DELETE,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:Number(id)})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    loadAnnouncementAdmin();
+    loadAnnouncement();
+  })
+  .catch(function(err){btn.disabled=false;alert('刪除失敗：'+err.message);});
+}
+function moveAnnouncement(btn,dir){
+  var card=btn.closest('.sub-item');
+  var id=Number(card.dataset.id);
+  var idx=_announceAdminCache.findIndex(function(a){return Number(a.ID||a.Id)===id;});
+  var swapIdx=idx+dir;
+  if(idx<0||swapIdx<0||swapIdx>=_announceAdminCache.length)return;
+  var a=_announceAdminCache[idx],b=_announceAdminCache[swapIdx];
+  var aId=Number(a.ID||a.Id),bId=Number(b.ID||b.Id);
+  btn.disabled=true;
+  Promise.all([
+    fetch(PA_ANNOUNCEMENT_REORDER,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:aId,sortOrder:swapIdx})}),
+    fetch(PA_ANNOUNCEMENT_REORDER,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bId,sortOrder:idx})})
+  ]).then(function(){
+    loadAnnouncementAdmin();
+    loadAnnouncement();
+  }).catch(function(err){
+    btn.disabled=false;
+    alert('排序失敗：'+err.message);
   });
 }
 var _adminAuth=false;
@@ -1742,7 +1874,7 @@ function switchTab(id){
   var map={'tab-review':'btab-review','tab-result':'btab-result','tab-announce':'btab-announce'};
   var panelId=map[id];
   if(panelId)document.getElementById(panelId).classList.add('active');
-  if(id==='tab-announce')loadAnnouncementForEdit();
+  if(id==='tab-announce')loadAnnouncementAdmin();
 }
 function switchAdminSubtab(tab){
   document.querySelectorAll('.admin-subtab').forEach(function(t){t.classList.remove('active');});
