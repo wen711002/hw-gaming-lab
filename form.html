@@ -1743,9 +1743,10 @@ function renderAnnounceAdminList(){
   }
   list.innerHTML=_announceAdminCache.map(function(a,idx){
     var id=a.ID||a.Id;
-    var meta=(a.UpdatedBy?'上次發布：'+esc(a.UpdatedBy)+'　':'')+(a.UpdatedAt?esc(a.UpdatedAt):'');
+    var meta=a.UpdatedAt?('上次發布時間：'+esc(a.UpdatedAt)):'';
     return '<div class="sub-item" style="flex-direction:column;align-items:stretch;" data-id="'+id+'">'+
       '<textarea class="announce-admin-textarea" rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 10px;resize:vertical;font-family:var(--font-mono);line-height:1.6;margin-bottom:8px;">'+esc(a.Content||'')+'</textarea>'+
+      '<input type="text" class="announce-admin-author" placeholder="發布人姓名" value="'+esc(a.UpdatedBy||'')+'" style="width:100%;max-width:220px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:14px;padding:6px 10px;margin-bottom:8px;">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">'+
         '<span style="font-size:13px;color:var(--text3);font-family:var(--font-mono);">'+meta+'</span>'+
         '<div style="display:flex;gap:6px;">'+
@@ -1782,8 +1783,8 @@ function saveAnnouncementItem(btn){
   var card=btn.closest('.sub-item');
   var id=card.dataset.id;
   var content=card.querySelector('.announce-admin-textarea').value.trim();
-  var updatedBy=prompt('請輸入您的姓名（將顯示於此則公告下方）：','');
-  if(updatedBy===null)return;
+  var updatedBy=card.querySelector('.announce-admin-author').value.trim();
+  if(!updatedBy){alert('請輸入發布人姓名');return;}
   btn.disabled=true;
   fetch(PA_ANNOUNCEMENT_SET,{
     method:'POST',
