@@ -516,7 +516,7 @@ else{document.getElementById('pw-input').focus();}
   </div>
 
   <!-- ANNOUNCEMENT BOARD -->
-  <div class="schedule-section announce-section">
+  <div class="schedule-section announce-section" id="announce-section">
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
       <div class="schedule-title">📢 實驗室佈告欄</div>
     </div>
@@ -933,6 +933,7 @@ var formDb={};
 function startNew(){
   isRetest=false;
   document.getElementById('mode-screen').style.display='none';
+  document.getElementById('announce-section').classList.add('hidden');
   document.getElementById('retest-lookup').classList.add('hidden');
   document.getElementById('retest-block').classList.add('hidden');
   document.getElementById('series-screen').classList.remove('hidden');
@@ -946,6 +947,7 @@ var _rtAllData=[];
 function startRetest(){
   isRetest=true;
   document.getElementById('mode-screen').style.display='none';
+  document.getElementById('announce-section').classList.add('hidden');
   document.getElementById('retest-lookup').classList.remove('hidden');
   ['rt-product-line','rt-sub-series'].forEach(function(id){
     var f=document.getElementById(id);
@@ -979,7 +981,7 @@ function loadRetestFromSP(){
     plSel.disabled=false;
   });
 }
-function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('series-screen').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
+function backToMode(){document.getElementById('mode-screen').style.display='block';document.getElementById('announce-section').classList.remove('hidden');document.getElementById('retest-lookup').classList.add('hidden');document.getElementById('series-screen').classList.add('hidden');document.getElementById('main-form').classList.add('hidden');goPage(1);}
 function lookupFormByName(projName){
   if(!projName) return;
   document.getElementById('lookup-result').classList.add('hidden');
