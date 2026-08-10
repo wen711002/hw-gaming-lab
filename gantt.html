@@ -636,6 +636,22 @@ function buildColorSwatches(){
   });
 }
 
+var editColors={};
+function buildColorSwatchesForEdit(pid,current){
+  editColors[pid]=current;
+  var html='';
+  PALETTE.forEach(function(c){
+    html+='<div class="cswatch'+(c===current?' sel':'')+'" style="background:'+c+'" title="'+c+'" onclick="pickEditColor(\''+pid+'\',\''+c+'\',this)"></div>';
+  });
+  return html;
+}
+function pickEditColor(pid,c,el){
+  editColors[pid]=c;
+  var parent=el.parentNode;
+  Array.prototype.forEach.call(parent.children,function(x){x.classList.remove('sel');});
+  el.classList.add('sel');
+}
+
 function buildMemberList(){
   var con=document.getElementById('member-list');con.innerHTML='';
   PERSONS.forEach(function(p){
@@ -648,14 +664,20 @@ function buildMemberList(){
     info.innerHTML='<div class="member-name" style="color:'+p.c+'">'+p.name+'</div>'+
       '<div class="member-meta">'+p.init+' &nbsp;·&nbsp; '+p.id+'</div>'+
       '<div class="member-series">'+buildSeriesTagsHtml(p.series)+'</div>';
-    var editBtn=document.createElement('button');editBtn.className='member-edit';editBtn.textContent='系列設定';
+    var editBtn=document.createElement('button');editBtn.className='member-edit';editBtn.textContent='編輯';
     var del=document.createElement('button');del.className='member-del';del.textContent='移除';
     (function(pid){
       del.onclick=function(){removeMember(pid);};
     })(p.id);
     var picker=document.createElement('div');picker.className='series-picker';picker.id='series-picker-'+p.id;
-    picker.innerHTML=buildSeriesCheckboxesHtml('series-edit-'+p.id,p.series)+
-      '<div class="series-picker-actions"><button class="member-add-btn" onclick="saveMemberSeries(\''+p.id+'\')">儲存</button></div>';
+    picker.innerHTML=
+      '<div class="member-form-row" style="width:100%;">'+
+        '<div class="member-field"><label>姓名</label><input type="text" id="edit-name-'+p.id+'" class="member-inp" value="'+p.name+'" style="width:120px;"/></div>'+
+        '<div class="member-field"><label>縮寫</label><input type="text" id="edit-init-'+p.id+'" class="member-inp" value="'+p.init+'" maxlength="2" style="width:64px;text-align:center;text-transform:uppercase;"/></div>'+
+        '<div class="member-field"><label>顏色</label><div class="color-swatches">'+buildColorSwatchesForEdit(p.id,p.c)+'</div></div>'+
+      '</div>'+
+      '<div class="series-opts">'+buildSeriesCheckboxesHtml('series-edit-'+p.id,p.series)+'</div>'+
+      '<div class="series-picker-actions"><button class="member-add-btn" onclick="saveMemberEdit(\''+p.id+'\')">儲存</button></div>';
     (function(pickerEl){
       editBtn.onclick=function(){pickerEl.style.display=pickerEl.style.display==='flex'?'none':'flex';};
     })(picker);
@@ -778,14 +800,20 @@ function buildSeriesCheckboxesForAdd(){
   if(con)con.innerHTML=buildSeriesCheckboxesHtml('series-add',[]);
 }
 
-function saveMemberSeries(pid){
+function saveMemberEdit(pid){
   var person=null;
   for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===pid){person=PERSONS[i];break;}}
   if(!person||!person.spId)return;
+  var nameEl=document.getElementById('edit-name-'+pid);
+  var initEl=document.getElementById('edit-init-'+pid);
+  var nameVal=nameEl?nameEl.value.trim():person.name;
+  var initVal=initEl?initEl.value.trim().toUpperCase():person.init;
+  if(!nameVal||!initVal){alert('姓名與縮寫不可為空。');return;}
+  var colorVal=editColors[pid]||person.c;
   var seriesVal=readCheckedSeries('series-edit-'+pid).join(',');
   setBusy(true);
   fetch(PA_MEMBER,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'update',id:person.spId,series:seriesVal})
+    body:JSON.stringify({action:'update',id:person.spId,name:nameVal,initials:initVal.slice(0,2),color:colorVal,series:seriesVal})
   }).then(function(r){return r.json();}).then(function(){loadAllData();})
   .catch(function(){setBusy(false);});
 }
