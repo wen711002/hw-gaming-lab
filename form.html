@@ -892,6 +892,7 @@ var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 var PA_DELAY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/09b7285c6c594487bdb0d49f19ef9152/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iV6Xmitmm1EUWn6k3ePGXOEdZCgK0JjskjarwKzz9-I';
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
+var PA_RESULT_MANAGE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/03/workflows/c0e0c53fe43b4c3c8db0bbfab44c310d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dyNQmj9EXbZwPujzbOT8hUVLG-3ICEftUU9vzBBmWWQ';
 var currentSeriesType='gaming'; // 'gaming' | 'consumer'
 
 function syncProdLineOptions(){
@@ -1902,15 +1903,28 @@ function loadAdminData(){
     document.getElementById('admin-loading').style.display='none';
     var all=Array.isArray(data)?data:(data.value||data.d&&data.d.results||[]);
     var resultItems=resultData.value||(resultData.d&&resultData.d.results)||[];
+    // historyMap 以 ItemId（需求單唯一ID）分組，避免同 ProjectCode 的不同需求單互相污染。
+    // 舊資料在 ItemId 欄位新增前建立，沒有 ItemId，才退回用 ProjectCode 分組（僅供舊資料相容）。
     var historyMap={};
+    var legacyHistoryMap={};
     resultItems.forEach(function(ri){
-      var code=(ri.Title||'').toUpperCase();
-      if(!code)return;
-      if(!historyMap[code])historyMap[code]=[];
-      historyMap[code].push(ri);
+      var itemId=ri.ItemId;
+      if(itemId!==undefined&&itemId!==null&&String(itemId).trim()!==''){
+        var key=String(itemId);
+        if(!historyMap[key])historyMap[key]=[];
+        historyMap[key].push(ri);
+      } else {
+        var code=(ri.Title||'').toUpperCase();
+        if(!code)return;
+        if(!legacyHistoryMap[code])legacyHistoryMap[code]=[];
+        legacyHistoryMap[code].push(ri);
+      }
     });
     Object.keys(historyMap).forEach(function(k){
       historyMap[k].sort(function(a,b){return new Date(b.UploadedAt||0)-new Date(a.UploadedAt||0);});
+    });
+    Object.keys(legacyHistoryMap).forEach(function(k){
+      legacyHistoryMap[k].sort(function(a,b){return new Date(b.UploadedAt||0)-new Date(a.UploadedAt||0);});
     });
     // 排序：依 SubmittedDate 或 Created，最新在前
     all.sort(function(a,b){
@@ -1999,11 +2013,18 @@ function loadAdminData(){
         var dt=fmtDt(h.UploadedAt);
         var by=esc(h.Uploader||'—');
         var note=esc(h.Note||'');
-        var row='<div style="padding:6px 10px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r6);margin-top:6px;font-size:14px;">';
+        var recId=h.ID||h.Id||h.id||'';
+        var row='<div class="result-hist-row" data-hist-id="'+recId+'" style="padding:6px 10px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r6);margin-top:6px;font-size:14px;">';
         row+='<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:center;">';
         row+=badge+'<span style="color:var(--text3);font-family:var(--font-mono);">'+dt+'　by '+by+'</span>';
+        if(recId){
+          row+='<span style="margin-left:auto;display:flex;gap:8px;">';
+          row+='<a href="javascript:void(0)" class="hist-edit-btn" style="font-size:13px;color:var(--blue);" onclick="adminResultEditNote(this)">✏️ 編輯</a>';
+          row+='<a href="javascript:void(0)" style="font-size:13px;color:var(--red);" onclick="adminResultDeleteNote(this)">🗑️ 刪除</a>';
+          row+='</span>';
+        }
         row+='</div>';
-        if(note)row+='<div style="color:var(--text2);margin-top:4px;">'+note+'</div>';
+        row+='<div class="hist-note-view" style="color:var(--text2);margin-top:4px;'+(note?'':'display:none;')+'">'+note+'</div>';
         row+='</div>';
         return row;
       }).join('');
@@ -2012,7 +2033,7 @@ function loadAdminData(){
         rows+
       '</div>';
     }
-    function buildResultCard(item,historyMap){
+    function buildResultCard(item,historyMap,legacyHistoryMap){
       var itemId=item.ID||item.Id||item.id||'';
       var projCode=item.ProjectCode;
       if(projCode&&typeof projCode==='object')projCode=projCode.Title||projCode.Value||'';
@@ -2020,7 +2041,8 @@ function loadAdminData(){
       var phase=item.Phase;
       if(phase&&typeof phase==='object')phase=phase.Title||phase.Value||'';
       phase=phase||'—';
-      var hist=historyMap[String(projCode).toUpperCase()]||[];
+      // 僅顯示屬於這個需求單（ItemId）的紀錄；舊資料（無 ItemId）才退回用 ProjectCode 比對顯示。
+      var hist=historyMap[String(itemId)]||(legacyHistoryMap&&legacyHistoryMap[String(projCode).toUpperCase()])||[];
       var isDone=hist.some(function(hh){return hh.FileName==='全部完成';});
       var h='<div class="sub-item" id="result-card-'+itemId+'" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" data-pname="'+esc(item.ProjectName||'')+'" data-pline="'+esc(item.ProductLine||'')+'" data-sseries="'+esc(item.SubSeries||'')+'" style="flex-direction:column;align-items:stretch;'+(isDone?'display:none;':'')+'">';
       h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
@@ -2033,6 +2055,10 @@ function loadAdminData(){
       h+='<div style="margin-top:10px;">';
       h+='<label style="font-size:15px;color:var(--text2);display:block;margin-bottom:4px;">本次完成說明（部份完成時請說明已完成的測項/SKU，通知信會附上此說明）</label>';
       h+='<textarea class="result-note" rows="2" placeholder="例：SKU1 ACC/TPR 已完成，SKU2 尚未測試" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;resize:vertical;"></textarea>';
+      h+='</div>';
+      h+='<div style="margin-top:8px;">';
+      h+='<label style="font-size:15px;color:var(--text2);display:block;margin-bottom:4px;">額外收件人（選填，同專案的其他 EE，可填多筆並用逗號 , 或分號 ; 分隔）</label>';
+      h+='<input type="text" class="result-cc" placeholder="例：ee1@inventec.com, ee2@inventec.com" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;">';
       h+='</div>';
       h+='<div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">';
       h+='<select class="result-completer" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:7px 10px;">';
@@ -2084,7 +2110,7 @@ function loadAdminData(){
       if(!list.length){
         document.getElementById('admin-list-result').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// '+(ft?'找不到符合的專案代碼':'目前沒有進行中的專案')+'</p>';
       } else {
-        document.getElementById('admin-list-result').innerHTML=list.map(function(i){return buildResultCard(i,historyMap);}).join('');
+        document.getElementById('admin-list-result').innerHTML=list.map(function(i){return buildResultCard(i,historyMap,legacyHistoryMap);}).join('');
       }
     };
     var resultSearchInput=document.getElementById('result-search');
@@ -2180,6 +2206,8 @@ function adminResultComplete(btn,type){
   var sseries=card.dataset.sseries;
   var note=card.querySelector('.result-note').value.trim();
   var completedBy=card.querySelector('.result-completer').value;
+  var ccInput=card.querySelector('.result-cc');
+  var ccEmails=ccInput?ccInput.value.trim():'';
   if(!id){alert('找不到專案 ID，請重新整理後再試。');return;}
   if(type==='部份完成'&&!note){alert('請填寫本次完成的測項/SKU說明。');return;}
   if(type==='全部完成'&&!confirm('確定要通知「全部完成」嗎？\n此為最終確認通知，請確認所有測試項目皆已完成。')){return;}
@@ -2198,7 +2226,8 @@ function adminResultComplete(btn,type){
     Note:note,
     CompletedBy:completedBy,
     CompletedAt:new Date().toISOString(),
-    CompletionType:type
+    CompletionType:type,
+    CcEmails:ccEmails
   })})
   .then(function(r){if(!r.ok)throw new Error('Error '+r.status);
     alert('✅ 已發送「'+type+'」通知給：'+email);
@@ -2208,6 +2237,42 @@ function adminResultComplete(btn,type){
     btns.forEach(function(b){b.disabled=false;});
     btn.textContent=origText;
     alert('發送失敗：'+err.message);
+  });
+}
+function adminResultEditNote(link){
+  var row=link.closest('.result-hist-row');
+  var histId=row.dataset.histId;
+  var noteView=row.querySelector('.hist-note-view');
+  var currentNote=noteView.textContent||'';
+  var newNote=prompt('修改此筆完成通知的備註：',currentNote);
+  if(newNote===null)return;
+  newNote=newNote.trim();
+  var origText=link.textContent;
+  link.textContent='處理中...';
+  fetch(PA_RESULT_MANAGE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({Action:'update',RecordId:parseInt(histId),Note:newNote})})
+  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);
+    noteView.textContent=newNote;
+    noteView.style.display=newNote?'':'none';
+    link.textContent=origText;
+  })
+  .catch(function(err){
+    link.textContent=origText;
+    alert('更新失敗：'+err.message);
+  });
+}
+function adminResultDeleteNote(link){
+  if(!confirm('確定要刪除這筆完成通知紀錄嗎？此動作無法復原。'))return;
+  var row=link.closest('.result-hist-row');
+  var histId=row.dataset.histId;
+  var origText=link.textContent;
+  link.textContent='處理中...';
+  fetch(PA_RESULT_MANAGE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({Action:'delete',RecordId:parseInt(histId)})})
+  .then(function(r){if(!r.ok)throw new Error('Error '+r.status);
+    loadAdminData();
+  })
+  .catch(function(err){
+    link.textContent=origText;
+    alert('刪除失敗：'+err.message);
   });
 }
 // ── Request Summary Excel Generator ──────────────────────────────────────
