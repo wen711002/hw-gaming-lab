@@ -112,6 +112,22 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .series-opt input{cursor:pointer;}
 .series-picker-actions{display:flex;gap:8px;width:100%;margin-top:2px;}
 
+/* LEAVE / OVERTIME LIST */
+.leave-type-badge{font-family:var(--font-head);font-weight:700;font-size:13px;padding:3px 10px;border-radius:999px;white-space:nowrap;flex-shrink:0;}
+.leave-type-badge.leave{color:var(--red);background:rgba(255,92,122,0.14);border:1px solid rgba(255,92,122,0.35);}
+.leave-type-badge.overtime{color:var(--cyan);background:rgba(0,212,255,0.14);border:1px solid rgba(0,212,255,0.35);}
+.leave-person{font-family:var(--font-head);font-weight:700;font-size:16px;}
+.leave-meta{font-size:14px;color:var(--text3);font-family:var(--font-mono);}
+.leave-empty{color:var(--text3);font-size:15px;padding:8px 2px;}
+
+/* GANTT LEAVE/OVERTIME OVERLAY */
+.leave-blk{position:absolute;top:2px;bottom:2px;border-radius:var(--r4);z-index:1;overflow:hidden;pointer-events:auto;}
+.leave-blk.leave{background:repeating-linear-gradient(45deg,rgba(255,92,122,0.22),rgba(255,92,122,0.22) 5px,rgba(255,92,122,0.08) 5px,rgba(255,92,122,0.08) 10px);border:1px solid rgba(255,92,122,0.4);}
+.leave-blk.overtime{background:repeating-linear-gradient(45deg,rgba(0,212,255,0.22),rgba(0,212,255,0.22) 5px,rgba(0,212,255,0.08) 5px,rgba(0,212,255,0.08) 10px);border:1px solid rgba(0,212,255,0.4);}
+.leave-blk-lbl{position:absolute;top:2px;left:4px;font-size:12px;font-family:var(--font-mono);white-space:nowrap;pointer-events:none;}
+.leave-blk.leave .leave-blk-lbl{color:var(--red);}
+.leave-blk.overtime .leave-blk-lbl{color:var(--cyan);}
+
 /* SETTINGS TABLE */
 .cfg-table{width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;}
 .cfg-table th{background:var(--bg3);color:var(--text3);font-family:var(--font-head);font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);}
@@ -382,6 +398,53 @@ document.getElementById('pw-input').focus();
     </div>
   </div>
 
+  <!-- LEAVE / OVERTIME PANEL -->
+  <div class="panel">
+    <div class="panel-header clickable" onclick="toggleLeavePanel()">
+      <div class="panel-title">請假／加班</div>
+      <button id="leave-toggle" class="toggle-btn">展開 ↓</button>
+    </div>
+    <div id="leave-body" style="display:none;">
+      <div class="panel-body">
+        <div class="member-list" id="leave-list"></div>
+        <div class="add-member-form">
+          <div class="add-member-form-title">新增請假／加班</div>
+          <div class="member-form-row">
+            <div class="member-field">
+              <label>成員</label>
+              <select id="lv-person" class="member-inp" style="width:110px;"></select>
+            </div>
+            <div class="member-field">
+              <label>類型</label>
+              <select id="lv-type" class="member-inp" style="width:100px;">
+                <option value="leave">請假</option>
+                <option value="overtime">加班</option>
+              </select>
+            </div>
+            <div class="member-field">
+              <label>開始日期</label>
+              <input type="date" id="lv-start" class="member-inp" style="width:150px;"/>
+            </div>
+            <div class="member-field">
+              <label>結束日期</label>
+              <input type="date" id="lv-end" class="member-inp" style="width:150px;"/>
+            </div>
+            <div class="member-field">
+              <label>時數／天</label>
+              <input type="number" id="lv-hours" class="member-inp" value="5" min="0.5" max="24" step="0.5" style="width:80px;"/>
+            </div>
+            <div class="member-field" style="flex:1 1 160px;">
+              <label>備註</label>
+              <input type="text" id="lv-note" class="member-inp" placeholder="選填" style="width:100%;"/>
+            </div>
+            <button class="member-add-btn" onclick="addLeave()">＋ 新增</button>
+          </div>
+          <div class="member-err" id="lv-err"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- LOADING PANEL -->
   <div class="panel">
     <div class="panel-header" style="cursor:default;">
@@ -421,6 +484,9 @@ document.getElementById('pw-input').focus();
     <span><span class="leg-dot" style="background:#2dd4bf;"></span>重測</span>
     <span style="color:var(--text3);">|</span>
     <span><span class="leg-stripe"></span>自動測試（無需人力）</span>
+    <span style="color:var(--text3);">|</span>
+    <span><span class="leg-dot" style="background:rgba(255,92,122,0.5);"></span>請假</span>
+    <span><span class="leg-dot" style="background:rgba(0,212,255,0.5);"></span>加班</span>
   </div>
 
   <!-- GANTT CHART -->
@@ -551,6 +617,7 @@ var PA_READ    = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.a
 var PA_TASK    = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2d8ce514aa3a49118700bfb72a0c0bfd/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-JYIGJUY5De_Bn2NZ4BId-zOR6G7PHw4pSPlPg8xZdo';
 var PA_MEMBER  = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a0788872751444548b99442bef704a18/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KcT76tjBkF_I9hvaXLHzbx4t0QzD4fr1iVDkhVSCUZM';
 var PA_SETTINGS= 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/8eb310bc23884b108a4017b7d77901a8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9RwEplvL3zQwKQwyzXKy3hg_5z6pfw8hDXPGClI4YRg';
+var PA_LEAVE   = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/09/workflows/a251e4b5b7dd42ffb86093e39524e672/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9N01FxoaYdl6MMGjBwPQBbcvZXVi4NUAW4VTT7Zm5Mc';
 
 var START = new Date('2026-06-01');
 var DAY_W = 32;
@@ -567,6 +634,7 @@ var TCFG = {
   fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/Repair',  lbl2:'失敗／維修'}
 };
 var PERSONS = [];
+var LEAVES = [];
 var tasks = [];
 var nextId=1, editTask=null, expanded={}, hourExp={};
 
@@ -733,6 +801,20 @@ function loadAllData(){
       document.getElementById('cfg-max-person').value=maxPerson;
       document.getElementById('hdr-hpd').textContent=HPD;
     }
+    /* Leaves */
+    LEAVES=[];
+    (d.leaves||[]).forEach(function(l){
+      var sd=l.StartDate?fmt(new Date(l.StartDate)):'';
+      LEAVES.push({
+        spId:l.ID,
+        personId:l.PersonId,
+        type:l.LeaveType==='overtime'?'overtime':'leave',
+        start:sd,
+        end:l.EndDate?fmt(new Date(l.EndDate)):sd,
+        hoursPerDay:parseFloat(l.HoursPerDay)||HPD,
+        note:l.Note||''
+      });
+    });
     /* Tasks */
     tasks=[];nextId=1;
     (d.tasks||[]).forEach(function(t){
@@ -756,6 +838,7 @@ function loadAllData(){
     });
     buildCfgTable();
     buildMemberList();
+    buildLeaveList();
     buildHeader();
     buildGantt();
     setBusy(false);
@@ -828,6 +911,106 @@ function removeMember(id){
   setBusy(true);
   fetch(PA_MEMBER,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'delete',id:person.spId})
+  }).then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);});
+}
+
+/* ---------- LEAVE / OVERTIME ---------- */
+function personBySpId(spId){
+  for(var i=0;i<PERSONS.length;i++){if(String(PERSONS[i].spId)===String(spId))return PERSONS[i];}
+  return null;
+}
+function toggleLeavePanel(){
+  var body=document.getElementById('leave-body');
+  var btn=document.getElementById('leave-toggle');
+  var open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  btn.textContent=open?'收合 ↑':'展開 ↓';
+}
+function buildLeaveList(){
+  var con=document.getElementById('leave-list');con.innerHTML='';
+  var sorted=LEAVES.slice().sort(function(a,b){return a.start<b.start?1:(a.start>b.start?-1:0);});
+  if(sorted.length===0){
+    con.innerHTML='<div class="leave-empty">尚無請假／加班紀錄。</div>';
+  }else{
+    sorted.forEach(function(l){
+      var p=personBySpId(l.personId);
+      var wrap=document.createElement('div');
+      var row=document.createElement('div');row.className='member-row';
+      var badge=document.createElement('span');badge.className='leave-type-badge '+l.type;badge.textContent=l.type==='overtime'?'加班':'請假';
+      var info=document.createElement('div');info.className='member-info';
+      info.innerHTML='<div class="leave-person" style="color:'+(p?p.c:'#888')+'">'+(p?p.name:'（未知成員）')+'</div>'+
+        '<div class="leave-meta">'+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+l.hoursPerDay+'hr/天'+(l.note?' · '+l.note:'')+'</div>';
+      var editBtn=document.createElement('button');editBtn.className='member-edit';editBtn.textContent='編輯';
+      var del=document.createElement('button');del.className='member-del';del.textContent='刪除';
+      (function(lid){del.onclick=function(){removeLeave(lid);};})(l.spId);
+      var picker=document.createElement('div');picker.className='series-picker';picker.id='leave-picker-'+l.spId;
+      picker.innerHTML=
+        '<div class="member-form-row" style="width:100%;">'+
+          '<div class="member-field"><label>類型</label><select id="edit-lv-type-'+l.spId+'" class="member-inp"><option value="leave"'+(l.type==='leave'?' selected':'')+'>請假</option><option value="overtime"'+(l.type==='overtime'?' selected':'')+'>加班</option></select></div>'+
+          '<div class="member-field"><label>開始日期</label><input type="date" id="edit-lv-start-'+l.spId+'" class="member-inp" value="'+l.start+'"/></div>'+
+          '<div class="member-field"><label>結束日期</label><input type="date" id="edit-lv-end-'+l.spId+'" class="member-inp" value="'+l.end+'"/></div>'+
+          '<div class="member-field"><label>時數／天</label><input type="number" id="edit-lv-hours-'+l.spId+'" class="member-inp" value="'+l.hoursPerDay+'" min="0.5" max="24" step="0.5" style="width:80px;"/></div>'+
+          '<div class="member-field" style="flex:1 1 160px;"><label>備註</label><input type="text" id="edit-lv-note-'+l.spId+'" class="member-inp" value="'+(l.note||'')+'" style="width:100%;"/></div>'+
+        '</div>'+
+        '<div class="series-picker-actions"><button class="member-add-btn" onclick="saveLeaveEdit('+l.spId+')">儲存</button></div>';
+      (function(pickerEl){editBtn.onclick=function(){pickerEl.style.display=pickerEl.style.display==='flex'?'none':'flex';};})(picker);
+      row.appendChild(badge);row.appendChild(info);row.appendChild(editBtn);row.appendChild(del);
+      wrap.appendChild(row);wrap.appendChild(picker);
+      con.appendChild(wrap);
+    });
+  }
+  var sel=document.getElementById('lv-person');
+  if(sel){
+    sel.innerHTML='';
+    PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  }
+  var todayStr=fmt(new Date());
+  var se=document.getElementById('lv-start'),ee=document.getElementById('lv-end');
+  if(se&&!se.value)se.value=todayStr;
+  if(ee&&!ee.value)ee.value=todayStr;
+}
+function addLeave(){
+  var personId=document.getElementById('lv-person').value;
+  var person=null;
+  for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===personId){person=PERSONS[i];break;}}
+  var errEl=document.getElementById('lv-err');errEl.textContent='';
+  if(!person){errEl.textContent='請先新增團隊成員。';return;}
+  var type=document.getElementById('lv-type').value;
+  var start=document.getElementById('lv-start').value;
+  var end=document.getElementById('lv-end').value||start;
+  var hours=parseFloat(document.getElementById('lv-hours').value)||HPD;
+  var note=document.getElementById('lv-note').value;
+  if(!start){errEl.textContent='請選擇開始日期。';return;}
+  if(end<start){errEl.textContent='結束日期不可早於開始日期。';return;}
+  setBusy(true);
+  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'add',personId:String(person.spId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hours,note:note})
+  }).then(function(r){return r.json();}).then(function(){
+    document.getElementById('lv-note').value='';
+    loadAllData();
+  }).catch(function(){setBusy(false);errEl.textContent='儲存失敗，請重試。';});
+}
+function saveLeaveEdit(lid){
+  var l=null;
+  for(var i=0;i<LEAVES.length;i++){if(String(LEAVES[i].spId)===String(lid)){l=LEAVES[i];break;}}
+  if(!l)return;
+  var type=document.getElementById('edit-lv-type-'+lid).value;
+  var start=document.getElementById('edit-lv-start-'+lid).value;
+  var end=document.getElementById('edit-lv-end-'+lid).value||start;
+  var hours=parseFloat(document.getElementById('edit-lv-hours-'+lid).value)||HPD;
+  var note=document.getElementById('edit-lv-note-'+lid).value;
+  setBusy(true);
+  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'update',id:l.spId,personId:String(l.personId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hours,note:note})
+  }).then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);});
+}
+function removeLeave(lid){
+  if(!confirm('確定要刪除這筆請假／加班紀錄嗎？'))return;
+  setBusy(true);
+  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'delete',id:lid})
   }).then(function(r){return r.json();}).then(function(){loadAllData();})
   .catch(function(){setBusy(false);});
 }
@@ -940,6 +1123,17 @@ function buildGantt(){
     tl.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
     for(var i=0;i<DAYS;i++){var d=new Date(START);d.setDate(d.getDate()+i);if(d.getDay()===0||d.getDay()===6){var ws=document.createElement('div');ws.className='we-shade';ws.style.cssText='left:'+(i*DAY_W)+'px;width:'+DAY_W+'px;';tl.appendChild(ws);}}
     if(todOff>=0&&todOff<DAYS){var tml=document.createElement('div');tml.className='today-line';tml.style.left=(todOff*DAY_W)+'px';var tlbl=document.createElement('div');tlbl.className='today-lbl';tlbl.textContent='今天';tml.appendChild(tlbl);tl.appendChild(tml);}
+    LEAVES.filter(function(l){return String(l.personId)===String(p.spId);}).forEach(function(l){
+      var sOff=dayOff(l.start),eOff=dayOff(l.end);
+      if(eOff<0||sOff>=DAYS)return;
+      var clipS=Math.max(0,sOff),clipE=Math.min(DAYS-1,eOff);
+      var lb=document.createElement('div');lb.className='leave-blk '+l.type;
+      lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;';
+      lb.title=(l.type==='overtime'?'加班':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+l.hoursPerDay+'hr/天'+(l.note?' · '+l.note:'');
+      var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'加班':'請假')+' '+l.hoursPerDay+'h';
+      lb.appendChild(llbl);
+      tl.appendChild(lb);
+    });
     var used=[];
     pt.forEach(function(t){
       var c=calc(t),off=dayOff(t.start),slot=0;
