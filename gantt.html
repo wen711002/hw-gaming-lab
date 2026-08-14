@@ -128,6 +128,18 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .leave-blk.leave .leave-blk-lbl{color:var(--red);}
 .leave-blk.overtime .leave-blk-lbl{color:var(--cyan);}
 
+/* BLOCK LIBRARY */
+.block-group-title{font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin:14px 0 8px;}
+.block-group-title:first-child{margin-top:0;}
+.block-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.block-chip{font-family:var(--font-head);font-size:15px;font-weight:700;padding:7px 14px;border-radius:var(--r6);cursor:grab;border:1px solid;user-select:none;white-space:nowrap;}
+.block-chip:active{cursor:grabbing;}
+.block-chip.battery{color:var(--blue);border-color:rgba(76,158,245,0.4);background:rgba(76,158,245,0.12);}
+.block-chip.benchmark{color:var(--purple);border-color:rgba(168,85,247,0.4);background:rgba(168,85,247,0.12);}
+.block-chip.game{color:var(--green);border-color:rgba(0,229,160,0.4);background:rgba(0,229,160,0.12);}
+.block-chip.modifier{color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);font-size:13px;padding:5px 10px;}
+.fanmode-mgmt-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+
 /* SETTINGS TABLE */
 .cfg-table{width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;}
 .cfg-table th{background:var(--bg3);color:var(--text3);font-family:var(--font-head);font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);}
@@ -200,22 +212,16 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .g-tl{flex:1;position:relative;min-height:52px;overflow:hidden;}
 .task-bar{position:absolute;height:26px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;transition:filter 0.15s;z-index:2;}
 .task-bar:hover{filter:brightness(1.15);}
-.task-auto-stripe{position:absolute;top:0;right:0;height:100%;border-radius:0 var(--r4) var(--r4) 0;background:repeating-linear-gradient(45deg,rgba(0,0,0,0.2),rgba(0,0,0,0.2) 3px,transparent 3px,transparent 8px);pointer-events:none;}
+.task-bar.pending{background:transparent;border:2px dashed currentColor;}
 .task-lbl{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis;}
 .task-badge{position:relative;z-index:1;font-size:13px;background:rgba(0,0,0,0.3);border-radius:3px;padding:1px 5px;margin-left:5px;flex-shrink:0;}
+.task-bar.pending .task-badge{background:transparent;border:1px dashed currentColor;}
 .g-sub-rows{display:none;}.g-sub-rows.open{display:block;}
-.g-proj-row{display:flex;border-top:1px solid var(--border);background:rgba(0,0,0,0.1);cursor:pointer;}
-.g-proj-lbl{width:260px;flex-shrink:0;padding:7px 14px 7px 44px;border-right:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-.g-proj-toggle{font-size:15px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;margin-right:4px;}
-.g-proj-toggle.open{transform:rotate(90deg);}
+.g-proj-row{display:flex;border-top:1px solid var(--border);background:rgba(0,0,0,0.1);}
+.g-proj-lbl{width:260px;flex-shrink:0;padding:7px 14px;border-right:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 .proj-code{font-family:var(--font-mono);font-size:16px;color:var(--cyan);}
 .proj-sku{font-size:15px;color:var(--text3);}
 .g-proj-tl{flex:1;position:relative;min-height:36px;overflow:hidden;}
-.g-hour-rows{display:none;}.g-hour-rows.open{display:block;}
-.g-hour-row{display:flex;border-top:1px solid rgba(255,255,255,0.04);}
-.g-hour-lbl{width:260px;flex-shrink:0;padding:4px 14px 4px 60px;border-right:1px solid var(--border);font-size:15px;color:var(--text3);font-family:var(--font-mono);display:flex;align-items:center;}
-.g-hour-tl{flex:1;position:relative;min-height:26px;background:rgba(0,0,0,0.12);overflow:hidden;}
-.hour-blk{position:absolute;height:18px;border-radius:3px;top:4px;display:flex;align-items:center;padding:0 6px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;}
 .today-line{position:absolute;top:0;bottom:0;width:2px;background:var(--cyan);opacity:0.5;z-index:15;pointer-events:none;}
 .today-lbl{position:absolute;top:2px;left:4px;font-size:13px;color:var(--cyan);font-family:var(--font-mono);white-space:nowrap;}
 .we-shade{position:absolute;top:0;bottom:0;background:rgba(255,255,255,0.012);pointer-events:none;}
@@ -332,17 +338,12 @@ document.getElementById('pw-input').focus();
     </div>
     <div id="cfg-body" style="display:none;">
       <div class="panel-body">
-        <table class="cfg-table">
-          <thead>
-            <tr>
-              <th>測試類型</th>
-              <th>人工工時 (hr)</th>
-              <th>自動工時 (hr)</th>
-              <th>Fail → 全人工 (hr)</th>
-            </tr>
-          </thead>
-          <tbody id="cfg-tbody"></tbody>
-        </table>
+        <div class="block-group-title">電池續航（單套工時 hr，可留空待填）</div>
+        <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th></tr></thead><tbody id="cfg-battery-tbody"></tbody></table>
+        <div class="block-group-title">Benchmark（單套工時 hr，可留空待填）</div>
+        <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th></tr></thead><tbody id="cfg-benchmark-tbody"></tbody></table>
+        <div class="block-group-title">Games</div>
+        <table class="cfg-table"><thead><tr><th>項目</th><th>單套工時 (hr)</th></tr></thead><tbody id="cfg-games-tbody"></tbody></table>
         <div class="cfg-cap">
           <div class="cfg-cap-item">
             <label>每人每日工時 (HPD)</label>
@@ -358,6 +359,34 @@ document.getElementById('pw-input').focus();
           </div>
         </div>
         <button class="cfg-apply" onclick="applyConfig()">套用設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK LIBRARY PANEL -->
+  <div class="panel">
+    <div class="panel-header clickable" onclick="toggleBlockLib()">
+      <div class="panel-title">積木庫（拖曳到甘特圖建立任務）</div>
+      <button id="blocklib-toggle" class="toggle-btn">展開 ↓</button>
+    </div>
+    <div id="blocklib-body" style="display:none;">
+      <div class="panel-body">
+        <div class="block-group-title">電池續航</div>
+        <div class="block-chips" id="chips-battery"></div>
+        <div class="block-group-title">Benchmark</div>
+        <div class="block-chips" id="chips-benchmark"></div>
+        <div class="block-group-title">Games</div>
+        <div class="block-chips" id="chips-games"></div>
+        <div class="block-group-title">解析度（拖到已建立的 Games 任務條上疊加）</div>
+        <div class="block-chips" id="chips-resolutions"></div>
+        <div class="block-group-title">Fan Mode（拖到已建立的 Games 任務條上疊加）</div>
+        <div class="block-chips" id="chips-fanmodes"></div>
+        <div class="block-group-title">Fan Mode 管理（新增／移除自訂命名）</div>
+        <div class="fanmode-mgmt-list" id="fanmode-mgmt-list"></div>
+        <div class="member-form-row" style="margin-top:8px;">
+          <input type="text" id="fm-new" class="member-inp" placeholder="新增 Fan Mode 名稱" style="width:180px;"/>
+          <button class="member-add-btn" onclick="addFanMode()">＋ 新增</button>
+        </div>
       </div>
     </div>
   </div>
@@ -458,7 +487,7 @@ document.getElementById('pw-input').focus();
     <div class="stat-card"><div class="stat-label">任務數</div><div class="stat-val" id="st-tasks" style="color:var(--blue);">0</div><div class="stat-sub">已排程</div></div>
     <div class="stat-card"><div class="stat-label">機台數</div><div class="stat-val" id="st-machines" style="color:var(--cyan);">0</div><div class="stat-sub">台</div></div>
     <div class="stat-card"><div class="stat-label">人工工時</div><div class="stat-val" id="st-manual" style="color:var(--amber);">0</div><div class="stat-sub">需人力</div></div>
-    <div class="stat-card"><div class="stat-label">自動工時</div><div class="stat-val" id="st-auto" style="color:var(--green);">0</div><div class="stat-sub">無需人力</div></div>
+    <div class="stat-card"><div class="stat-label">待填時數</div><div class="stat-val" id="st-auto" style="color:var(--green);">0</div><div class="stat-sub">個任務</div></div>
     <div class="stat-card"><div class="stat-label">失敗任務</div><div class="stat-val" id="st-fail" style="color:var(--red);">0</div><div class="stat-sub">需要處理</div></div>
   </div>
 
@@ -471,19 +500,16 @@ document.getElementById('pw-input').focus();
     <span class="tb-label">展開：</span>
     <button class="tb-btn" onclick="expandAll()">全部</button>
     <button class="tb-btn" onclick="collapseAll()">收合</button>
-    <button class="add-btn" onclick="openAddModal()">＋ 新增任務</button>
   </div>
 
   <!-- LEGEND -->
   <div class="legend">
     <span><span class="leg-dot" style="background:#4c9ef5;"></span>電池續航</span>
-    <span><span class="leg-dot" style="background:#a855f7;"></span>效能測試</span>
-    <span><span class="leg-dot" style="background:#00e5a0;"></span>遊戲 FPS</span>
-    <span><span class="leg-dot" style="background:#ffb347;"></span>混合測試</span>
-    <span><span class="leg-dot" style="background:#ff5c7a;"></span>失敗</span>
-    <span><span class="leg-dot" style="background:#2dd4bf;"></span>重測</span>
+    <span><span class="leg-dot" style="background:#a855f7;"></span>Benchmark</span>
+    <span><span class="leg-dot" style="background:#00e5a0;"></span>Games</span>
+    <span><span class="leg-stripe" style="background:none;border:2px dashed var(--text3);width:8px;height:8px;"></span>待填時數（拖入後點擊補填）</span>
     <span style="color:var(--text3);">|</span>
-    <span><span class="leg-stripe"></span>自動測試（無需人力）</span>
+    <span>⚠ 失敗／維修　↻ 重測</span>
     <span style="color:var(--text3);">|</span>
     <span><span class="leg-dot" style="background:rgba(255,92,122,0.5);"></span>請假</span>
     <span><span class="leg-dot" style="background:rgba(0,212,255,0.5);"></span>加班</span>
@@ -515,59 +541,6 @@ document.getElementById('pw-input').focus();
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 
-<!-- ADD MODAL -->
-<div class="modal-overlay" id="add-modal">
-  <div class="modal">
-    <button class="mclose" onclick="closeM('add-modal')">×</button>
-    <h3>新增任務</h3>
-    <p>結束日期將依據工時邏輯自動計算。</p>
-    <div class="g2">
-      <div class="field"><label>負責人</label>
-        <select id="m-person"></select>
-      </div>
-      <div class="field"><label>測試類型</label>
-        <select id="m-type" onchange="updateEst('m')">
-          <option value="battery">電池續航</option>
-          <option value="bench">效能測試</option>
-          <option value="fps">遊戲 FPS</option>
-          <option value="mixed">混合測試</option>
-          <option value="retest">重測</option>
-          <option value="fail">失敗／維修</option>
-        </select>
-      </div>
-    </div>
-    <div class="g2">
-      <div class="field"><label>專案代號</label><input type="text" id="m-code" placeholder="NB-2025-XX"/></div>
-      <div class="field"><label>SKU</label><input type="text" id="m-sku" placeholder="SKU-001"/></div>
-    </div>
-    <div class="g2">
-      <div class="field"><label>機台數（1–3）</label>
-        <input type="number" id="m-machines" value="1" min="1" max="3" oninput="updateEst('m')"/>
-        <span class="field-hint">每專案最多 3 台</span>
-      </div>
-      <div class="field"><label>開始日期</label><input type="date" id="m-start" value="2026-06-01" oninput="updateEst('m')"/></div>
-    </div>
-    <div class="field"><label>Fail → 全人工模式</label>
-      <select id="m-fail" onchange="updateEst('m')">
-        <option value="0">否（自動模式）</option>
-        <option value="1">是（Fail → 全人工）</option>
-      </select>
-    </div>
-    <div class="field"><label>備註</label><input type="text" id="m-note" placeholder="測試說明"/></div>
-    <div class="est-box">
-      <div class="est-title">預估工時</div>
-      <div class="est-row">人工工時：<span class="em" id="em-manual">—</span></div>
-      <div class="est-row">自動工時（無需人力）：<span class="ea" id="em-auto">—</span></div>
-      <div class="est-row">工作天數：<span class="eb" id="em-days">—</span></div>
-      <div class="est-row">預估結束日：<span class="eb" id="em-end">—</span></div>
-    </div>
-    <div class="mbtns">
-      <button class="btn btn-sec" onclick="closeM('add-modal')">取消</button>
-      <button class="btn btn-pri" onclick="addTask()">＋ 新增</button>
-    </div>
-  </div>
-</div>
-
 <!-- EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
@@ -575,32 +548,35 @@ document.getElementById('pw-input').focus();
     <h3>編輯任務</h3>
     <p id="edit-sub" style="color:var(--cyan);font-family:var(--font-mono);font-size:17px;"></p>
     <div class="g2">
-      <div class="field"><label>測試類型</label>
-        <select id="e-type" onchange="updateEst('e')">
-          <option value="battery">電池續航</option>
-          <option value="bench">效能測試</option>
-          <option value="fps">遊戲 FPS</option>
-          <option value="mixed">混合測試</option>
-          <option value="retest">重測</option>
-          <option value="fail">失敗／維修</option>
-        </select>
-      </div>
-      <div class="field"><label>機台數</label><input type="number" id="e-machines" min="1" max="3" oninput="updateEst('e')"/></div>
+      <div class="field"><label>負責人</label><select id="e-person"></select></div>
+      <div class="field"><label>開始日期</label><input type="date" id="e-start" oninput="updateEditEst()"/></div>
     </div>
     <div class="g2">
-      <div class="field"><label>開始日期</label><input type="date" id="e-start" oninput="updateEst('e')"/></div>
-      <div class="field"><label>Fail → 全人工模式</label>
-        <select id="e-fail" onchange="updateEst('e')">
-          <option value="0">否</option>
-          <option value="1">是</option>
-        </select>
+      <div class="field"><label>專案代號</label><input type="text" id="e-code" placeholder="NB-2025-XX"/></div>
+      <div class="field"><label>SKU</label><input type="text" id="e-sku" placeholder="SKU-001"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>機台數</label><input type="number" id="e-machines" min="1" max="3"/></div>
+      <div class="field"><label id="e-hours-label">工時 (hr)</label><input type="number" id="e-hours" min="0" step="0.5" placeholder="留空待填" oninput="updateEditEst()"/></div>
+    </div>
+    <div id="e-game-block" style="display:none;">
+      <div class="field"><label>套數（×N）</label><input type="number" id="e-count" min="1" step="1" oninput="updateEditEst()"/></div>
+      <div class="field"><label>已疊加解析度</label><div class="member-series" id="e-resolutions"></div></div>
+      <div class="field"><label>已疊加 Fan Mode</label><div class="member-series" id="e-fanmodes"></div></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>重測</label>
+        <select id="e-retest"><option value="0">否</option><option value="1">是</option></select>
+      </div>
+      <div class="field"><label>失敗／維修</label>
+        <select id="e-fail"><option value="0">否</option><option value="1">是</option></select>
       </div>
     </div>
     <div class="field"><label>備註</label><input type="text" id="e-note"/></div>
     <div class="est-box">
       <div class="est-title">預估工時</div>
-      <div class="est-row">人工工時：<span class="em" id="ee-manual">—</span></div>
-      <div class="est-row">自動工時：<span class="ea" id="ee-auto">—</span></div>
+      <div class="est-row">總人工工時：<span class="em" id="ee-total">—</span></div>
+      <div class="est-row">工作天數：<span class="eb" id="ee-days">—</span></div>
       <div class="est-row">預估結束日：<span class="eb" id="ee-end">—</span></div>
     </div>
     <div class="mbtns">
@@ -625,26 +601,38 @@ var DAYS  = 60;
 var HPD   = 5;
 var settingsSpId = 0;
 
-var TCFG = {
-  battery:{m:5,  a:120, f:5,  c:'#4c9ef5', lbl:'Battery Life', lbl2:'電池續航'},
-  bench:  {m:1,  a:5,   f:4,  c:'#a855f7', lbl:'Benchmark',    lbl2:'效能測試'},
-  fps:    {m:8,  a:20,  f:16, c:'#00e5a0', lbl:'Gaming FPS',   lbl2:'遊戲 FPS'},
-  mixed:  {m:14, a:145, f:21, c:'#ffb347', lbl:'Mixed',        lbl2:'混合測試'},
-  retest: {m:5,  a:20,  f:10, c:'#2dd4bf', lbl:'Retest',       lbl2:'重測'},
-  fail:   {m:5,  a:0,   f:8,  c:'#ff5c7a', lbl:'Fail/Repair',  lbl2:'失敗／維修'}
+var BLOCKLIB = {
+  battery:[
+    {key:'web',   label:'Web Browsing',        hours:null},
+    {key:'max',   label:'Maximum Runtime',     hours:null},
+    {key:'video', label:'1080p Video Playback',hours:null}
+  ],
+  benchmark:[
+    {key:'pcmark10',  label:'PCMark10',        hours:null},
+    {key:'ulprocyon', label:'UL Procyon',      hours:null},
+    {key:'cbr20',     label:'Cinebench R20',   hours:null},
+    {key:'cbr23',     label:'Cinebench R23',   hours:null},
+    {key:'cb2024',    label:'Cinebench 2024',  hours:null},
+    {key:'cbr25',     label:'Cinebench R25',   hours:null},
+    {key:'atto',      label:'ATTO',            hours:null},
+    {key:'3dmark',    label:'3DMark',          hours:null}
+  ],
+  games:{label:'Games', hoursPerSet:null},
+  resolutions:['FHD','2K','4K'],
+  fanModes:['Silent','Performance','Turbo']
 };
+var CAT_COLOR = {battery:'#4c9ef5', benchmark:'#a855f7', game:'#00e5a0'};
 var PERSONS = [];
 var LEAVES = [];
 var tasks = [];
-var nextId=1, editTask=null, expanded={}, hourExp={};
-
-/* TestType SP label → TCFG key */
-var TYPE_MAP={
-  'Battery Life':'battery','Benchmark':'bench','Gaming FPS':'fps',
-  'Mixed':'mixed','Retest':'retest','Fail/Repair':'fail',
-  'battery':'battery','bench':'bench','fps':'fps',
-  'mixed':'mixed','retest':'retest','fail':'fail'
-};
+var nextId=1, editTask=null, expanded={};
+function decodeBlockMeta(s){
+  if(!s) return null;
+  var m = s.match(/^<div[^>]*>([\s\S]*)<\/div>$/i);
+  var inner = m ? m[1] : s;
+  var txt = inner.replace(/&quot;/g,'"').replace(/&#123;/g,'{').replace(/&#125;/g,'}').replace(/&#58;/g,':').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  try { return JSON.parse(txt); } catch(e){ return null; }
+}
 
 /* ---------- MEMBER COLOURS ---------- */
 var PALETTE=['#4c9ef5','#00d4ff','#00e5a0','#ffb347','#a855f7','#ff5c7a','#2dd4bf','#f97316','#e879f9','#34d399','#fbbf24','#60a5fa','#f43f5e','#a78bfa'];
@@ -754,12 +742,6 @@ function buildMemberList(){
     con.appendChild(wrap);
   });
   buildSeriesCheckboxesForAdd();
-  /* also sync person dropdown in Add modal */
-  var sel=document.getElementById('m-person');
-  if(sel){
-    sel.innerHTML='';
-    PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
-  }
 }
 
 /* ---------- BUSY OVERLAY ---------- */
@@ -795,7 +777,15 @@ function loadAllData(){
       HPD=parseFloat(s.HPD)||5;
       var maxProj=parseInt(s.MaxMachinesProject)||3;
       var maxPerson=parseInt(s.MaxMachinesPerson)||10;
-      if(s.TCFGJson){try{var tc=JSON.parse(s.TCFGJson);Object.keys(tc).forEach(function(k){if(TCFG[k])Object.assign(TCFG[k],tc[k]);});}catch(e){}}
+      if(s.TCFGJson){
+        try{
+          var bl=JSON.parse(s.TCFGJson);
+          if(bl&&bl.battery&&bl.benchmark&&bl.games&&bl.resolutions){
+            BLOCKLIB=bl;
+            if(!BLOCKLIB.fanModes)BLOCKLIB.fanModes=['Silent','Performance','Turbo'];
+          }
+        }catch(e){}
+      }
       document.getElementById('cfg-hpd').value=HPD;
       document.getElementById('cfg-max-proj').value=maxProj;
       document.getElementById('cfg-max-person').value=maxPerson;
@@ -818,25 +808,33 @@ function loadAllData(){
     /* Tasks */
     tasks=[];nextId=1;
     (d.tasks||[]).forEach(function(t){
-      var typeKey=TYPE_MAP[t.TestType]||'battery';
       var person=null;
-      for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].spId===t.Title0){person=PERSONS[i];break;}}
+      for(var i=0;i<PERSONS.length;i++){if(String(PERSONS[i].spId)===String(t.Title0)){person=PERSONS[i];break;}}
       if(!person&&PERSONS.length>0)person=PERSONS[0];
-      var startStr=t.StartDate?(t.StartDate+'').slice(0,10):'2026-06-01';
+      var startStr=t.StartDate?fmt(new Date(t.StartDate)):'2026-06-01';
+      var meta=decodeBlockMeta(t.BlockMeta)||{};
       tasks.push({
         spId:t.ID,
         id:nextId++,
         person:person?person.id:'',
         code:t.ProjectCode||t.Title||'UNNAMED',
         sku:t.SKU||'SKU-???',
-        type:typeKey,
+        category:meta.category||'battery',
+        item:meta.item||t.TestType||'',
+        blockLabel:t.TestType||meta.item||'',
+        hours:(meta.hours===undefined||meta.hours===null||meta.hours==='')?null:parseFloat(meta.hours),
+        count:meta.count||1,
+        resolutions:meta.resolutions||[],
+        fanModes:meta.fanModes||[],
         machines:parseInt(t.Machines)||1,
         start:startStr,
+        retest:t.RetesOf===1||t.RetesOf===true||t.RetesOf==='1',
         failMode:t.FailMode===true||t.FailMode==='true',
         note:t.Note||''
       });
     });
     buildCfgTable();
+    buildBlockPalette();
     buildMemberList();
     buildLeaveList();
     buildHeader();
@@ -1015,26 +1013,25 @@ function removeLeave(lid){
   .catch(function(){setBusy(false);});
 }
 
-/* ---------- SETTINGS ---------- */
-function buildCfgTable(){
-  var tbody=document.getElementById('cfg-tbody'); tbody.innerHTML='';
-  var rows=[
-    {key:'battery',lbl:'電池續航',   c:'#4c9ef5'},
-    {key:'bench',  lbl:'效能測試',   c:'#a855f7'},
-    {key:'fps',    lbl:'遊戲 FPS',   c:'#00e5a0'},
-    {key:'mixed',  lbl:'混合測試',   c:'#ffb347'},
-    {key:'retest', lbl:'重測',       c:'#2dd4bf'},
-    {key:'fail',   lbl:'失敗／維修', c:'#ff5c7a'}
-  ];
-  rows.forEach(function(r){
-    var cfg=TCFG[r.key];
+/* ---------- SETTINGS (BLOCKLIB) ---------- */
+function renderCfgSubtable(catKey,list){
+  var tbody=document.getElementById('cfg-'+catKey+'-tbody'); if(!tbody)return; tbody.innerHTML='';
+  var color=CAT_COLOR[catKey];
+  list.forEach(function(item){
     var tr=document.createElement('tr');
-    tr.innerHTML='<td><span class="cfg-type"><span class="cfg-dot" style="background:'+r.c+'"></span>'+r.lbl+'</span></td>'+
-      '<td><input type="number" class="cfg-inp" id="cfg-'+r.key+'-m" value="'+cfg.m+'" min="0" step="0.5"/></td>'+
-      '<td><input type="number" class="cfg-inp" id="cfg-'+r.key+'-a" value="'+cfg.a+'" min="0" step="1"/></td>'+
-      '<td><input type="number" class="cfg-inp" id="cfg-'+r.key+'-f" value="'+cfg.f+'" min="0" step="0.5"/></td>';
+    tr.innerHTML='<td><span class="cfg-type"><span class="cfg-dot" style="background:'+color+'"></span>'+item.label+'</span></td>'+
+      '<td><input type="number" class="cfg-inp" id="cfg-'+catKey+'-'+item.key+'" value="'+(item.hours==null?'':item.hours)+'" min="0" step="0.5" placeholder="留空"/></td>';
     tbody.appendChild(tr);
   });
+}
+function buildCfgTable(){
+  renderCfgSubtable('battery',BLOCKLIB.battery);
+  renderCfgSubtable('benchmark',BLOCKLIB.benchmark);
+  var gTbody=document.getElementById('cfg-games-tbody'); gTbody.innerHTML='';
+  var gtr=document.createElement('tr');
+  gtr.innerHTML='<td><span class="cfg-type"><span class="cfg-dot" style="background:'+CAT_COLOR.game+'"></span>Games（單套工時）</span></td>'+
+    '<td><input type="number" class="cfg-inp" id="cfg-games-hours" value="'+(BLOCKLIB.games.hoursPerSet==null?'':BLOCKLIB.games.hoursPerSet)+'" min="0" step="0.5" placeholder="留空"/></td>';
+  gTbody.appendChild(gtr);
   document.getElementById('cfg-hpd').value=HPD;
 }
 function toggleSettings(){
@@ -1045,11 +1042,16 @@ function toggleSettings(){
   btn.textContent=open?'收合 ↑':'展開 ↓';
 }
 function applyConfig(){
-  ['battery','bench','fps','mixed','retest','fail'].forEach(function(k){
-    TCFG[k].m=parseFloat(document.getElementById('cfg-'+k+'-m').value)||0;
-    TCFG[k].a=parseFloat(document.getElementById('cfg-'+k+'-a').value)||0;
-    TCFG[k].f=parseFloat(document.getElementById('cfg-'+k+'-f').value)||0;
+  BLOCKLIB.battery.forEach(function(item){
+    var v=document.getElementById('cfg-battery-'+item.key).value;
+    item.hours=v===''?null:parseFloat(v);
   });
+  BLOCKLIB.benchmark.forEach(function(item){
+    var v=document.getElementById('cfg-benchmark-'+item.key).value;
+    item.hours=v===''?null:parseFloat(v);
+  });
+  var gv=document.getElementById('cfg-games-hours').value;
+  BLOCKLIB.games.hoursPerSet=gv===''?null:parseFloat(gv);
   HPD=parseFloat(document.getElementById('cfg-hpd').value)||5;
   var maxProj=parseInt(document.getElementById('cfg-max-proj').value)||3;
   var maxPerson=parseInt(document.getElementById('cfg-max-person').value)||10;
@@ -1059,7 +1061,7 @@ function applyConfig(){
     HPD:HPD,
     MaxMachinesProject:maxProj,
     MaxMachinesPerson:maxPerson,
-    TCFGJson:JSON.stringify(TCFG)
+    TCFGJson:JSON.stringify(BLOCKLIB)
   };
   setBusy(true);
   fetch(PA_SETTINGS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
@@ -1067,14 +1069,99 @@ function applyConfig(){
   .catch(function(){setBusy(false);alert('設定儲存失敗，請重試。');});
 }
 
+/* ---------- BLOCK LIBRARY PALETTE ---------- */
+function toggleBlockLib(){
+  var body=document.getElementById('blocklib-body');
+  var btn=document.getElementById('blocklib-toggle');
+  var open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  btn.textContent=open?'收合 ↑':'展開 ↓';
+}
+function makeChip(cat,key,label){
+  var c=document.createElement('div');
+  c.className='block-chip '+cat;
+  c.textContent=label;
+  c.draggable=true;
+  c.ondragstart=function(e){
+    e.dataTransfer.setData('text/plain',JSON.stringify({kind:'main',category:cat,key:key,label:label}));
+  };
+  return c;
+}
+function makeModifierChip(modType,value){
+  var c=document.createElement('div');
+  c.className='block-chip modifier';
+  c.textContent=value;
+  c.draggable=true;
+  c.ondragstart=function(e){
+    e.dataTransfer.setData('text/plain',JSON.stringify({kind:'modifier',modType:modType,value:value}));
+  };
+  return c;
+}
+function buildBlockPalette(){
+  var bCon=document.getElementById('chips-battery'); if(!bCon)return; bCon.innerHTML='';
+  BLOCKLIB.battery.forEach(function(item){bCon.appendChild(makeChip('battery',item.key,item.label));});
+  var kCon=document.getElementById('chips-benchmark'); kCon.innerHTML='';
+  BLOCKLIB.benchmark.forEach(function(item){kCon.appendChild(makeChip('benchmark',item.key,item.label));});
+  var gCon=document.getElementById('chips-games'); gCon.innerHTML='';
+  gCon.appendChild(makeChip('game','games',BLOCKLIB.games.label||'Games'));
+  var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
+  BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});
+  buildFanModeUI();
+}
+function buildFanModeUI(){
+  var fCon=document.getElementById('chips-fanmodes'); fCon.innerHTML='';
+  BLOCKLIB.fanModes.forEach(function(fm){fCon.appendChild(makeModifierChip('fanMode',fm));});
+  var mgmt=document.getElementById('fanmode-mgmt-list'); mgmt.innerHTML='';
+  BLOCKLIB.fanModes.forEach(function(fm,idx){
+    var row=document.createElement('div'); row.className='member-row';
+    row.innerHTML='<div class="member-info"><div class="member-name" style="font-size:15px;">'+fm+'</div></div>';
+    var del=document.createElement('button'); del.className='member-del'; del.textContent='移除';
+    del.onclick=function(){removeFanMode(idx);};
+    row.appendChild(del);
+    mgmt.appendChild(row);
+  });
+}
+function addFanMode(){
+  var inp=document.getElementById('fm-new');
+  var v=inp.value.trim();
+  if(!v)return;
+  if(BLOCKLIB.fanModes.indexOf(v)>-1){inp.value='';return;}
+  BLOCKLIB.fanModes.push(v);
+  inp.value='';
+  buildFanModeUI();
+  persistBlockLib();
+}
+function removeFanMode(idx){
+  BLOCKLIB.fanModes.splice(idx,1);
+  buildFanModeUI();
+  persistBlockLib();
+}
+function persistBlockLib(){
+  var payload={
+    id:settingsSpId,
+    HPD:HPD,
+    MaxMachinesProject:parseInt(document.getElementById('cfg-max-proj').value)||3,
+    MaxMachinesPerson:parseInt(document.getElementById('cfg-max-person').value)||10,
+    TCFGJson:JSON.stringify(BLOCKLIB)
+  };
+  setBusy(true);
+  fetch(PA_SETTINGS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){setBusy(false);})
+  .catch(function(){setBusy(false);});
+}
+
 /* ---------- CORE ---------- */
 function calc(t){
-  var cfg=TCFG[t.type]||TCFG.battery;
-  var mh=t.failMode?cfg.f:cfg.m;
-  var ah=t.failMode?0:cfg.a;
-  var md=Math.ceil(mh/HPD);
-  var ad=Math.ceil(ah/24);
-  return{mh:mh,ah:ah,md:md,ad:ad,total:md+ad,end:addDays(t.start,md+ad-1)};
+  if(t.hours===null||t.hours===undefined||t.hours===''||isNaN(t.hours)){
+    return {mh:null,md:1,total:1,end:t.start,pending:true};
+  }
+  var mult=1;
+  if(t.category==='game'){
+    mult=(t.count||1)*Math.max(1,(t.resolutions||[]).length)*Math.max(1,(t.fanModes||[]).length);
+  }
+  var mh=t.hours*mult;
+  var md=Math.max(1,Math.ceil(mh/HPD));
+  return {mh:mh,md:md,total:md,end:addDays(t.start,md-1),pending:false};
 }
 function addDays(s,n){var d=new Date(s);d.setDate(d.getDate()+n);return fmt(d);}
 function fmt(d){var x=new Date(d);return x.getFullYear()+'-'+(x.getMonth()<9?'0':'')+(x.getMonth()+1)+'-'+(x.getDate()<10?'0':'')+x.getDate();}
@@ -1134,6 +1221,19 @@ function buildGantt(){
       lb.appendChild(llbl);
       tl.appendChild(lb);
     });
+    tl.ondragover=function(e){e.preventDefault();};
+    tl.ondrop=function(e){
+      e.preventDefault();
+      var raw=e.dataTransfer.getData('text/plain');
+      if(!raw)return;
+      var data;try{data=JSON.parse(raw);}catch(err){return;}
+      if(data.kind!=='main')return;
+      var rect=tl.getBoundingClientRect();
+      var xOff=e.clientX-rect.left;
+      var dOff=Math.max(0,Math.min(DAYS-1,Math.round(xOff/DAY_W)));
+      var startStr=addDays(fmt(START),dOff);
+      createTaskFromBlock(p,data,startStr);
+    };
     var used=[];
     pt.forEach(function(t){
       var c=calc(t),off=dayOff(t.start),slot=0;
@@ -1145,42 +1245,15 @@ function buildGantt(){
     var subs=document.createElement('div');subs.className='g-sub-rows'+(expanded[p.id]?' open':'');
     var pm={};pt.forEach(function(t){var k=t.code+'|'+t.sku;if(!pm[k])pm[k]=[];pm[k].push(t);});
     Object.keys(pm).forEach(function(key){
-      var parts=key.split('|'),code=parts[0],sku=parts[1],pkey=p.id+'|'+key,ptasks2=pm[key];
+      var parts=key.split('|'),code=parts[0],sku=parts[1],ptasks2=pm[key];
       var pr=document.createElement('div');pr.className='g-proj-row';
       var pl=document.createElement('div');pl.className='g-proj-lbl';
-      var ptog=document.createElement('span');ptog.className='g-proj-toggle'+(hourExp[pkey]?' open':'');ptog.textContent='▶';
-      pl.appendChild(ptog);
       var pc=document.createElement('span');pc.className='proj-code';pc.textContent=code;
       var ps=document.createElement('span');ps.className='proj-sku';ps.textContent=sku;
       pl.appendChild(pc);pl.appendChild(ps);
       var ptl=document.createElement('div');ptl.className='g-proj-tl';ptl.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
       ptasks2.forEach(function(t){renderBar(t,calc(t),ptl,20,8,true);});
-      var hrs=document.createElement('div');hrs.className='g-hour-rows'+(hourExp[pkey]?' open':'');
-      ptasks2.forEach(function(t){
-        var c=calc(t);
-        for(var dd=0;dd<c.md;dd++){
-          var dobj=new Date(t.start);dobj.setDate(dobj.getDate()+dd);
-          var hr=document.createElement('div');hr.className='g-hour-row';
-          var hl=document.createElement('div');hl.className='g-hour-lbl';hl.textContent=fmt(dobj).slice(5)+' 人工 '+HPD+'hr';
-          var ht=document.createElement('div');ht.className='g-hour-tl';ht.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
-          var off=dayOff(fmt(dobj));
-          var hb=document.createElement('div');hb.className='hour-blk';
-          hb.style.cssText='left:'+(off*DAY_W+2)+'px;width:'+(DAY_W*(HPD/24)-4)+'px;background:'+(TCFG[t.type]||TCFG.battery).c+';color:#000;';
-          hb.textContent='人工 '+HPD+'hr';ht.appendChild(hb);hr.appendChild(hl);hr.appendChild(ht);hrs.appendChild(hr);
-        }
-        if(c.ah>0){for(var ad=0;ad<c.ad;ad++){
-          var aday=new Date(t.start);aday.setDate(aday.getDate()+c.md+ad);
-          var ar=document.createElement('div');ar.className='g-hour-row';
-          var al=document.createElement('div');al.className='g-hour-lbl';al.style.color='var(--green)';al.textContent=fmt(aday).slice(5)+' 自動（無需人力）';
-          var at2=document.createElement('div');at2.className='g-hour-tl';at2.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
-          var aoff=dayOff(fmt(aday));
-          var ab=document.createElement('div');ab.className='hour-blk';
-          ab.style.cssText='left:'+(aoff*DAY_W+2)+'px;width:'+(DAY_W-4)+'px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);color:var(--green);font-size:13px;';
-          ab.textContent='自動 24hr';at2.appendChild(ab);ar.appendChild(al);ar.appendChild(at2);hrs.appendChild(ar);
-        }}
-      });
-      pr.onclick=function(e){e.stopPropagation();hourExp[pkey]=!hourExp[pkey];hrs.classList.toggle('open',hourExp[pkey]);ptog.classList.toggle('open',hourExp[pkey]);};
-      pr.appendChild(pl);pr.appendChild(ptl);subs.appendChild(pr);subs.appendChild(hrs);
+      pr.appendChild(pl);pr.appendChild(ptl);subs.appendChild(pr);
     });
     prow.onclick=function(){expanded[p.id]=!expanded[p.id];subs.classList.toggle('open',expanded[p.id]);tog.classList.toggle('open',expanded[p.id]);};
     prow.appendChild(lbl);prow.appendChild(tl);grp.appendChild(prow);grp.appendChild(subs);body.appendChild(grp);
@@ -1188,25 +1261,46 @@ function buildGantt(){
   updateStats();updateLoadingBars();
 }
 
+function summaryBadge(t,c){
+  if(t.category==='game'){
+    var parts=['×'+(t.count||1)];
+    if(t.resolutions&&t.resolutions.length)parts.push(t.resolutions.join('+'));
+    if(t.fanModes&&t.fanModes.length)parts.push(t.fanModes.join('+'));
+    return parts.join(' · ')+' · '+c.mh+'hr';
+  }
+  return c.mh+'hr';
+}
 function renderBar(t,c,container,h,top,small){
-  var cfg=TCFG[t.type]||TCFG.battery;
+  var color=CAT_COLOR[t.category]||CAT_COLOR.battery;
   var off=dayOff(t.start);
-  var bar=document.createElement('div');bar.className='task-bar';
-  bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+(c.total*DAY_W-3)+'px;top:'+top+'px;height:'+h+'px;background:'+cfg.c+';color:#000;';
-  if(c.ah>0&&!small){var st=document.createElement('div');st.className='task-auto-stripe';st.style.width=(c.ad/c.total*100)+'%';bar.appendChild(st);}
-  var lbl=document.createElement('span');lbl.className='task-lbl';lbl.textContent=(small?t.code:(cfg.lbl2||cfg.lbl)+' · '+t.code)+(t.failMode?' ⚠':'');bar.appendChild(lbl);
-  if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.mh+'hr';bar.appendChild(bdg);}
+  var bar=document.createElement('div');bar.className='task-bar'+(c.pending?' pending':'');
+  bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+(c.total*DAY_W-3)+'px;top:'+top+'px;height:'+h+'px;'+(c.pending?('color:'+color+';'):('background:'+color+';color:#000;'));
+  var lbl=document.createElement('span');lbl.className='task-lbl';
+  var nameTxt=small?t.code:(t.blockLabel||t.item)+' · '+t.code;
+  lbl.textContent=nameTxt+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');bar.appendChild(lbl);
+  if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.pending?'?':summaryBadge(t,c);bar.appendChild(bdg);}
   bar.onclick=function(e){e.stopPropagation();openEditModal(t);};
+  if(t.category==='game'){
+    bar.ondragover=function(e){e.preventDefault();e.stopPropagation();};
+    bar.ondrop=function(e){
+      e.preventDefault();e.stopPropagation();
+      var raw=e.dataTransfer.getData('text/plain');
+      if(!raw)return;
+      var data;try{data=JSON.parse(raw);}catch(err){return;}
+      if(data.kind!=='modifier')return;
+      applyModifierToTask(t,data);
+    };
+  }
   container.appendChild(bar);
 }
 
 function updateStats(){
-  var tm=0,ta=0,tf=0,mc=0;
-  tasks.forEach(function(t){var c=calc(t);tm+=c.mh;ta+=c.ah;if(t.failMode)tf++;mc+=t.machines||1;});
+  var tm=0,tf=0,mc=0,tp=0;
+  tasks.forEach(function(t){var c=calc(t);if(c.pending){tp++;}else{tm+=c.mh;}if(t.failMode)tf++;mc+=t.machines||1;});
   document.getElementById('st-tasks').textContent=tasks.length;
   document.getElementById('st-machines').textContent=mc;
   document.getElementById('st-manual').textContent=tm+'hr';
-  document.getElementById('st-auto').textContent=ta+'hr';
+  document.getElementById('st-auto').textContent=tp;
   document.getElementById('st-fail').textContent=tf;
 }
 function updateLoadingBars(){
@@ -1214,7 +1308,7 @@ function updateLoadingBars(){
   var cap=HPD*DAYS;
   PERSONS.forEach(function(p){
     var pt=tasks.filter(function(t){return t.person===p.id;});
-    var tm=pt.reduce(function(a,t){return a+calc(t).mh;},0);
+    var tm=pt.reduce(function(a,t){var c=calc(t);return a+(c.pending?0:c.mh);},0);
     var pct=Math.min(100,Math.round(tm/cap*100));
     var col=p.active?(pct>80?'#ff5c7a':pct>60?'#ffb347':'#00e5a0'):'#4f6180';
     var row=document.createElement('div');row.className='pl-row';
@@ -1226,72 +1320,149 @@ function updateLoadingBars(){
   });
 }
 
-function updateEst(p){
-  var type=document.getElementById(p+'-type').value;
-  var fail=document.getElementById(p+'-fail').value==='1';
-  var start=document.getElementById(p+'-start').value;
-  var cfg=TCFG[type]||TCFG.battery;
-  var mh=fail?cfg.f:cfg.m,ah=fail?0:cfg.a;
-  var md=Math.ceil(mh/HPD),ad=Math.ceil(ah/24);
-  var sfx=p==='m'?'em':'ee';
-  document.getElementById(sfx+'-manual').textContent=mh+' hr（約 '+md+' 天 × '+HPD+'hr）';
-  document.getElementById(sfx+'-auto').textContent=ah>0?(ah+' hr 自動（約 '+ad+' 天 24hr）'):'0（全人工）';
-  if(p==='m'){document.getElementById('em-days').textContent=md+' 天 × '+HPD+'hr = '+mh+'hr 人工';}
-  var endEl=document.getElementById(sfx+'-end');
-  if(endEl) endEl.textContent=start?addDays(start,md+ad-1):'—';
-}
-function openAddModal(){updateEst('m');document.getElementById('add-modal').classList.add('show');}
-function addTask(){
-  var personName=document.getElementById('m-person').value;
-  var person=null;
-  for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===personName){person=PERSONS[i];break;}}
-  if(!person){alert('請先選擇負責成員。');return;}
-  var typeKey=document.getElementById('m-type').value;
-  var typeLabel=TCFG[typeKey]?TCFG[typeKey].lbl:typeKey;
+/* ---------- BLOCK → TASK CRUD ---------- */
+function createTaskFromBlock(p,data,startStr){
+  var meta={category:data.category,item:data.label,hours:null};
+  if(data.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
   var payload={
     action:'add',
-    PersonId:person.spId,
-    ProjectCode:document.getElementById('m-code').value||'UNNAMED',
-    SKU:document.getElementById('m-sku').value||'SKU-???',
-    TestType:typeLabel,
-    Machines:Math.min(3,Math.max(1,parseInt(document.getElementById('m-machines').value)||1)),
-    StartDate:document.getElementById('m-start').value||'2026-06-01',
-    FailMode:document.getElementById('m-fail').value==='1',
-    Note:document.getElementById('m-note').value,
+    PersonId:String(p.spId),
+    ProjectCode:'UNNAMED',
+    SKU:'SKU-???',
+    TestType:data.label,
+    Machines:1,
+    StartDate:startStr,
+    FailMode:false,
+    Note:'',
     Status:'Planned',
     ActualHours:0,
-    RetestOf:0
+    RetestOf:0,
+    blockMeta:JSON.stringify(meta)
   };
-  closeM('add-modal');
   setBusy(true);
   fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
   .then(function(r){return r.json();}).then(function(){loadAllData();})
   .catch(function(){setBusy(false);alert('新增任務失敗，請重試。');});
 }
+function buildBlockMeta(t){
+  var m={category:t.category,item:t.item,hours:(t.hours===null||t.hours===undefined||t.hours==='')?null:parseFloat(t.hours)};
+  if(t.category==='game'){
+    m.count=t.count||1;
+    m.resolutions=t.resolutions||[];
+    m.fanModes=t.fanModes||[];
+  }
+  return m;
+}
+function taskUpdatePayload(t){
+  var person=null;
+  for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===t.person){person=PERSONS[i];break;}}
+  return {
+    action:'update',
+    id:t.spId,
+    PersonId:person?String(person.spId):'',
+    ProjectCode:t.code||'',
+    SKU:t.sku||'',
+    TestType:t.blockLabel||t.item||'',
+    Machines:t.machines||1,
+    StartDate:t.start,
+    FailMode:!!t.failMode,
+    Note:t.note||'',
+    Status:'Planned',
+    ActualHours:0,
+    RetestOf:t.retest?1:0,
+    blockMeta:JSON.stringify(buildBlockMeta(t))
+  };
+}
+function applyModifierToTask(t,data){
+  if(!t.resolutions)t.resolutions=[];
+  if(!t.fanModes)t.fanModes=[];
+  var changed=false;
+  if(data.modType==='resolution'){
+    if(t.resolutions.indexOf(data.value)===-1){t.resolutions.push(data.value);changed=true;}
+  }else if(data.modType==='fanMode'){
+    if(t.fanModes.indexOf(data.value)===-1){t.fanModes.push(data.value);changed=true;}
+  }
+  if(!changed)return;
+  var payload=taskUpdatePayload(t);
+  setBusy(true);
+  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);});
+}
+function buildRemovableTags(list,removeFn){
+  if(!list||list.length===0)return '<span class="series-tag empty">尚未疊加</span>';
+  return list.map(function(v){
+    return '<span class="series-tag" style="color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);">'+v+' <span style="cursor:pointer;font-weight:900;" onclick="'+removeFn+'(\''+v+'\')">×</span></span>';
+  }).join('');
+}
+function editRemoveResolution(v){
+  if(!editTask)return;
+  editTask.resolutions=(editTask.resolutions||[]).filter(function(x){return x!==v;});
+  document.getElementById('e-resolutions').innerHTML=buildRemovableTags(editTask.resolutions,'editRemoveResolution');
+  updateEditEst();
+}
+function editRemoveFanMode(v){
+  if(!editTask)return;
+  editTask.fanModes=(editTask.fanModes||[]).filter(function(x){return x!==v;});
+  document.getElementById('e-fanmodes').innerHTML=buildRemovableTags(editTask.fanModes,'editRemoveFanMode');
+  updateEditEst();
+}
+function updateEditEst(){
+  if(!editTask)return;
+  var hoursVal=document.getElementById('e-hours').value;
+  var temp={
+    category:editTask.category,
+    hours:hoursVal===''?null:parseFloat(hoursVal),
+    count:editTask.category==='game'?(parseFloat(document.getElementById('e-count').value)||1):1,
+    resolutions:editTask.resolutions||[],
+    fanModes:editTask.fanModes||[],
+    start:document.getElementById('e-start').value||editTask.start
+  };
+  var c=calc(temp);
+  document.getElementById('ee-total').textContent=c.pending?'待填':c.mh+' hr';
+  document.getElementById('ee-days').textContent=c.pending?'—':c.md+' 天 × '+HPD+'hr';
+  document.getElementById('ee-end').textContent=c.pending?'—':c.end;
+}
 function openEditModal(t){
   editTask=t;
-  document.getElementById('edit-sub').textContent=t.code+' · '+t.sku+' ('+t.person+')';
-  document.getElementById('e-type').value=t.type;
-  document.getElementById('e-machines').value=t.machines||1;
+  document.getElementById('edit-sub').textContent=(t.blockLabel||t.item)+' · '+t.code+' · '+t.sku;
+  var psel=document.getElementById('e-person');psel.innerHTML='';
+  PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===t.person)o.selected=true;psel.appendChild(o);});
   document.getElementById('e-start').value=t.start;
+  document.getElementById('e-code').value=t.code;
+  document.getElementById('e-sku').value=t.sku;
+  document.getElementById('e-machines').value=t.machines||1;
+  document.getElementById('e-hours').value=(t.hours===null||t.hours===undefined)?'':t.hours;
+  document.getElementById('e-hours-label').textContent=t.category==='game'?'單套工時 (hr)':'工時 (hr)';
+  var isGame=t.category==='game';
+  document.getElementById('e-game-block').style.display=isGame?'block':'none';
+  if(isGame){
+    document.getElementById('e-count').value=t.count||1;
+    document.getElementById('e-resolutions').innerHTML=buildRemovableTags(t.resolutions,'editRemoveResolution');
+    document.getElementById('e-fanmodes').innerHTML=buildRemovableTags(t.fanModes,'editRemoveFanMode');
+  }
+  document.getElementById('e-retest').value=t.retest?'1':'0';
   document.getElementById('e-fail').value=t.failMode?'1':'0';
   document.getElementById('e-note').value=t.note||'';
-  updateEst('e');
+  updateEditEst();
   document.getElementById('edit-modal').classList.add('show');
 }
 function saveEdit(){
   if(!editTask)return;
-  var typeKey=document.getElementById('e-type').value;
-  var typeLabel=TCFG[typeKey]?TCFG[typeKey].lbl:typeKey;
-  var payload={
-    action:'update',
-    Id:editTask.spId,
-    TestType:typeLabel,
-    Machines:parseInt(document.getElementById('e-machines').value)||1,
-    StartDate:document.getElementById('e-start').value,
-    FailMode:document.getElementById('e-fail').value==='1',
-    Note:document.getElementById('e-note').value
-  };
+  editTask.person=document.getElementById('e-person').value;
+  editTask.start=document.getElementById('e-start').value||editTask.start;
+  editTask.code=document.getElementById('e-code').value||editTask.code;
+  editTask.sku=document.getElementById('e-sku').value||editTask.sku;
+  editTask.machines=parseInt(document.getElementById('e-machines').value)||1;
+  var hv=document.getElementById('e-hours').value;
+  editTask.hours=hv===''?null:parseFloat(hv);
+  if(editTask.category==='game'){
+    editTask.count=parseFloat(document.getElementById('e-count').value)||1;
+  }
+  editTask.retest=document.getElementById('e-retest').value==='1';
+  editTask.failMode=document.getElementById('e-fail').value==='1';
+  editTask.note=document.getElementById('e-note').value;
+  var payload=taskUpdatePayload(editTask);
   closeM('edit-modal');
   setBusy(true);
   fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
@@ -1310,12 +1481,13 @@ function deleteTask(){
 }
 function closeM(id){document.getElementById(id).classList.remove('show');}
 function expandAll(){PERSONS.forEach(function(p){expanded[p.id]=true;});buildGantt();}
-function collapseAll(){PERSONS.forEach(function(p){expanded[p.id]=false;});Object.keys(hourExp).forEach(function(k){hourExp[k]=false;});buildGantt();}
+function collapseAll(){PERSONS.forEach(function(p){expanded[p.id]=false;});buildGantt();}
 function setView(n,btn){DAYS=n;document.querySelectorAll('.tb-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');buildHeader();buildGantt();}
 
 buildColorSwatches();
 buildSeriesCheckboxesForAdd();
 buildCfgTable();
+buildBlockPalette();
 loadAllData();
 </script>
 </body>
