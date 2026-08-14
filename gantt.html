@@ -337,7 +337,7 @@ document.getElementById('pw-input').focus();
       <span>測試排程</span>
     </div>
     <h1>測試排程 — <span>甘特圖</span></h1>
-    <p>成員工作量與機台分配 ｜ 起始日：2026.06.01 ｜ 每人每日工時：<span id="hdr-hpd">5</span> hr</p>
+    <p>成員工作量與機台分配 ｜ 目前檢視：<span id="range-label">—</span> ｜ 每人每日工時：<span id="hdr-hpd">5</span> hr</p>
   </div>
 
   <!-- SETTINGS PANEL -->
@@ -481,9 +481,14 @@ document.getElementById('pw-input').focus();
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <span class="tb-label">檢視：</span>
-    <button class="tb-btn active" onclick="setView(60,this)">60 天</button>
-    <button class="tb-btn" onclick="setView(14,this)">14 天</button>
+    <span class="tb-label">縮放：</span>
+    <button class="tb-btn zoom-btn active" id="zoom-day" onclick="setZoom('day')">日</button>
+    <button class="tb-btn zoom-btn" id="zoom-week" onclick="setZoom('week')">週</button>
+    <button class="tb-btn zoom-btn" id="zoom-month" onclick="setZoom('month')">月</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="navPeriod(-1)">◀ 上一頁</button>
+    <button class="tb-btn" onclick="jumpToday()">今天</button>
+    <button class="tb-btn" onclick="navPeriod(1)">下一頁 ▶</button>
     <div class="tb-sep"></div>
     <span class="tb-label">展開：</span>
     <button class="tb-btn" onclick="expandAll()">全部</button>
@@ -602,9 +607,16 @@ var PA_MEMBER  = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.a
 var PA_SETTINGS= 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/8eb310bc23884b108a4017b7d77901a8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9RwEplvL3zQwKQwyzXKy3hg_5z6pfw8hDXPGClI4YRg';
 var PA_LEAVE   = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/09/workflows/a251e4b5b7dd42ffb86093e39524e672/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9N01FxoaYdl6MMGjBwPQBbcvZXVi4NUAW4VTT7Zm5Mc';
 
-var START = new Date('2026-06-01');
-var DAY_W = 32;
-var DAYS  = 60;
+var VIEW_MODES = {
+  day:   {label:'日', dayW:32, days:21},
+  week:  {label:'週', dayW:12, days:90},
+  month: {label:'月', dayW:3,  days:365}
+};
+var currentZoom = 'day';
+var DAY_W = VIEW_MODES.day.dayW;
+var DAYS  = VIEW_MODES.day.days;
+var START = new Date();
+START.setDate(START.getDate()-Math.floor(DAYS/2));
 var HPD   = 5;
 var settingsSpId = 0;
 
@@ -1180,14 +1192,16 @@ function buildHeader(){
     var td=fmt(d)===fmt(new Date());
     var el=document.createElement('div');
     el.className='gh-day'+(td?' today':'')+(we?' weekend':'');
-    el.style.width=DAY_W+'px';el.textContent=d.getDate();
+    el.style.width=DAY_W+'px';el.textContent=DAY_W>=18?d.getDate():'';
     di.appendChild(el);
   }
   Object.values(mm).forEach(function(m){
     var el=document.createElement('div');el.className='gh-month';
     el.style.width=(m.n*DAY_W)+'px';el.textContent=m.lbl;mi.appendChild(el);
   });
-  document.getElementById('lp-days').textContent=DAYS;
+  var endDate=new Date(START);endDate.setDate(endDate.getDate()+DAYS-1);
+  var rl=document.getElementById('range-label');
+  if(rl)rl.textContent=fmt(START)+' ~ '+fmt(endDate);
 }
 
 function buildGantt(){
@@ -1274,7 +1288,8 @@ function renderBar(t,c,container,h,top,small){
   var color=CAT_COLOR[t.category]||CAT_COLOR.battery;
   var off=dayOff(t.start);
   var bar=document.createElement('div');bar.className='task-bar'+(c.pending?' pending':'');
-  bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+(c.total*DAY_W-3)+'px;top:'+top+'px;height:'+h+'px;'+(c.pending?('color:'+color+';'):('background:'+color+';color:#000;'));
+  var barW=Math.max(4,c.total*DAY_W-3);
+  bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+barW+'px;top:'+top+'px;height:'+h+'px;'+(c.pending?('color:'+color+';'):('background:'+color+';color:#000;'));
   var lbl=document.createElement('span');lbl.className='task-lbl';
   var nameTxt=small?t.code:(t.blockLabel||t.item)+' · '+t.code;
   lbl.textContent=nameTxt+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');bar.appendChild(lbl);
@@ -1303,9 +1318,11 @@ function updateStats(){
   document.getElementById('st-auto').textContent=tp;
   document.getElementById('st-fail').textContent=tf;
 }
+var LOADING_WINDOW_DAYS=60;
 function updateLoadingBars(){
   var con=document.getElementById('loading-bars');con.innerHTML='';
-  var cap=HPD*DAYS;
+  document.getElementById('lp-days').textContent=LOADING_WINDOW_DAYS;
+  var cap=HPD*LOADING_WINDOW_DAYS;
   PERSONS.forEach(function(p){
     var pt=tasks.filter(function(t){return t.person===p.id;});
     var tm=pt.reduce(function(a,t){var c=calc(t);return a+(c.pending?0:c.mh);},0);
@@ -1482,7 +1499,24 @@ function deleteTask(){
 function closeM(id){document.getElementById(id).classList.remove('show');}
 function expandAll(){PERSONS.forEach(function(p){expanded[p.id]=true;});buildGantt();}
 function collapseAll(){PERSONS.forEach(function(p){expanded[p.id]=false;});buildGantt();}
-function setView(n,btn){DAYS=n;document.querySelectorAll('.tb-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');buildHeader();buildGantt();}
+function setZoom(mode){
+  currentZoom=mode;
+  var vm=VIEW_MODES[mode];
+  DAY_W=vm.dayW;DAYS=vm.days;
+  document.querySelectorAll('.zoom-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('zoom-'+mode).classList.add('active');
+  buildHeader();buildGantt();
+}
+function navPeriod(dir){
+  START=new Date(START);
+  START.setDate(START.getDate()+dir*DAYS);
+  buildHeader();buildGantt();
+}
+function jumpToday(){
+  START=new Date();
+  START.setDate(START.getDate()-Math.floor(DAYS/2));
+  buildHeader();buildGantt();
+}
 
 buildColorSwatches();
 buildSeriesCheckboxesForAdd();
