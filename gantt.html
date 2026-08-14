@@ -57,7 +57,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .sidebar-bottom{margin-top:auto;padding-bottom:8px;}
 
 /* MAIN */
-.main{flex:1;padding:28px 32px 60px;overflow-x:hidden;min-width:0;}
+.main{flex:1;padding:28px 32px 60px;min-width:0;}
 
 /* PAGE HEADER */
 .page-header{margin-bottom:28px;animation:fadeUp 0.5s ease both;}
@@ -139,6 +139,16 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .block-chip.game{color:var(--green);border-color:rgba(0,229,160,0.4);background:rgba(0,229,160,0.12);}
 .block-chip.modifier{color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);font-size:13px;padding:5px 10px;}
 .fanmode-mgmt-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+
+/* STICKY BLOCK PALETTE (directly above gantt chart) */
+.block-palette{position:sticky;top:0;z-index:40;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r12) var(--r12) 0 0;padding:10px 16px;margin-bottom:0;box-shadow:0 4px 16px rgba(0,0,0,0.35);}
+.block-palette-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 0;}
+.block-palette-lbl{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text3);white-space:nowrap;flex-shrink:0;}
+.block-palette .block-chips{margin-bottom:0;flex-wrap:nowrap;overflow-x:auto;}
+.block-palette-hint{font-size:13px;color:var(--text3);margin-left:auto;white-space:nowrap;}
+@media(max-width:860px){
+  .block-palette-hint{display:none;}
+}
 
 /* SETTINGS TABLE */
 .cfg-table{width:100%;border-collapse:collapse;font-size:16px;margin-bottom:16px;}
@@ -344,6 +354,12 @@ document.getElementById('pw-input').focus();
         <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th></tr></thead><tbody id="cfg-benchmark-tbody"></tbody></table>
         <div class="block-group-title">Games</div>
         <table class="cfg-table"><thead><tr><th>項目</th><th>單套工時 (hr)</th></tr></thead><tbody id="cfg-games-tbody"></tbody></table>
+        <div class="block-group-title">Fan Mode 管理（新增／移除自訂命名）</div>
+        <div class="fanmode-mgmt-list" id="fanmode-mgmt-list"></div>
+        <div class="member-form-row" style="margin-top:8px;">
+          <input type="text" id="fm-new" class="member-inp" placeholder="新增 Fan Mode 名稱" style="width:180px;"/>
+          <button class="member-add-btn" onclick="addFanMode()">＋ 新增</button>
+        </div>
         <div class="cfg-cap">
           <div class="cfg-cap-item">
             <label>每人每日工時 (HPD)</label>
@@ -359,34 +375,6 @@ document.getElementById('pw-input').focus();
           </div>
         </div>
         <button class="cfg-apply" onclick="applyConfig()">套用設定</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- BLOCK LIBRARY PANEL -->
-  <div class="panel">
-    <div class="panel-header clickable" onclick="toggleBlockLib()">
-      <div class="panel-title">積木庫（拖曳到甘特圖建立任務）</div>
-      <button id="blocklib-toggle" class="toggle-btn">展開 ↓</button>
-    </div>
-    <div id="blocklib-body" style="display:none;">
-      <div class="panel-body">
-        <div class="block-group-title">電池續航</div>
-        <div class="block-chips" id="chips-battery"></div>
-        <div class="block-group-title">Benchmark</div>
-        <div class="block-chips" id="chips-benchmark"></div>
-        <div class="block-group-title">Games</div>
-        <div class="block-chips" id="chips-games"></div>
-        <div class="block-group-title">解析度（拖到已建立的 Games 任務條上疊加）</div>
-        <div class="block-chips" id="chips-resolutions"></div>
-        <div class="block-group-title">Fan Mode（拖到已建立的 Games 任務條上疊加）</div>
-        <div class="block-chips" id="chips-fanmodes"></div>
-        <div class="block-group-title">Fan Mode 管理（新增／移除自訂命名）</div>
-        <div class="fanmode-mgmt-list" id="fanmode-mgmt-list"></div>
-        <div class="member-form-row" style="margin-top:8px;">
-          <input type="text" id="fm-new" class="member-inp" placeholder="新增 Fan Mode 名稱" style="width:180px;"/>
-          <button class="member-add-btn" onclick="addFanMode()">＋ 新增</button>
-        </div>
       </div>
     </div>
   </div>
@@ -513,6 +501,25 @@ document.getElementById('pw-input').focus();
     <span style="color:var(--text3);">|</span>
     <span><span class="leg-dot" style="background:rgba(255,92,122,0.5);"></span>請假</span>
     <span><span class="leg-dot" style="background:rgba(0,212,255,0.5);"></span>加班</span>
+  </div>
+
+  <!-- BLOCK PALETTE (sticky, sits right above the chart so drag distance stays short) -->
+  <div class="block-palette" id="block-palette">
+    <div class="block-palette-row">
+      <span class="block-palette-lbl">電池續航</span>
+      <div class="block-chips" id="chips-battery"></div>
+      <span class="block-palette-lbl">Benchmark</span>
+      <div class="block-chips" id="chips-benchmark"></div>
+      <span class="block-palette-lbl">Games</span>
+      <div class="block-chips" id="chips-games"></div>
+    </div>
+    <div class="block-palette-row">
+      <span class="block-palette-lbl">解析度疊加</span>
+      <div class="block-chips" id="chips-resolutions"></div>
+      <span class="block-palette-lbl">Fan Mode疊加</span>
+      <div class="block-chips" id="chips-fanmodes"></div>
+      <span class="block-palette-hint">↑ 把測項積木拖到下方時間軸建立任務；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
+    </div>
   </div>
 
   <!-- GANTT CHART -->
@@ -1070,13 +1077,6 @@ function applyConfig(){
 }
 
 /* ---------- BLOCK LIBRARY PALETTE ---------- */
-function toggleBlockLib(){
-  var body=document.getElementById('blocklib-body');
-  var btn=document.getElementById('blocklib-toggle');
-  var open=body.style.display==='none';
-  body.style.display=open?'block':'none';
-  btn.textContent=open?'收合 ↑':'展開 ↓';
-}
 function makeChip(cat,key,label){
   var c=document.createElement('div');
   c.className='block-chip '+cat;
