@@ -436,14 +436,14 @@ document.getElementById('pw-input').focus();
   <!-- LEAVE / OVERTIME PANEL -->
   <div class="panel">
     <div class="panel-header clickable" onclick="toggleLeavePanel()">
-      <div class="panel-title">請假／加班</div>
+      <div class="panel-title">請假／公出</div>
       <button id="leave-toggle" class="toggle-btn">展開 ↓</button>
     </div>
     <div id="leave-body" style="display:none;">
       <div class="panel-body">
         <div class="member-list" id="leave-list"></div>
         <div class="add-member-form">
-          <div class="add-member-form-title">新增請假／加班</div>
+          <div class="add-member-form-title">新增請假／公出</div>
           <div class="member-form-row">
             <div class="member-field">
               <label>成員</label>
@@ -453,7 +453,7 @@ document.getElementById('pw-input').focus();
               <label>類型</label>
               <select id="lv-type" class="member-inp" style="width:100px;">
                 <option value="leave">請假</option>
-                <option value="overtime">加班</option>
+                <option value="overtime">公出</option>
               </select>
             </div>
             <div class="member-field">
@@ -525,7 +525,7 @@ document.getElementById('pw-input').focus();
     <span>⚠ 失敗／維修　↻ 重測</span>
     <span style="color:var(--text3);">|</span>
     <span><span class="leg-dot" style="background:rgba(255,92,122,0.5);"></span>請假</span>
-    <span><span class="leg-dot" style="background:rgba(0,212,255,0.5);"></span>加班</span>
+    <span><span class="leg-dot" style="background:rgba(0,212,255,0.5);"></span>公出</span>
   </div>
 
   <!-- BLOCK PALETTE (sticky, sits right above the chart so drag distance stays short) -->
@@ -537,7 +537,7 @@ document.getElementById('pw-input').focus();
       <div class="block-chips" id="chips-benchmark"></div>
       <span class="block-palette-lbl">Games</span>
       <div class="block-chips" id="chips-games"></div>
-      <span class="block-palette-lbl">請假／加班</span>
+      <span class="block-palette-lbl">請假／公出</span>
       <div class="block-chips" id="chips-leave"></div>
       <span class="block-palette-lbl">其他</span>
       <div class="block-chips" id="chips-misc"></div>
@@ -547,7 +547,7 @@ document.getElementById('pw-input').focus();
       <div class="block-chips" id="chips-resolutions"></div>
       <span class="block-palette-lbl">Fan Mode疊加</span>
       <div class="block-chips" id="chips-fanmodes"></div>
-      <span class="block-palette-hint">↑ 把測項／請假／加班／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
+      <span class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
     </div>
   </div>
 
@@ -631,11 +631,11 @@ document.getElementById('pw-input').focus();
 <div class="modal-overlay" id="leave-edit-modal">
   <div class="modal">
     <button class="mclose" onclick="closeM('leave-edit-modal')">×</button>
-    <h3>編輯請假／加班</h3>
+    <h3>編輯請假／公出</h3>
     <p id="leave-edit-sub" style="color:var(--cyan);font-family:var(--font-mono);font-size:17px;"></p>
     <div class="g2">
       <div class="field"><label>類型</label>
-        <select id="le-type"><option value="leave">請假</option><option value="overtime">加班</option></select>
+        <select id="le-type"><option value="leave">請假</option><option value="overtime">公出</option></select>
       </div>
       <div class="field"><label>時數／天</label><input type="number" id="le-hours" min="0" step="0.5" placeholder="留空待填"/></div>
     </div>
@@ -1005,13 +1005,13 @@ function buildLeaveList(){
   var con=document.getElementById('leave-list');con.innerHTML='';
   var sorted=LEAVES.slice().sort(function(a,b){return a.start<b.start?1:(a.start>b.start?-1:0);});
   if(sorted.length===0){
-    con.innerHTML='<div class="leave-empty">尚無請假／加班紀錄。</div>';
+    con.innerHTML='<div class="leave-empty">尚無請假／公出紀錄。</div>';
   }else{
     sorted.forEach(function(l){
       var p=personBySpId(l.personId);
       var wrap=document.createElement('div');
       var row=document.createElement('div');row.className='member-row';
-      var badge=document.createElement('span');badge.className='leave-type-badge '+l.type;badge.textContent=l.type==='overtime'?'加班':'請假';
+      var badge=document.createElement('span');badge.className='leave-type-badge '+l.type;badge.textContent=l.type==='overtime'?'公出':'請假';
       var info=document.createElement('div');info.className='member-info';
       info.innerHTML='<div class="leave-person" style="color:'+(p?p.c:'#888')+'">'+(p?p.name:'（未知成員）')+'</div>'+
         '<div class="leave-meta">'+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+l.hoursPerDay+'hr/天'+(l.note?' · '+l.note:'')+'</div>';
@@ -1021,7 +1021,7 @@ function buildLeaveList(){
       var picker=document.createElement('div');picker.className='series-picker';picker.id='leave-picker-'+l.spId;
       picker.innerHTML=
         '<div class="member-form-row" style="width:100%;">'+
-          '<div class="member-field"><label>類型</label><select id="edit-lv-type-'+l.spId+'" class="member-inp"><option value="leave"'+(l.type==='leave'?' selected':'')+'>請假</option><option value="overtime"'+(l.type==='overtime'?' selected':'')+'>加班</option></select></div>'+
+          '<div class="member-field"><label>類型</label><select id="edit-lv-type-'+l.spId+'" class="member-inp"><option value="leave"'+(l.type==='leave'?' selected':'')+'>請假</option><option value="overtime"'+(l.type==='overtime'?' selected':'')+'>公出</option></select></div>'+
           '<div class="member-field"><label>開始日期</label><input type="date" id="edit-lv-start-'+l.spId+'" class="member-inp" value="'+l.start+'"/></div>'+
           '<div class="member-field"><label>結束日期</label><input type="date" id="edit-lv-end-'+l.spId+'" class="member-inp" value="'+l.end+'"/></div>'+
           '<div class="member-field"><label>時數／天</label><input type="number" id="edit-lv-hours-'+l.spId+'" class="member-inp" value="'+l.hoursPerDay+'" min="0.5" max="24" step="0.5" style="width:80px;"/></div>'+
@@ -1081,7 +1081,7 @@ function saveLeaveEdit(lid){
   .catch(function(){setBusy(false);});
 }
 function removeLeave(lid){
-  if(!confirm('確定要刪除這筆請假／加班紀錄嗎？'))return;
+  if(!confirm('確定要刪除這筆請假／公出紀錄嗎？'))return;
   setBusy(true);
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'delete',id:lid})
@@ -1115,7 +1115,7 @@ function saveLeaveEditModal(){
 }
 function deleteLeaveModal(){
   if(!editLeave)return;
-  if(!confirm('確定要刪除這筆請假／加班紀錄嗎？'))return;
+  if(!confirm('確定要刪除這筆請假／公出紀錄嗎？'))return;
   setBusy(true);
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:editLeave.spId})})
   .then(function(r){return r.json();}).then(function(){closeM('leave-edit-modal');loadAllData();})
@@ -1228,7 +1228,7 @@ function buildBlockPalette(){
   gCon.appendChild(makeChip('game','games',BLOCKLIB.games.label||'Games'));
   var lCon=document.getElementById('chips-leave'); lCon.innerHTML='';
   lCon.appendChild(makeLeaveChip('leave','請假','leave-off'));
-  lCon.appendChild(makeLeaveChip('overtime','加班','leave-ot'));
+  lCon.appendChild(makeLeaveChip('overtime','公出','leave-ot'));
   var mCon=document.getElementById('chips-misc'); mCon.innerHTML='';
   mCon.appendChild(makeMiscChip());
   var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
@@ -1461,8 +1461,8 @@ function buildGantt(){
       var hrText=l.hoursPerDay?l.hoursPerDay+'hr/天':'待填時數';
       var lb=document.createElement('div');lb.className='leave-blk '+l.type;
       lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;cursor:pointer;';
-      lb.title=(l.type==='overtime'?'加班':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+hrText+(l.note?' · '+l.note:'');
-      var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'加班':'請假')+' '+(l.hoursPerDay?l.hoursPerDay+'h':'待填');
+      lb.title=(l.type==='overtime'?'公出':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+hrText+(l.note?' · '+l.note:'');
+      var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'公出':'請假')+' '+(l.hoursPerDay?l.hoursPerDay+'h':'待填');
       lb.appendChild(llbl);
       lb.onclick=function(e){e.stopPropagation();openLeaveEditModal(l);};
       tl.appendChild(lb);
@@ -1601,7 +1601,7 @@ function createLeaveFromBlock(p,leaveType,dateStr){
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     action:'add',personId:String(p.spId),leaveType:leaveType,startDate:dateStr,endDate:dateStr,hoursPerDay:0,note:''
   })}).then(function(r){return r.json();}).then(function(){loadAllData();})
-  .catch(function(){setBusy(false);alert('新增請假／加班失敗，請重試。');});
+  .catch(function(){setBusy(false);alert('新增請假／公出失敗，請重試。');});
 }
 function buildBlockMeta(t){
   var m={category:t.category,item:t.item,hours:(t.hours===null||t.hours===undefined||t.hours==='')?null:parseFloat(t.hours)};
