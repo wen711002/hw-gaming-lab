@@ -144,13 +144,14 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .fanmode-mgmt-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
 
 /* STICKY BLOCK PALETTE (directly above gantt chart) */
-.block-palette{position:sticky;top:0;z-index:40;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r12) var(--r12) 0 0;padding:10px 16px;margin-bottom:0;box-shadow:0 4px 16px rgba(0,0,0,0.35);}
-.block-palette-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 0;}
-.block-palette-lbl{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text3);white-space:nowrap;flex-shrink:0;}
-.block-palette .block-chips{margin-bottom:0;flex-wrap:nowrap;overflow-x:auto;}
-.block-palette-hint{font-size:13px;color:var(--text3);margin-left:auto;white-space:nowrap;}
+.block-palette{position:sticky;top:0;z-index:40;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r12) var(--r12) 0 0;padding:10px 16px;margin-bottom:0;box-shadow:0 4px 16px rgba(0,0,0,0.35);max-height:40vh;overflow-y:auto;}
+.block-palette-cat{display:flex;align-items:flex-start;gap:14px;padding:6px 0;border-bottom:1px solid var(--border);}
+.block-palette-cat:last-of-type{border-bottom:none;}
+.block-palette-lbl{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text3);white-space:nowrap;flex-shrink:0;width:104px;padding-top:7px;text-align:right;}
+.block-palette .block-chips{margin-bottom:0;flex:1;}
+.block-palette-hint{font-size:13px;color:var(--text3);padding:8px 0 2px;}
 @media(max-width:860px){
-  .block-palette-hint{display:none;}
+  .block-palette-lbl{width:80px;font-size:12px;}
 }
 
 /* SETTINGS TABLE */
@@ -538,25 +539,35 @@ document.getElementById('pw-input').focus();
 
   <!-- BLOCK PALETTE (sticky, sits right above the chart so drag distance stays short) -->
   <div class="block-palette" id="block-palette">
-    <div class="block-palette-row">
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">電池續航</span>
       <div class="block-chips" id="chips-battery"></div>
+    </div>
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">Benchmark</span>
       <div class="block-chips" id="chips-benchmark"></div>
+    </div>
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">Games</span>
       <div class="block-chips" id="chips-games"></div>
+    </div>
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">請假／公出</span>
       <div class="block-chips" id="chips-leave"></div>
+    </div>
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">其他</span>
       <div class="block-chips" id="chips-misc"></div>
     </div>
-    <div class="block-palette-row">
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">解析度疊加</span>
       <div class="block-chips" id="chips-resolutions"></div>
+    </div>
+    <div class="block-palette-cat">
       <span class="block-palette-lbl">Fan Mode疊加</span>
       <div class="block-chips" id="chips-fanmodes"></div>
-      <span class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
     </div>
+    <div class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</div>
   </div>
 
   <!-- GANTT CHART -->
