@@ -199,6 +199,20 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 
 /* GANTT */
 .gantt-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r12);overflow:hidden;}
+
+/* HOUR VIEW */
+.hour-view{overflow-x:auto;}
+.hv-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
+.hv-label-col{width:260px;flex-shrink:0;padding:10px 16px;border-right:1px solid var(--border2);font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.08em;color:var(--blue);white-space:nowrap;}
+.hv-hours{display:flex;}
+.hv-hour-lbl{font-family:var(--font-mono);font-size:14px;color:var(--text3);text-align:center;padding:10px 0;flex-shrink:0;border-right:1px solid var(--border);}
+.hv-row{display:flex;border-bottom:1px solid var(--border2);}
+.hv-row-lbl{width:260px;flex-shrink:0;padding:10px 14px;display:flex;align-items:center;gap:10px;border-right:1px solid var(--border2);}
+.hv-row-name{font-family:var(--font-head);font-size:17px;font-weight:700;}
+.hv-row-tl{flex:1;position:relative;min-height:52px;display:flex;align-items:center;}
+.hv-block{height:34px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;flex-shrink:0;transition:filter 0.15s;}
+.hv-block:hover{filter:brightness(1.15);}
+.hv-empty{color:var(--text3);font-size:14px;padding:14px;}
 .gantt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .gantt-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
 .gh-label-col{width:260px;flex-shrink:0;padding:8px 16px 4px;border-right:1px solid var(--border2);}
@@ -482,6 +496,7 @@ document.getElementById('pw-input').focus();
   <!-- TOOLBAR -->
   <div class="toolbar">
     <span class="tb-label">縮放：</span>
+    <button class="tb-btn zoom-btn" id="zoom-hour" onclick="setZoom('hour')">時</button>
     <button class="tb-btn zoom-btn active" id="zoom-day" onclick="setZoom('day')">日</button>
     <button class="tb-btn zoom-btn" id="zoom-week" onclick="setZoom('week')">週</button>
     <button class="tb-btn zoom-btn" id="zoom-month" onclick="setZoom('month')">月</button>
@@ -539,6 +554,7 @@ document.getElementById('pw-input').focus();
       </div>
       <div id="gantt-body"></div>
     </div>
+    <div id="hour-view" class="hour-view" style="display:none;"></div>
   </div>
 
 </div><!-- end .main -->
@@ -608,10 +624,14 @@ var PA_SETTINGS= 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.a
 var PA_LEAVE   = 'https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/09/workflows/a251e4b5b7dd42ffb86093e39524e672/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9N01FxoaYdl6MMGjBwPQBbcvZXVi4NUAW4VTT7Zm5Mc';
 
 var VIEW_MODES = {
+  hour:  {label:'時', dayW:32, days:1},
   day:   {label:'日', dayW:32, days:21},
   week:  {label:'週', dayW:12, days:90},
   month: {label:'月', dayW:3,  days:365}
 };
+var HOUR_W = 60;
+var WORKDAY_START_HOUR = 8;
+var WORKDAY_END_HOUR = 20;
 var currentZoom = 'day';
 var DAY_W = VIEW_MODES.day.dayW;
 var DAYS  = VIEW_MODES.day.days;
@@ -1201,10 +1221,83 @@ function buildHeader(){
   });
   var endDate=new Date(START);endDate.setDate(endDate.getDate()+DAYS-1);
   var rl=document.getElementById('range-label');
-  if(rl)rl.textContent=fmt(START)+' ~ '+fmt(endDate);
+  if(rl)rl.textContent=DAYS===1?fmt(START):(fmt(START)+' ~ '+fmt(endDate));
+}
+function hoursOnDay(t,dayIndex){
+  var c=calc(t);
+  if(c.pending)return 0;
+  var remaining=c.mh-dayIndex*HPD;
+  if(remaining<=0)return 0;
+  return Math.min(HPD,remaining);
+}
+function buildHourView(){
+  var hv=document.getElementById('hour-view');hv.innerHTML='';
+  var dayStr=fmt(START);
+  var hoursCount=WORKDAY_END_HOUR-WORKDAY_START_HOUR;
+  var header=document.createElement('div');header.className='hv-header';
+  var lblCol=document.createElement('div');lblCol.className='hv-label-col';
+  var wd=['日','一','二','三','四','五','六'][new Date(dayStr).getDay()];
+  lblCol.textContent=dayStr+'（週'+wd+'）';
+  var hoursWrap=document.createElement('div');hoursWrap.className='hv-hours';
+  for(var h=WORKDAY_START_HOUR;h<WORKDAY_END_HOUR;h++){
+    var hl=document.createElement('div');hl.className='hv-hour-lbl';
+    hl.style.width=HOUR_W+'px';hl.textContent=h+':00';
+    hoursWrap.appendChild(hl);
+  }
+  header.appendChild(lblCol);header.appendChild(hoursWrap);
+  hv.appendChild(header);
+  var todayOff=dayOff(dayStr);
+  PERSONS.forEach(function(p){
+    var row=document.createElement('div');row.className='hv-row';
+    var rl=document.createElement('div');rl.className='hv-row-lbl';
+    var av=document.createElement('div');av.className='g-avatar';
+    av.style.cssText='background:rgba('+hexRgb(p.c)+',0.18);color:'+p.c+';border:1px solid '+p.c+'55;';
+    av.textContent=p.init;
+    var nm=document.createElement('div');nm.className='hv-row-name';nm.style.color=p.c;nm.textContent=p.name;
+    rl.appendChild(av);rl.appendChild(nm);
+    var tl=document.createElement('div');tl.className='hv-row-tl';
+    tl.style.width=(hoursCount*HOUR_W)+'px';
+    var dayTasks=tasks.filter(function(t){
+      if(t.person!==p.id)return false;
+      var c=calc(t);
+      if(c.pending)return false;
+      var startOff=dayOff(t.start);
+      return todayOff>=startOff&&todayOff<startOff+c.md;
+    });
+    if(dayTasks.length===0){
+      var empty=document.createElement('div');empty.className='hv-empty';
+      empty.textContent='當日無排定任務';
+      tl.appendChild(empty);
+    }
+    dayTasks.forEach(function(t){
+      var startOff=dayOff(t.start);
+      var dayIndex=todayOff-startOff;
+      var hrs=hoursOnDay(t,dayIndex);
+      if(hrs<=0)return;
+      var color=CAT_COLOR[t.category]||CAT_COLOR.battery;
+      var blk=document.createElement('div');blk.className='hv-block';
+      blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
+      blk.textContent=(t.blockLabel||t.item)+' · '+t.code+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
+      blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
+      tl.appendChild(blk);
+    });
+    row.appendChild(rl);row.appendChild(tl);
+    hv.appendChild(row);
+  });
 }
 
 function buildGantt(){
+  var scrollEl=document.querySelector('.gantt-scroll');
+  var hourEl=document.getElementById('hour-view');
+  if(currentZoom==='hour'){
+    scrollEl.style.display='none';
+    hourEl.style.display='block';
+    buildHourView();
+    updateStats();updateLoadingBars();
+    return;
+  }
+  scrollEl.style.display='';
+  hourEl.style.display='none';
   var body=document.getElementById('gantt-body');body.innerHTML='';
   var tw=DAYS*DAY_W,todOff=dayOff(fmt(new Date()));
   PERSONS.forEach(function(p){
