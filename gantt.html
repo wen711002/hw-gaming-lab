@@ -467,11 +467,15 @@ document.getElementById('pw-input').focus();
             </div>
             <div class="member-field">
               <label>開始日期</label>
-              <input type="date" id="lv-start" class="member-inp" style="width:150px;"/>
+              <input type="date" id="lv-start" class="member-inp" style="width:150px;" oninput="onLeaveDateChange('lv')"/>
             </div>
             <div class="member-field">
               <label>結束日期</label>
-              <input type="date" id="lv-end" class="member-inp" style="width:150px;"/>
+              <input type="date" id="lv-end" class="member-inp" style="width:150px;" oninput="onLeaveDateChange('lv')"/>
+            </div>
+            <div class="member-field">
+              <label>總天數</label>
+              <div id="lv-days-display" class="member-inp" style="width:70px;text-align:center;background:var(--bg2);">1 天</div>
             </div>
             <div class="member-field">
               <label>時數／天</label>
@@ -518,6 +522,11 @@ document.getElementById('pw-input').focus();
     <button class="tb-btn" onclick="jumpToday()">今天</button>
     <button class="tb-btn" onclick="navPeriod(1)">下一頁 ▶</button>
     <div class="tb-sep"></div>
+    <span class="tb-label">顯示：</span>
+    <button class="tb-btn filter-btn active" id="filter-all" onclick="setCalFilter('all')">共同顯示</button>
+    <button class="tb-btn filter-btn" id="filter-tasks" onclick="setCalFilter('tasks')">僅任務</button>
+    <button class="tb-btn filter-btn" id="filter-leave" onclick="setCalFilter('leave')">僅請假／公出</button>
+    <div class="tb-sep"></div>
     <span class="tb-label">展開：</span>
     <button class="tb-btn" onclick="expandAll()">全部</button>
     <button class="tb-btn" onclick="collapseAll()">收合</button>
@@ -552,20 +561,20 @@ document.getElementById('pw-input').focus();
       <div class="block-chips" id="chips-games"></div>
     </div>
     <div class="block-palette-cat">
-      <span class="block-palette-lbl">請假／公出</span>
-      <div class="block-chips" id="chips-leave"></div>
-    </div>
-    <div class="block-palette-cat">
-      <span class="block-palette-lbl">其他</span>
-      <div class="block-chips" id="chips-misc"></div>
-    </div>
-    <div class="block-palette-cat">
       <span class="block-palette-lbl">解析度疊加</span>
       <div class="block-chips" id="chips-resolutions"></div>
     </div>
     <div class="block-palette-cat">
       <span class="block-palette-lbl">Fan Mode疊加</span>
       <div class="block-chips" id="chips-fanmodes"></div>
+    </div>
+    <div class="block-palette-cat">
+      <span class="block-palette-lbl">其他</span>
+      <div class="block-chips" id="chips-misc"></div>
+    </div>
+    <div class="block-palette-cat">
+      <span class="block-palette-lbl">請假／公出</span>
+      <div class="block-chips" id="chips-leave"></div>
     </div>
     <div class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</div>
   </div>
@@ -659,10 +668,12 @@ document.getElementById('pw-input').focus();
       <div class="field"><label>時數／天</label><input type="number" id="le-hours" min="0" step="0.5" placeholder="留空待填"/></div>
     </div>
     <div class="g2">
-      <div class="field"><label>開始日期</label><input type="date" id="le-start"/></div>
-      <div class="field"><label>結束日期</label><input type="date" id="le-end"/></div>
+      <div class="field"><label>開始日期</label><input type="date" id="le-start" oninput="onLeaveDateChange('le')"/></div>
+      <div class="field"><label>結束日期</label><input type="date" id="le-end" oninput="onLeaveDateChange('le')"/></div>
     </div>
+    <div class="field"><label>總天數</label><div id="le-days-display" style="font-family:var(--font-mono);color:var(--text2);padding:4px 0;">1 天</div></div>
     <div class="field"><label>備註</label><input type="text" id="le-note"/></div>
+    <div class="member-err" id="le-err"></div>
     <div class="mbtns">
       <button class="btn btn-del" onclick="deleteLeaveModal()">刪除</button>
       <button class="btn btn-sec" onclick="closeM('leave-edit-modal')">取消</button>
@@ -689,6 +700,7 @@ var HOUR_W = 60;
 var WORKDAY_START_HOUR = 8;
 var WORKDAY_END_HOUR = 20;
 var currentZoom = 'day';
+var calFilter = 'all';
 var DAY_W = VIEW_MODES.day.dayW;
 var DAYS  = VIEW_MODES.day.days;
 var START = new Date();
@@ -1043,19 +1055,9 @@ function buildLeaveList(){
       var editBtn=document.createElement('button');editBtn.className='member-edit';editBtn.textContent='編輯';
       var del=document.createElement('button');del.className='member-del';del.textContent='刪除';
       (function(lid){del.onclick=function(){removeLeave(lid);};})(l.spId);
-      var picker=document.createElement('div');picker.className='series-picker';picker.id='leave-picker-'+l.spId;
-      picker.innerHTML=
-        '<div class="member-form-row" style="width:100%;">'+
-          '<div class="member-field"><label>類型</label><select id="edit-lv-type-'+l.spId+'" class="member-inp"><option value="leave"'+(l.type==='leave'?' selected':'')+'>請假</option><option value="overtime"'+(l.type==='overtime'?' selected':'')+'>公出</option></select></div>'+
-          '<div class="member-field"><label>開始日期</label><input type="date" id="edit-lv-start-'+l.spId+'" class="member-inp" value="'+l.start+'"/></div>'+
-          '<div class="member-field"><label>結束日期</label><input type="date" id="edit-lv-end-'+l.spId+'" class="member-inp" value="'+l.end+'"/></div>'+
-          '<div class="member-field"><label>時數／天</label><input type="number" id="edit-lv-hours-'+l.spId+'" class="member-inp" value="'+l.hoursPerDay+'" min="0.5" max="24" step="0.5" style="width:80px;"/></div>'+
-          '<div class="member-field" style="flex:1 1 160px;"><label>備註</label><input type="text" id="edit-lv-note-'+l.spId+'" class="member-inp" value="'+(l.note||'')+'" style="width:100%;"/></div>'+
-        '</div>'+
-        '<div class="series-picker-actions"><button class="member-add-btn" onclick="saveLeaveEdit('+l.spId+')">儲存</button></div>';
-      (function(pickerEl){editBtn.onclick=function(){pickerEl.style.display=pickerEl.style.display==='flex'?'none':'flex';};})(picker);
+      (function(lv){editBtn.onclick=function(){openLeaveEditModal(lv);};})(l);
       row.appendChild(badge);row.appendChild(info);row.appendChild(editBtn);row.appendChild(del);
-      wrap.appendChild(row);wrap.appendChild(picker);
+      wrap.appendChild(row);
       con.appendChild(wrap);
     });
   }
@@ -1068,6 +1070,21 @@ function buildLeaveList(){
   var se=document.getElementById('lv-start'),ee=document.getElementById('lv-end');
   if(se&&!se.value)se.value=todayStr;
   if(ee&&!ee.value)ee.value=todayStr;
+  if(se)se.min=todayStr;
+  if(ee)ee.min=todayStr;
+  onLeaveDateChange('lv');
+}
+function leaveDaysCount(start,end){
+  if(!start||!end)return 1;
+  var s=new Date(start),e=new Date(end);
+  return Math.max(1,Math.round((e-s)/864e5)+1);
+}
+function onLeaveDateChange(prefix){
+  var se=document.getElementById(prefix+'-start'),ee=document.getElementById(prefix+'-end');
+  var dd=document.getElementById(prefix+'-days-display');
+  if(!se||!ee)return;
+  if(se.value)ee.min=se.value;
+  if(dd)dd.textContent=leaveDaysCount(se.value,ee.value)+' 天';
 }
 function addLeave(){
   var personId=document.getElementById('lv-person').value;
@@ -1080,7 +1097,9 @@ function addLeave(){
   var end=document.getElementById('lv-end').value||start;
   var hours=parseFloat(document.getElementById('lv-hours').value)||HPD;
   var note=document.getElementById('lv-note').value;
+  var todayStr=fmt(new Date());
   if(!start){errEl.textContent='請選擇開始日期。';return;}
+  if(start<todayStr){errEl.textContent='開始日期不可早於今天。';return;}
   if(end<start){errEl.textContent='結束日期不可早於開始日期。';return;}
   setBusy(true);
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -1089,21 +1108,6 @@ function addLeave(){
     document.getElementById('lv-note').value='';
     loadAllData();
   }).catch(function(){setBusy(false);errEl.textContent='儲存失敗，請重試。';});
-}
-function saveLeaveEdit(lid){
-  var l=null;
-  for(var i=0;i<LEAVES.length;i++){if(String(LEAVES[i].spId)===String(lid)){l=LEAVES[i];break;}}
-  if(!l)return;
-  var type=document.getElementById('edit-lv-type-'+lid).value;
-  var start=document.getElementById('edit-lv-start-'+lid).value;
-  var end=document.getElementById('edit-lv-end-'+lid).value||start;
-  var hours=parseFloat(document.getElementById('edit-lv-hours-'+lid).value)||HPD;
-  var note=document.getElementById('edit-lv-note-'+lid).value;
-  setBusy(true);
-  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'update',id:l.spId,personId:String(l.personId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hours,note:note})
-  }).then(function(r){return r.json();}).then(function(){loadAllData();})
-  .catch(function(){setBusy(false);});
 }
 function removeLeave(lid){
   if(!confirm('確定要刪除這筆請假／公出紀錄嗎？'))return;
@@ -1120,9 +1124,13 @@ function openLeaveEditModal(l){
   document.getElementById('leave-edit-sub').textContent=p?p.name:'（未知成員）';
   document.getElementById('le-type').value=l.type;
   document.getElementById('le-hours').value=l.hoursPerDay?l.hoursPerDay:'';
-  document.getElementById('le-start').value=l.start;
-  document.getElementById('le-end').value=l.end;
+  var todayStr=fmt(new Date());
+  var se=document.getElementById('le-start'),ee=document.getElementById('le-end');
+  se.value=l.start;ee.value=l.end;
+  se.min=todayStr;ee.min=todayStr;
   document.getElementById('le-note').value=l.note||'';
+  document.getElementById('le-err').textContent='';
+  onLeaveDateChange('le');
   document.getElementById('leave-edit-modal').classList.add('show');
 }
 function saveLeaveEditModal(){
@@ -1132,6 +1140,10 @@ function saveLeaveEditModal(){
   var start=document.getElementById('le-start').value||editLeave.start;
   var end=document.getElementById('le-end').value||start;
   var note=document.getElementById('le-note').value;
+  var errEl=document.getElementById('le-err');errEl.textContent='';
+  var todayStr=fmt(new Date());
+  if(start<todayStr){errEl.textContent='開始日期不可早於今天。';return;}
+  if(end<start){errEl.textContent='結束日期不可早於開始日期。';return;}
   setBusy(true);
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     action:'update',id:editLeave.spId,personId:String(editLeave.personId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hoursVal===''?0:parseFloat(hoursVal),note:note
@@ -1499,19 +1511,21 @@ function buildGantt(){
     tl.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
     for(var i=0;i<DAYS;i++){var d=new Date(START);d.setDate(d.getDate()+i);if(d.getDay()===0||d.getDay()===6){var ws=document.createElement('div');ws.className='we-shade';ws.style.cssText='left:'+(i*DAY_W)+'px;width:'+DAY_W+'px;';tl.appendChild(ws);}}
     if(todOff>=0&&todOff<DAYS){var tml=document.createElement('div');tml.className='today-line';tml.style.left=(todOff*DAY_W)+'px';var tlbl=document.createElement('div');tlbl.className='today-lbl';tlbl.textContent='今天';tml.appendChild(tlbl);tl.appendChild(tml);}
-    LEAVES.filter(function(l){return String(l.personId)===String(p.spId);}).forEach(function(l){
-      var sOff=dayOff(l.start),eOff=dayOff(l.end);
-      if(eOff<0||sOff>=DAYS)return;
-      var clipS=Math.max(0,sOff),clipE=Math.min(DAYS-1,eOff);
-      var hrText=l.hoursPerDay?l.hoursPerDay+'hr/天':'待填時數';
-      var lb=document.createElement('div');lb.className='leave-blk '+l.type;
-      lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;cursor:pointer;';
-      lb.title=(l.type==='overtime'?'公出':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+hrText+(l.note?' · '+l.note:'');
-      var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'公出':'請假')+' '+(l.hoursPerDay?l.hoursPerDay+'h':'待填');
-      lb.appendChild(llbl);
-      lb.onclick=function(e){e.stopPropagation();openLeaveEditModal(l);};
-      tl.appendChild(lb);
-    });
+    if(calFilter!=='tasks'){
+      LEAVES.filter(function(l){return String(l.personId)===String(p.spId);}).forEach(function(l){
+        var sOff=dayOff(l.start),eOff=dayOff(l.end);
+        if(eOff<0||sOff>=DAYS)return;
+        var clipS=Math.max(0,sOff),clipE=Math.min(DAYS-1,eOff);
+        var hrText=l.hoursPerDay?l.hoursPerDay+'hr/天':'待填時數';
+        var lb=document.createElement('div');lb.className='leave-blk '+l.type;
+        lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;cursor:pointer;';
+        lb.title=(l.type==='overtime'?'公出':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+hrText+(l.note?' · '+l.note:'');
+        var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'公出':'請假')+' '+(l.hoursPerDay?l.hoursPerDay+'h':'待填');
+        lb.appendChild(llbl);
+        lb.onclick=function(e){e.stopPropagation();openLeaveEditModal(l);};
+        tl.appendChild(lb);
+      });
+    }
     tl.ondragover=function(e){e.preventDefault();};
     tl.ondrop=function(e){
       e.preventDefault();
@@ -1527,26 +1541,30 @@ function buildGantt(){
       createTaskFromBlock(p,data,startStr);
     };
     var used=[];
-    pt.forEach(function(t){
-      var c=calc(t),off=dayOff(t.start),slot=0;
-      while(used.some(function(s){return s.slot===slot&&s.e>off&&s.s<off+c.total;}))slot++;
-      used.push({slot:slot,s:off,e:off+c.total});
-      renderBar(t,c,tl,26,slot*32+10,false);
-    });
+    if(calFilter!=='leave'){
+      pt.forEach(function(t){
+        var c=calc(t),off=dayOff(t.start),slot=0;
+        while(used.some(function(s){return s.slot===slot&&s.e>off&&s.s<off+c.total;}))slot++;
+        used.push({slot:slot,s:off,e:off+c.total});
+        renderBar(t,c,tl,26,slot*32+10,false);
+      });
+    }
     tl.style.minHeight=Math.max(52,(used.length||1)*32+12)+'px';
     var subs=document.createElement('div');subs.className='g-sub-rows'+(expanded[p.id]?' open':'');
-    var pm={};pt.forEach(function(t){var k=t.code+'|'+t.sku;if(!pm[k])pm[k]=[];pm[k].push(t);});
-    Object.keys(pm).forEach(function(key){
-      var parts=key.split('|'),code=parts[0],sku=parts[1],ptasks2=pm[key];
-      var pr=document.createElement('div');pr.className='g-proj-row';
-      var pl=document.createElement('div');pl.className='g-proj-lbl';
-      var pc=document.createElement('span');pc.className='proj-code';pc.textContent=code;
-      var ps=document.createElement('span');ps.className='proj-sku';ps.textContent=sku;
-      pl.appendChild(pc);pl.appendChild(ps);
-      var ptl=document.createElement('div');ptl.className='g-proj-tl';ptl.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
-      ptasks2.forEach(function(t){renderBar(t,calc(t),ptl,20,8,true);});
-      pr.appendChild(pl);pr.appendChild(ptl);subs.appendChild(pr);
-    });
+    if(calFilter!=='leave'){
+      var pm={};pt.forEach(function(t){var k=t.code+'|'+t.sku;if(!pm[k])pm[k]=[];pm[k].push(t);});
+      Object.keys(pm).forEach(function(key){
+        var parts=key.split('|'),code=parts[0],sku=parts[1],ptasks2=pm[key];
+        var pr=document.createElement('div');pr.className='g-proj-row';
+        var pl=document.createElement('div');pl.className='g-proj-lbl';
+        var pc=document.createElement('span');pc.className='proj-code';pc.textContent=code;
+        var ps=document.createElement('span');ps.className='proj-sku';ps.textContent=sku;
+        pl.appendChild(pc);pl.appendChild(ps);
+        var ptl=document.createElement('div');ptl.className='g-proj-tl';ptl.style.cssText='width:'+tw+'px;min-width:'+tw+'px;';
+        ptasks2.forEach(function(t){renderBar(t,calc(t),ptl,20,8,true);});
+        pr.appendChild(pl);pr.appendChild(ptl);subs.appendChild(pr);
+      });
+    }
     prow.onclick=function(){expanded[p.id]=!expanded[p.id];subs.classList.toggle('open',expanded[p.id]);tog.classList.toggle('open',expanded[p.id]);};
     prow.appendChild(lbl);prow.appendChild(tl);grp.appendChild(prow);grp.appendChild(subs);body.appendChild(grp);
   });
@@ -1804,6 +1822,12 @@ function setZoom(mode){
   document.querySelectorAll('.zoom-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById('zoom-'+mode).classList.add('active');
   buildHeader();buildGantt();
+}
+function setCalFilter(mode){
+  calFilter=mode;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('filter-'+mode).classList.add('active');
+  buildGantt();
 }
 function navPeriod(dir){
   START=new Date(START);
