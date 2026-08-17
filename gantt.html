@@ -210,8 +210,9 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .hv-row-lbl{width:260px;flex-shrink:0;padding:10px 14px;display:flex;align-items:center;gap:10px;border-right:1px solid var(--border2);}
 .hv-row-name{font-family:var(--font-head);font-size:17px;font-weight:700;}
 .hv-row-tl{flex:1;position:relative;min-height:52px;display:flex;align-items:center;}
-.hv-block{height:34px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;flex-shrink:0;transition:filter 0.15s;}
+.hv-block{height:34px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;flex-shrink:0;transition:filter 0.15s;margin-right:2px;}
 .hv-block:hover{filter:brightness(1.15);}
+.hv-block.pending{background:transparent;border:2px dashed currentColor;}
 .hv-empty{color:var(--text3);font-size:14px;padding:14px;}
 .gantt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .gantt-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
@@ -1257,11 +1258,20 @@ function buildHourView(){
     rl.appendChild(av);rl.appendChild(nm);
     var tl=document.createElement('div');tl.className='hv-row-tl';
     tl.style.width=(hoursCount*HOUR_W)+'px';
+    tl.ondragover=function(e){e.preventDefault();};
+    tl.ondrop=function(e){
+      e.preventDefault();
+      var raw=e.dataTransfer.getData('text/plain');
+      if(!raw)return;
+      var data;try{data=JSON.parse(raw);}catch(err){return;}
+      if(data.kind!=='main')return;
+      createTaskFromBlock(p,data,dayStr);
+    };
     var dayTasks=tasks.filter(function(t){
       if(t.person!==p.id)return false;
       var c=calc(t);
-      if(c.pending)return false;
       var startOff=dayOff(t.start);
+      if(c.pending)return todayOff===startOff;
       return todayOff>=startOff&&todayOff<startOff+c.md;
     });
     if(dayTasks.length===0){
@@ -1270,15 +1280,45 @@ function buildHourView(){
       tl.appendChild(empty);
     }
     dayTasks.forEach(function(t){
+      var c=calc(t);
+      var color=CAT_COLOR[t.category]||CAT_COLOR.battery;
+      var blk=document.createElement('div');blk.className='hv-block'+(c.pending?' pending':'');
+      if(c.pending){
+        blk.style.cssText='width:130px;color:'+color+';';
+        blk.textContent=(t.blockLabel||t.item)+' · '+t.code+'（待填）';
+        blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
+        if(t.category==='game'){
+          blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
+          blk.ondrop=function(e){
+            e.preventDefault();e.stopPropagation();
+            var raw=e.dataTransfer.getData('text/plain');
+            if(!raw)return;
+            var data;try{data=JSON.parse(raw);}catch(err){return;}
+            if(data.kind!=='modifier')return;
+            applyModifierToTask(t,data);
+          };
+        }
+        tl.appendChild(blk);
+        return;
+      }
       var startOff=dayOff(t.start);
       var dayIndex=todayOff-startOff;
       var hrs=hoursOnDay(t,dayIndex);
       if(hrs<=0)return;
-      var color=CAT_COLOR[t.category]||CAT_COLOR.battery;
-      var blk=document.createElement('div');blk.className='hv-block';
       blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
       blk.textContent=(t.blockLabel||t.item)+' · '+t.code+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
       blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
+      if(t.category==='game'){
+        blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
+        blk.ondrop=function(e){
+          e.preventDefault();e.stopPropagation();
+          var raw=e.dataTransfer.getData('text/plain');
+          if(!raw)return;
+          var data;try{data=JSON.parse(raw);}catch(err){return;}
+          if(data.kind!=='modifier')return;
+          applyModifierToTask(t,data);
+        };
+      }
       tl.appendChild(blk);
     });
     row.appendChild(rl);row.appendChild(tl);
