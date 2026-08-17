@@ -140,6 +140,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .block-chip.modifier{color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);font-size:13px;padding:5px 10px;}
 .block-chip.leave-off{color:var(--red);border-color:rgba(255,92,122,0.4);background:rgba(255,92,122,0.12);}
 .block-chip.leave-ot{color:var(--cyan);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.12);}
+.block-chip.misc{color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);}
 .fanmode-mgmt-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
 
 /* STICKY BLOCK PALETTE (directly above gantt chart) */
@@ -518,6 +519,7 @@ document.getElementById('pw-input').focus();
     <span><span class="leg-dot" style="background:#4c9ef5;"></span>電池續航</span>
     <span><span class="leg-dot" style="background:#a855f7;"></span>Benchmark</span>
     <span><span class="leg-dot" style="background:#00e5a0;"></span>Games</span>
+    <span><span class="leg-dot" style="background:#ffb347;"></span>雜項活動</span>
     <span><span class="leg-stripe" style="background:none;border:2px dashed var(--text3);width:8px;height:8px;"></span>待填時數（拖入後點擊補填）</span>
     <span style="color:var(--text3);">|</span>
     <span>⚠ 失敗／維修　↻ 重測</span>
@@ -537,13 +539,15 @@ document.getElementById('pw-input').focus();
       <div class="block-chips" id="chips-games"></div>
       <span class="block-palette-lbl">請假／加班</span>
       <div class="block-chips" id="chips-leave"></div>
+      <span class="block-palette-lbl">其他</span>
+      <div class="block-chips" id="chips-misc"></div>
     </div>
     <div class="block-palette-row">
       <span class="block-palette-lbl">解析度疊加</span>
       <div class="block-chips" id="chips-resolutions"></div>
       <span class="block-palette-lbl">Fan Mode疊加</span>
       <div class="block-chips" id="chips-fanmodes"></div>
-      <span class="block-palette-hint">↑ 把測項／請假／加班積木拖到下方時間軸建立記錄；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
+      <span class="block-palette-hint">↑ 把測項／請假／加班／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
     </div>
   </div>
 
@@ -596,6 +600,9 @@ document.getElementById('pw-input').focus();
       <div class="field"><label>套數（×N）</label><input type="number" id="e-count" min="1" step="1" oninput="updateEditEst()"/></div>
       <div class="field"><label>已疊加解析度</label><div class="member-series" id="e-resolutions"></div></div>
       <div class="field"><label>已疊加 Fan Mode</label><div class="member-series" id="e-fanmodes"></div></div>
+    </div>
+    <div id="e-misc-block" style="display:none;">
+      <div class="field"><label>活動名稱</label><input type="text" id="e-misc-name" placeholder="例：issue debug、EE溝通、開會、內訓課程"/></div>
     </div>
     <div class="g2">
       <div class="field"><label>重測</label>
@@ -690,7 +697,7 @@ var BLOCKLIB = {
   resolutions:['FHD','2K','4K'],
   fanModes:['Silent','Performance','Turbo']
 };
-var CAT_COLOR = {battery:'#4c9ef5', benchmark:'#a855f7', game:'#00e5a0'};
+var CAT_COLOR = {battery:'#4c9ef5', benchmark:'#a855f7', game:'#00e5a0', misc:'#ffb347'};
 var PERSONS = [];
 var LEAVES = [];
 var tasks = [];
@@ -1202,6 +1209,16 @@ function makeLeaveChip(leaveType,label,cls){
   };
   return c;
 }
+function makeMiscChip(){
+  var c=document.createElement('div');
+  c.className='block-chip misc';
+  c.textContent='雜項活動';
+  c.draggable=true;
+  c.ondragstart=function(e){
+    e.dataTransfer.setData('text/plain',JSON.stringify({kind:'main',category:'misc',key:'misc',label:''}));
+  };
+  return c;
+}
 function buildBlockPalette(){
   var bCon=document.getElementById('chips-battery'); if(!bCon)return; bCon.innerHTML='';
   BLOCKLIB.battery.forEach(function(item){bCon.appendChild(makeChip('battery',item.key,item.label));});
@@ -1212,6 +1229,8 @@ function buildBlockPalette(){
   var lCon=document.getElementById('chips-leave'); lCon.innerHTML='';
   lCon.appendChild(makeLeaveChip('leave','請假','leave-off'));
   lCon.appendChild(makeLeaveChip('overtime','加班','leave-ot'));
+  var mCon=document.getElementById('chips-misc'); mCon.innerHTML='';
+  mCon.appendChild(makeMiscChip());
   var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
   BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});
   buildFanModeUI();
@@ -1361,7 +1380,8 @@ function buildHourView(){
       var blk=document.createElement('div');blk.className='hv-block'+(c.pending?' pending':'');
       if(c.pending){
         blk.style.cssText='width:130px;color:'+color+';';
-        blk.textContent=(t.blockLabel||t.item)+' · '+t.code+'（待填）';
+        var pendItem=t.blockLabel||t.item||'(待命名)';
+        blk.textContent=(t.category==='misc'?pendItem:(pendItem+' · '+t.code))+'（待填）';
         blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
         if(t.category==='game'){
           blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
@@ -1382,7 +1402,8 @@ function buildHourView(){
       var hrs=hoursOnDay(t,dayIndex);
       if(hrs<=0)return;
       blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
-      blk.textContent=(t.blockLabel||t.item)+' · '+t.code+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
+      var hvItem=t.blockLabel||t.item||'(待命名)';
+      blk.textContent=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
       blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
       if(t.category==='game'){
         blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
@@ -1503,7 +1524,8 @@ function renderBar(t,c,container,h,top,small){
   var barW=Math.max(4,c.total*DAY_W-3);
   bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+barW+'px;top:'+top+'px;height:'+h+'px;'+(c.pending?('color:'+color+';'):('background:'+color+';color:#000;'));
   var lbl=document.createElement('span');lbl.className='task-lbl';
-  var nameTxt=small?t.code:(t.blockLabel||t.item)+' · '+t.code;
+  var itemLabel=t.blockLabel||t.item||'(待命名)';
+  var nameTxt=small?t.code:(t.category==='misc'?itemLabel:(itemLabel+' · '+t.code));
   lbl.textContent=nameTxt+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');bar.appendChild(lbl);
   if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.pending?'?':summaryBadge(t,c);bar.appendChild(bdg);}
   bar.onclick=function(e){e.stopPropagation();openEditModal(t);};
@@ -1553,11 +1575,12 @@ function updateLoadingBars(){
 function createTaskFromBlock(p,data,startStr){
   var meta={category:data.category,item:data.label,hours:null};
   if(data.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
+  var isMisc=data.category==='misc';
   var payload={
     action:'add',
     PersonId:String(p.spId),
-    ProjectCode:'UNNAMED',
-    SKU:'SKU-???',
+    ProjectCode:isMisc?'':'UNNAMED',
+    SKU:isMisc?'':'SKU-???',
     TestType:data.label,
     Machines:1,
     StartDate:startStr,
@@ -1661,7 +1684,8 @@ function updateEditEst(){
 }
 function openEditModal(t){
   editTask=t;
-  document.getElementById('edit-sub').textContent=(t.blockLabel||t.item)+' · '+t.code+' · '+t.sku;
+  var subItem=t.blockLabel||t.item||'(待命名)';
+  document.getElementById('edit-sub').textContent=t.category==='misc'?subItem:(subItem+' · '+t.code+' · '+t.sku);
   var psel=document.getElementById('e-person');psel.innerHTML='';
   PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===t.person)o.selected=true;psel.appendChild(o);});
   document.getElementById('e-start').value=t.start;
@@ -1676,6 +1700,11 @@ function openEditModal(t){
     document.getElementById('e-count').value=t.count||1;
     document.getElementById('e-resolutions').innerHTML=buildRemovableTags(t.resolutions,'editRemoveResolution');
     document.getElementById('e-fanmodes').innerHTML=buildRemovableTags(t.fanModes,'editRemoveFanMode');
+  }
+  var isMisc=t.category==='misc';
+  document.getElementById('e-misc-block').style.display=isMisc?'block':'none';
+  if(isMisc){
+    document.getElementById('e-misc-name').value=t.blockLabel||t.item||'';
   }
   document.getElementById('e-retest').value=t.retest?'1':'0';
   document.getElementById('e-fail').value=t.failMode?'1':'0';
@@ -1694,6 +1723,11 @@ function saveEdit(){
   editTask.hours=hv===''?null:parseFloat(hv);
   if(editTask.category==='game'){
     editTask.count=parseFloat(document.getElementById('e-count').value)||1;
+  }
+  if(editTask.category==='misc'){
+    var miscName=document.getElementById('e-misc-name').value.trim();
+    editTask.item=miscName;
+    editTask.blockLabel=miscName;
   }
   editTask.retest=document.getElementById('e-retest').value==='1';
   editTask.failMode=document.getElementById('e-fail').value==='1';
