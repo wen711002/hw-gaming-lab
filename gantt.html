@@ -138,6 +138,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .block-chip.benchmark{color:var(--purple);border-color:rgba(168,85,247,0.4);background:rgba(168,85,247,0.12);}
 .block-chip.game{color:var(--green);border-color:rgba(0,229,160,0.4);background:rgba(0,229,160,0.12);}
 .block-chip.modifier{color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);font-size:13px;padding:5px 10px;}
+.block-chip.leave-off{color:var(--red);border-color:rgba(255,92,122,0.4);background:rgba(255,92,122,0.12);}
+.block-chip.leave-ot{color:var(--cyan);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.12);}
 .fanmode-mgmt-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
 
 /* STICKY BLOCK PALETTE (directly above gantt chart) */
@@ -533,13 +535,15 @@ document.getElementById('pw-input').focus();
       <div class="block-chips" id="chips-benchmark"></div>
       <span class="block-palette-lbl">Games</span>
       <div class="block-chips" id="chips-games"></div>
+      <span class="block-palette-lbl">請假／加班</span>
+      <div class="block-chips" id="chips-leave"></div>
     </div>
     <div class="block-palette-row">
       <span class="block-palette-lbl">解析度疊加</span>
       <div class="block-chips" id="chips-resolutions"></div>
       <span class="block-palette-lbl">Fan Mode疊加</span>
       <div class="block-chips" id="chips-fanmodes"></div>
-      <span class="block-palette-hint">↑ 把測項積木拖到下方時間軸建立任務；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
+      <span class="block-palette-hint">↑ 把測項／請假／加班積木拖到下方時間軸建立記錄；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</span>
     </div>
   </div>
 
@@ -612,6 +616,31 @@ document.getElementById('pw-input').focus();
       <button class="btn btn-del" onclick="deleteTask()">刪除</button>
       <button class="btn btn-sec" onclick="closeM('edit-modal')">取消</button>
       <button class="btn btn-pri" onclick="saveEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEAVE EDIT MODAL -->
+<div class="modal-overlay" id="leave-edit-modal">
+  <div class="modal">
+    <button class="mclose" onclick="closeM('leave-edit-modal')">×</button>
+    <h3>編輯請假／加班</h3>
+    <p id="leave-edit-sub" style="color:var(--cyan);font-family:var(--font-mono);font-size:17px;"></p>
+    <div class="g2">
+      <div class="field"><label>類型</label>
+        <select id="le-type"><option value="leave">請假</option><option value="overtime">加班</option></select>
+      </div>
+      <div class="field"><label>時數／天</label><input type="number" id="le-hours" min="0" step="0.5" placeholder="留空待填"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>開始日期</label><input type="date" id="le-start"/></div>
+      <div class="field"><label>結束日期</label><input type="date" id="le-end"/></div>
+    </div>
+    <div class="field"><label>備註</label><input type="text" id="le-note"/></div>
+    <div class="mbtns">
+      <button class="btn btn-del" onclick="deleteLeaveModal()">刪除</button>
+      <button class="btn btn-sec" onclick="closeM('leave-edit-modal')">取消</button>
+      <button class="btn btn-pri" onclick="saveLeaveEditModal()">儲存</button>
     </div>
   </div>
 </div>
@@ -841,7 +870,7 @@ function loadAllData(){
         type:l.LeaveType==='overtime'?'overtime':'leave',
         start:sd,
         end:l.EndDate?fmt(new Date(l.EndDate)):sd,
-        hoursPerDay:parseFloat(l.HoursPerDay)||HPD,
+        hoursPerDay:(l.HoursPerDay===null||l.HoursPerDay===undefined||l.HoursPerDay==='')?HPD:parseFloat(l.HoursPerDay),
         note:l.Note||''
       });
     });
@@ -1052,6 +1081,39 @@ function removeLeave(lid){
   }).then(function(r){return r.json();}).then(function(){loadAllData();})
   .catch(function(){setBusy(false);});
 }
+var editLeave=null;
+function openLeaveEditModal(l){
+  editLeave=l;
+  var p=personBySpId(l.personId);
+  document.getElementById('leave-edit-sub').textContent=p?p.name:'（未知成員）';
+  document.getElementById('le-type').value=l.type;
+  document.getElementById('le-hours').value=l.hoursPerDay?l.hoursPerDay:'';
+  document.getElementById('le-start').value=l.start;
+  document.getElementById('le-end').value=l.end;
+  document.getElementById('le-note').value=l.note||'';
+  document.getElementById('leave-edit-modal').classList.add('show');
+}
+function saveLeaveEditModal(){
+  if(!editLeave)return;
+  var type=document.getElementById('le-type').value;
+  var hoursVal=document.getElementById('le-hours').value;
+  var start=document.getElementById('le-start').value||editLeave.start;
+  var end=document.getElementById('le-end').value||start;
+  var note=document.getElementById('le-note').value;
+  setBusy(true);
+  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    action:'update',id:editLeave.spId,personId:String(editLeave.personId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hoursVal===''?0:parseFloat(hoursVal),note:note
+  })}).then(function(r){return r.json();}).then(function(){closeM('leave-edit-modal');loadAllData();})
+  .catch(function(){setBusy(false);alert('儲存失敗，請重試。');});
+}
+function deleteLeaveModal(){
+  if(!editLeave)return;
+  if(!confirm('確定要刪除這筆請假／加班紀錄嗎？'))return;
+  setBusy(true);
+  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:editLeave.spId})})
+  .then(function(r){return r.json();}).then(function(){closeM('leave-edit-modal');loadAllData();})
+  .catch(function(){setBusy(false);});
+}
 
 /* ---------- SETTINGS (BLOCKLIB) ---------- */
 function renderCfgSubtable(catKey,list){
@@ -1130,6 +1192,16 @@ function makeModifierChip(modType,value){
   };
   return c;
 }
+function makeLeaveChip(leaveType,label,cls){
+  var c=document.createElement('div');
+  c.className='block-chip '+cls;
+  c.textContent=label;
+  c.draggable=true;
+  c.ondragstart=function(e){
+    e.dataTransfer.setData('text/plain',JSON.stringify({kind:'leave',leaveType:leaveType}));
+  };
+  return c;
+}
 function buildBlockPalette(){
   var bCon=document.getElementById('chips-battery'); if(!bCon)return; bCon.innerHTML='';
   BLOCKLIB.battery.forEach(function(item){bCon.appendChild(makeChip('battery',item.key,item.label));});
@@ -1137,6 +1209,9 @@ function buildBlockPalette(){
   BLOCKLIB.benchmark.forEach(function(item){kCon.appendChild(makeChip('benchmark',item.key,item.label));});
   var gCon=document.getElementById('chips-games'); gCon.innerHTML='';
   gCon.appendChild(makeChip('game','games',BLOCKLIB.games.label||'Games'));
+  var lCon=document.getElementById('chips-leave'); lCon.innerHTML='';
+  lCon.appendChild(makeLeaveChip('leave','請假','leave-off'));
+  lCon.appendChild(makeLeaveChip('overtime','加班','leave-ot'));
   var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
   BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});
   buildFanModeUI();
@@ -1264,6 +1339,7 @@ function buildHourView(){
       var raw=e.dataTransfer.getData('text/plain');
       if(!raw)return;
       var data;try{data=JSON.parse(raw);}catch(err){return;}
+      if(data.kind==='leave'){createLeaveFromBlock(p,data.leaveType,dayStr);return;}
       if(data.kind!=='main')return;
       createTaskFromBlock(p,data,dayStr);
     };
@@ -1361,11 +1437,13 @@ function buildGantt(){
       var sOff=dayOff(l.start),eOff=dayOff(l.end);
       if(eOff<0||sOff>=DAYS)return;
       var clipS=Math.max(0,sOff),clipE=Math.min(DAYS-1,eOff);
+      var hrText=l.hoursPerDay?l.hoursPerDay+'hr/天':'待填時數';
       var lb=document.createElement('div');lb.className='leave-blk '+l.type;
-      lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;';
-      lb.title=(l.type==='overtime'?'加班':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+l.hoursPerDay+'hr/天'+(l.note?' · '+l.note:'');
-      var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'加班':'請假')+' '+l.hoursPerDay+'h';
+      lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;cursor:pointer;';
+      lb.title=(l.type==='overtime'?'加班':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+hrText+(l.note?' · '+l.note:'');
+      var llbl=document.createElement('span');llbl.className='leave-blk-lbl';llbl.textContent=(l.type==='overtime'?'加班':'請假')+' '+(l.hoursPerDay?l.hoursPerDay+'h':'待填');
       lb.appendChild(llbl);
+      lb.onclick=function(e){e.stopPropagation();openLeaveEditModal(l);};
       tl.appendChild(lb);
     });
     tl.ondragover=function(e){e.preventDefault();};
@@ -1374,11 +1452,12 @@ function buildGantt(){
       var raw=e.dataTransfer.getData('text/plain');
       if(!raw)return;
       var data;try{data=JSON.parse(raw);}catch(err){return;}
-      if(data.kind!=='main')return;
       var rect=tl.getBoundingClientRect();
       var xOff=e.clientX-rect.left;
       var dOff=Math.max(0,Math.min(DAYS-1,Math.round(xOff/DAY_W)));
       var startStr=addDays(fmt(START),dOff);
+      if(data.kind==='leave'){createLeaveFromBlock(p,data.leaveType,startStr);return;}
+      if(data.kind!=='main')return;
       createTaskFromBlock(p,data,startStr);
     };
     var used=[];
@@ -1493,6 +1572,13 @@ function createTaskFromBlock(p,data,startStr){
   fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
   .then(function(r){return r.json();}).then(function(){loadAllData();})
   .catch(function(){setBusy(false);alert('新增任務失敗，請重試。');});
+}
+function createLeaveFromBlock(p,leaveType,dateStr){
+  setBusy(true);
+  fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    action:'add',personId:String(p.spId),leaveType:leaveType,startDate:dateStr,endDate:dateStr,hoursPerDay:0,note:''
+  })}).then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('新增請假／加班失敗，請重試。');});
 }
 function buildBlockMeta(t){
   var m={category:t.category,item:t.item,hours:(t.hours===null||t.hours===undefined||t.hours==='')?null:parseFloat(t.hours)};
