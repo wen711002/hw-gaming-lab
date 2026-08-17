@@ -99,6 +99,15 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .announce-item-content{font-size:16px;line-height:1.7;color:var(--text2);white-space:pre-wrap;word-break:break-word;margin-bottom:6px;}
 .announce-item-meta{font-size:13px;color:var(--text3);font-family:var(--font-mono);}
 .announce-empty{color:var(--text3);font-family:var(--font-mono);font-size:15px;}
+.lload-zoom-btn{font-family:var(--font-head);font-size:14px;font-weight:700;letter-spacing:0.04em;padding:6px 16px;border-radius:var(--r6);cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all 0.15s;}
+.lload-zoom-btn:hover{color:var(--text);}
+.lload-zoom-btn.active{background:rgba(76,158,245,0.15);color:var(--blue);border-color:rgba(76,158,245,0.4);}
+.lload-row{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.lload-row:last-child{margin-bottom:0;}
+.lload-label{width:130px;flex-shrink:0;font-size:15px;font-family:var(--font-mono);color:var(--text2);white-space:nowrap;}
+.lload-bar-bg{flex:1;height:20px;background:var(--bg3);border-radius:var(--r4);overflow:hidden;}
+.lload-bar{height:100%;border-radius:var(--r4);display:flex;align-items:center;padding-left:8px;font-size:13px;font-weight:700;color:#000;white-space:nowrap;overflow:hidden;transition:width 0.5s;}
+.lload-pct{font-family:var(--font-mono);font-size:15px;min-width:44px;text-align:right;flex-shrink:0;}
 .today-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,80,80,0.7);z-index:2;}
 
 /* STEPS BAR */
@@ -526,6 +535,19 @@ else{document.getElementById('pw-input').focus();}
     </div>
   </div>
 
+  <!-- LAB LOADING -->
+  <div class="schedule-section" id="lload-section">
+    <div class="schedule-header">
+      <div class="schedule-title">📊 實驗室目前 Loading 狀態</div>
+      <div style="display:flex;gap:8px;">
+        <button class="lload-zoom-btn active" id="lload-week-btn" onclick="setLabLoadZoom('week')">週檢視</button>
+        <button class="lload-zoom-btn" id="lload-month-btn" onclick="setLabLoadZoom('month')">月檢視</button>
+      </div>
+    </div>
+    <div id="lload-list">// 載入中...</div>
+    <div class="schedule-note" style="text-align:left;">※ 僅計算人工操作工時，機台自動執行時間不計入；供申請測試前參考，實際排程仍需由實驗室確認</div>
+  </div>
+
   <!-- ADMIN BAR -->
   <div class="admin-bar">
     <div class="admin-bar-info">
@@ -893,6 +915,7 @@ var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.p
 var PA_DELAY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/09b7285c6c594487bdb0d49f19ef9152/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iV6Xmitmm1EUWn6k3ePGXOEdZCgK0JjskjarwKzz9-I';
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
 var PA_RESULT_MANAGE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/03/workflows/c0e0c53fe43b4c3c8db0bbfab44c310d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dyNQmj9EXbZwPujzbOT8hUVLG-3ICEftUU9vzBBmWWQ';
+var PA_SCHED_READ='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/ec95713a15c74114ac054f69c2e1c9c2/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hjky61tC6V0im2nUtHrVuMa2UhyMdpqxqzu8i5bgBOU';
 var currentSeriesType='gaming'; // 'gaming' | 'consumer'
 
 function syncProdLineOptions(){
@@ -1719,6 +1742,115 @@ function loadAnnouncement(){
   });
 }
 loadAnnouncement();
+
+// ── 實驗室目前 Loading 狀態（讀取 gantt.html 用的同一個 PA_READ，僅計算人工工時，不計機台自動工時）──
+var lloadZoom='week';
+var LLOAD_DATA=null;
+function decodeSchedBlockMeta(s){
+  if(!s) return null;
+  var m=s.match(/^<div[^>]*>([\s\S]*)<\/div>$/i);
+  var inner=m?m[1]:s;
+  var txt=inner.replace(/&quot;/g,'"').replace(/&#123;/g,'{').replace(/&#125;/g,'}').replace(/&#58;/g,':').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  try{return JSON.parse(txt);}catch(e){return null;}
+}
+function fmtSchedDate(d){var x=new Date(d);return x.getFullYear()+'-'+(x.getMonth()<9?'0':'')+(x.getMonth()+1)+'-'+(x.getDate()<10?'0':'')+x.getDate();}
+function schedTaskManualHours(meta){
+  if(!meta||meta.hours===null||meta.hours===undefined||meta.hours==='')return null;
+  var mult=1;
+  if(meta.category==='game'){
+    mult=(meta.count||1)*Math.max(1,(meta.resolutions||[]).length)*Math.max(1,(meta.fanModes||[]).length);
+  }
+  return parseFloat(meta.hours)*mult;
+}
+function schedStartOfWeek(d){
+  var x=new Date(d);
+  var day=x.getDay();
+  var diff=(day===0?-6:1-day);
+  x.setDate(x.getDate()+diff);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function buildLloadWeekPeriods(n){
+  var periods=[];
+  var ws=schedStartOfWeek(new Date());
+  for(var i=0;i<n;i++){
+    var s=new Date(ws);s.setDate(s.getDate()+i*7);
+    var e=new Date(s);e.setDate(e.getDate()+6);
+    periods.push({start:s,end:e,label:(i===0?'本週（':'（')+fmtSchedDate(s).slice(5)+'~'+fmtSchedDate(e).slice(5)+'）'});
+  }
+  return periods;
+}
+function buildLloadMonthPeriods(n){
+  var periods=[];
+  var now=new Date();
+  for(var i=0;i<n;i++){
+    var s=new Date(now.getFullYear(),now.getMonth()+i,1);
+    var e=new Date(now.getFullYear(),now.getMonth()+i+1,0);
+    periods.push({start:s,end:e,label:(i===0?'本月（':'（')+(s.getMonth()+1)+'月）'});
+  }
+  return periods;
+}
+function loadLabLoading(){
+  fetch(PA_SCHED_READ,{method:'GET',headers:{'Accept':'application/json'}})
+  .then(function(r){return r.json();})
+  .then(function(d){LLOAD_DATA=d;renderLabLoading();})
+  .catch(function(){
+    var box=document.getElementById('lload-list');
+    if(box)box.innerHTML='<div class="announce-empty">// Loading 資料載入失敗</div>';
+  });
+}
+function setLabLoadZoom(z){
+  lloadZoom=z;
+  document.getElementById('lload-week-btn').classList.toggle('active',z==='week');
+  document.getElementById('lload-month-btn').classList.toggle('active',z==='month');
+  renderLabLoading();
+}
+function renderLabLoading(){
+  var box=document.getElementById('lload-list');
+  if(!box||!LLOAD_DATA)return;
+  var d=LLOAD_DATA;
+  var HPD=parseFloat(d.settings&&d.settings[0]&&d.settings[0].HPD)||5;
+  var numPeople=(d.members||[]).filter(function(m){return m.Active!==false;}).length||1;
+  var dayHours={};
+  (d.tasks||[]).forEach(function(t){
+    var meta=decodeSchedBlockMeta(t.BlockMeta);
+    var mh=schedTaskManualHours(meta);
+    if(mh===null||!t.StartDate)return;
+    var start=new Date(t.StartDate);
+    var md=Math.max(1,Math.ceil(mh/HPD));
+    var remaining=mh;
+    for(var i=0;i<md;i++){
+      var day=new Date(start);day.setDate(day.getDate()+i);
+      var key=fmtSchedDate(day);
+      var use=Math.min(HPD,remaining);
+      dayHours[key]=(dayHours[key]||0)+use;
+      remaining-=use;
+    }
+  });
+  var periods=lloadZoom==='week'?buildLloadWeekPeriods(4):buildLloadMonthPeriods(3);
+  box.innerHTML='';
+  periods.forEach(function(p){
+    var sumH=0,workDays=0;
+    var cursor=new Date(p.start);
+    while(cursor<=p.end){
+      var key=fmtSchedDate(cursor);
+      sumH+=dayHours[key]||0;
+      var wd=cursor.getDay();
+      if(wd!==0&&wd!==6)workDays++;
+      cursor.setDate(cursor.getDate()+1);
+    }
+    var cap=numPeople*HPD*workDays;
+    var pct=cap>0?Math.min(100,Math.round(sumH/cap*100)):0;
+    var col=pct>80?'#ff5c7a':pct>60?'#ffb347':'#00e5a0';
+    var row=document.createElement('div');row.className='lload-row';
+    row.innerHTML='<div class="lload-label">'+p.label+'</div>'+
+      '<div class="lload-bar-bg"><div class="lload-bar" style="width:'+pct+'%;background:'+col+'">'+(pct>15?pct+'%':'')+'</div></div>'+
+      '<div class="lload-pct" style="color:'+col+'">'+pct+'%</div>';
+    box.appendChild(row);
+  });
+}
+loadLabLoading();
+
 function loadAnnouncementAdmin(){
   var loading=document.getElementById('announce-admin-loading');
   var list=document.getElementById('announce-admin-list');
