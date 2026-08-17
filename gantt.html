@@ -653,6 +653,7 @@ document.getElementById('pw-input').focus();
     </div>
     <div class="mbtns">
       <button class="btn btn-del" onclick="deleteTask()">刪除</button>
+      <button class="btn btn-sec" onclick="createRetestFromTask()">建立重測</button>
       <button class="btn btn-sec" onclick="closeM('edit-modal')">取消</button>
       <button class="btn btn-pri" onclick="saveEdit()">儲存</button>
     </div>
@@ -1811,6 +1812,35 @@ function deleteTask(){
   fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
   .then(function(r){return r.json();}).then(function(){loadAllData();})
   .catch(function(){setBusy(false);alert('刪除失敗，請重試。');});
+}
+function createRetestFromTask(){
+  if(!editTask)return;
+  if(!confirm('確定要建立一筆重測任務嗎？原任務不會被更動，新任務會以「待填」狀態列在時間軸上，之後可再點擊補填重測日期與工時。'))return;
+  var person=null;
+  for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===editTask.person){person=PERSONS[i];break;}}
+  if(!person){alert('找不到負責人資料，請重試。');return;}
+  var meta={category:editTask.category,item:editTask.item,hours:null};
+  if(editTask.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
+  var payload={
+    action:'add',
+    PersonId:String(person.spId),
+    ProjectCode:editTask.code||'',
+    SKU:editTask.sku||'',
+    TestType:editTask.blockLabel||editTask.item||'',
+    Machines:editTask.machines||1,
+    StartDate:fmt(new Date()),
+    FailMode:false,
+    Note:editTask.note||'',
+    Status:'Planned',
+    ActualHours:0,
+    RetestOf:1,
+    blockMeta:JSON.stringify(meta)
+  };
+  closeM('edit-modal');
+  setBusy(true);
+  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('建立重測任務失敗，請重試。');});
 }
 function closeM(id){document.getElementById(id).classList.remove('show');}
 function expandAll(){PERSONS.forEach(function(p){expanded[p.id]=true;});buildGantt();}
