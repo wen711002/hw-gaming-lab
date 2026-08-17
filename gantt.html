@@ -145,10 +145,12 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 
 /* STICKY BLOCK PALETTE (directly above gantt chart) */
 .block-palette{position:sticky;top:0;z-index:40;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r12) var(--r12) 0 0;padding:10px 16px;margin-bottom:0;box-shadow:0 4px 16px rgba(0,0,0,0.35);max-height:40vh;overflow-y:auto;}
-.block-palette-cat{display:flex;align-items:flex-start;gap:14px;padding:6px 0;border-bottom:1px solid var(--border);}
+.block-palette-cat{display:flex;align-items:flex-start;gap:14px;padding:6px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
 .block-palette-cat:last-of-type{border-bottom:none;}
 .block-palette-lbl{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text3);white-space:nowrap;flex-shrink:0;width:104px;padding-top:7px;text-align:right;}
 .block-palette .block-chips{margin-bottom:0;flex:1;}
+.block-palette-group{display:flex;align-items:flex-start;gap:10px;flex-shrink:0;}
+.block-palette-group .block-palette-lbl{width:auto;text-align:left;}
 .block-palette-hint{font-size:13px;color:var(--text3);padding:8px 0 2px;}
 @media(max-width:860px){
   .block-palette-lbl{width:80px;font-size:12px;}
@@ -475,11 +477,11 @@ document.getElementById('pw-input').focus();
             </div>
             <div class="member-field">
               <label>總天數</label>
-              <div id="lv-days-display" class="member-inp" style="width:70px;text-align:center;background:var(--bg2);">1 天</div>
+              <div id="lv-days-display" class="member-inp" style="width:70px;text-align:center;background:var(--bg2);color:var(--text3);">—</div>
             </div>
             <div class="member-field">
               <label>時數／天</label>
-              <input type="number" id="lv-hours" class="member-inp" value="5" min="0.5" max="24" step="0.5" style="width:80px;"/>
+              <input type="number" id="lv-hours" class="member-inp" placeholder="請填寫" min="0.5" max="24" step="0.5" style="width:80px;"/>
             </div>
             <div class="member-field" style="flex:1 1 160px;">
               <label>備註</label>
@@ -557,16 +559,18 @@ document.getElementById('pw-input').focus();
       <div class="block-chips" id="chips-benchmark"></div>
     </div>
     <div class="block-palette-cat">
-      <span class="block-palette-lbl">Games</span>
-      <div class="block-chips" id="chips-games"></div>
-    </div>
-    <div class="block-palette-cat">
-      <span class="block-palette-lbl">解析度疊加</span>
-      <div class="block-chips" id="chips-resolutions"></div>
-    </div>
-    <div class="block-palette-cat">
-      <span class="block-palette-lbl">Fan Mode疊加</span>
-      <div class="block-chips" id="chips-fanmodes"></div>
+      <div class="block-palette-group">
+        <span class="block-palette-lbl">Games</span>
+        <div class="block-chips" id="chips-games"></div>
+      </div>
+      <div class="block-palette-group">
+        <span class="block-palette-lbl">解析度疊加</span>
+        <div class="block-chips" id="chips-resolutions"></div>
+      </div>
+      <div class="block-palette-group">
+        <span class="block-palette-lbl">Fan Mode疊加</span>
+        <div class="block-chips" id="chips-fanmodes"></div>
+      </div>
     </div>
     <div class="block-palette-cat">
       <span class="block-palette-lbl">其他</span>
@@ -1072,7 +1076,6 @@ function buildLeaveList(){
   if(ee&&!ee.value)ee.value=todayStr;
   if(se)se.min=todayStr;
   if(ee)ee.min=todayStr;
-  onLeaveDateChange('lv');
 }
 function leaveDaysCount(start,end){
   if(!start||!end)return 1;
@@ -1095,7 +1098,8 @@ function addLeave(){
   var type=document.getElementById('lv-type').value;
   var start=document.getElementById('lv-start').value;
   var end=document.getElementById('lv-end').value||start;
-  var hours=parseFloat(document.getElementById('lv-hours').value)||HPD;
+  var hoursVal=document.getElementById('lv-hours').value;
+  var hours=hoursVal===''?0:parseFloat(hoursVal);
   var note=document.getElementById('lv-note').value;
   var todayStr=fmt(new Date());
   if(!start){errEl.textContent='請選擇開始日期。';return;}
