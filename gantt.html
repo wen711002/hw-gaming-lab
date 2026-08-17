@@ -366,10 +366,18 @@ document.getElementById('pw-input').focus();
     </div>
     <div id="cfg-body" style="display:none;">
       <div class="panel-body">
-        <div class="block-group-title">電池續航（單套工時 hr，可留空待填）</div>
-        <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th></tr></thead><tbody id="cfg-battery-tbody"></tbody></table>
-        <div class="block-group-title">Benchmark（單套工時 hr，可留空待填）</div>
-        <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th></tr></thead><tbody id="cfg-benchmark-tbody"></tbody></table>
+        <div class="block-group-title">電池續航（單套工時 hr，可留空待填；可自行增減測項）</div>
+        <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th><th></th></tr></thead><tbody id="cfg-battery-tbody"></tbody></table>
+        <div class="member-form-row" style="margin:0 0 14px;">
+          <input type="text" id="new-battery-name" class="member-inp" placeholder="新增電池續航測項名稱" style="width:220px;"/>
+          <button class="member-add-btn" onclick="addBlockLibItem('battery')">＋ 新增</button>
+        </div>
+        <div class="block-group-title">Benchmark（單套工時 hr，可留空待填；可自行增減測項）</div>
+        <table class="cfg-table"><thead><tr><th>測項</th><th>工時 (hr)</th><th></th></tr></thead><tbody id="cfg-benchmark-tbody"></tbody></table>
+        <div class="member-form-row" style="margin:0 0 14px;">
+          <input type="text" id="new-benchmark-name" class="member-inp" placeholder="新增Benchmark測項名稱" style="width:220px;"/>
+          <button class="member-add-btn" onclick="addBlockLibItem('benchmark')">＋ 新增</button>
+        </div>
         <div class="block-group-title">Games</div>
         <table class="cfg-table"><thead><tr><th>項目</th><th>單套工時 (hr)</th></tr></thead><tbody id="cfg-games-tbody"></tbody></table>
         <div class="block-group-title">Fan Mode 管理（新增／移除自訂命名）</div>
@@ -679,19 +687,25 @@ var settingsSpId = 0;
 
 var BLOCKLIB = {
   battery:[
-    {key:'web',   label:'Web Browsing',        hours:null},
-    {key:'max',   label:'Maximum Runtime',     hours:null},
-    {key:'video', label:'1080p Video Playback',hours:null}
+    {key:'web',    label:'Web Browsing',        hours:null},
+    {key:'max',    label:'Maximum Runtime',     hours:null},
+    {key:'video',  label:'1080p Video Playback',hours:null},
+    {key:'ms',     label:'MS',                  hours:null},
+    {key:'vstream',label:'Video Streams',       hours:null},
+    {key:'ulproc', label:'UL Procyon',          hours:null},
+    {key:'teams',  label:'Teams',               hours:null},
+    {key:'pchome', label:'PC home',             hours:null}
   ],
   benchmark:[
-    {key:'pcmark10',  label:'PCMark10',        hours:null},
-    {key:'ulprocyon', label:'UL Procyon',      hours:null},
-    {key:'cbr20',     label:'Cinebench R20',   hours:null},
-    {key:'cbr23',     label:'Cinebench R23',   hours:null},
-    {key:'cb2024',    label:'Cinebench 2024',  hours:null},
-    {key:'cbr25',     label:'Cinebench R25',   hours:null},
-    {key:'atto',      label:'ATTO',            hours:null},
-    {key:'3dmark',    label:'3DMark',          hours:null}
+    {key:'ulprocyonai', label:'UL Procyon AI',  hours:null},
+    {key:'cbr20',       label:'Cinebench R20',  hours:null},
+    {key:'cbr23',       label:'Cinebench R23',  hours:null},
+    {key:'cb2024',      label:'Cinebench 2024', hours:null},
+    {key:'cbr25',       label:'Cinebench R25',  hours:null},
+    {key:'atto',        label:'ATTO',           hours:null},
+    {key:'3dmark',      label:'3DMark',         hours:null},
+    {key:'diskmark',    label:'DiskMark',       hours:null},
+    {key:'geekbench6',  label:'GeekBench6',     hours:null}
   ],
   games:{label:'Games', hoursPerSet:null},
   resolutions:['FHD','2K','4K'],
@@ -1129,9 +1143,29 @@ function renderCfgSubtable(catKey,list){
   list.forEach(function(item){
     var tr=document.createElement('tr');
     tr.innerHTML='<td><span class="cfg-type"><span class="cfg-dot" style="background:'+color+'"></span>'+item.label+'</span></td>'+
-      '<td><input type="number" class="cfg-inp" id="cfg-'+catKey+'-'+item.key+'" value="'+(item.hours==null?'':item.hours)+'" min="0" step="0.5" placeholder="留空"/></td>';
+      '<td><input type="number" class="cfg-inp" id="cfg-'+catKey+'-'+item.key+'" value="'+(item.hours==null?'':item.hours)+'" min="0" step="0.5" placeholder="留空"/></td>'+
+      '<td><button class="member-del" style="font-size:13px;padding:3px 9px;" onclick="removeBlockLibItem(\''+catKey+'\',\''+item.key+'\')">移除</button></td>';
     tbody.appendChild(tr);
   });
+}
+function addBlockLibItem(catKey){
+  var input=document.getElementById('new-'+catKey+'-name');
+  var label=input.value.trim();
+  if(!label)return;
+  var key=catKey+'_'+Date.now();
+  BLOCKLIB[catKey].push({key:key,label:label,hours:null});
+  input.value='';
+  buildCfgTable();
+  buildBlockPalette();
+  persistBlockLib();
+}
+function removeBlockLibItem(catKey,key){
+  var item=BLOCKLIB[catKey].filter(function(i){return i.key===key;})[0];
+  if(!confirm('確定要移除「'+(item?item.label:key)+'」這個測項嗎？'))return;
+  BLOCKLIB[catKey]=BLOCKLIB[catKey].filter(function(i){return i.key!==key;});
+  buildCfgTable();
+  buildBlockPalette();
+  persistBlockLib();
 }
 function buildCfgTable(){
   renderCfgSubtable('battery',BLOCKLIB.battery);
