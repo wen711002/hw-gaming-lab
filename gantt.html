@@ -1302,8 +1302,9 @@ function applyConfig(){
   };
   setBusy(true);
   fetch(PA_SETTINGS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(){loadAllData();})
-  .catch(function(){setBusy(false);alert('設定儲存失敗，請重試。');});
+  .then(function(r){if(!r.ok)throw new Error('save failed');return r.json();})
+  .then(function(){loadAllData();})
+  .catch(function(){setBusy(false);alert('設定儲存失敗，請重試，或稍後再試（可能是伺服器暫時異常）。');});
 }
 
 /* ---------- BLOCK LIBRARY PALETTE ---------- */
@@ -1473,8 +1474,9 @@ function persistBlockLib(){
   };
   setBusy(true);
   fetch(PA_SETTINGS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(){setBusy(false);})
-  .catch(function(){setBusy(false);});
+  .then(function(r){if(!r.ok)throw new Error('save failed');return r.json();})
+  .then(function(){setBusy(false);})
+  .catch(function(){setBusy(false);alert('設定儲存失敗，請重試，或稍後再試（可能是伺服器暫時異常）。');});
 }
 
 /* ---------- CORE ---------- */
