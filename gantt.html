@@ -166,6 +166,9 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .cfg-type{font-family:var(--font-head);font-size:16px;font-weight:700;display:flex;align-items:center;}
 .cfg-inp{width:72px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r4);color:var(--text);font-size:16px;padding:4px 8px;text-align:center;outline:none;font-family:var(--font-mono);}
 .cfg-inp:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-glow);}
+.cfg-table tr[draggable]{cursor:grab;}
+.cfg-drag-handle{color:var(--text3);margin-right:8px;cursor:grab;letter-spacing:-1px;}
+.cfg-table tr.cfg-drag-over td{border-top:2px dashed var(--blue);}
 .cfg-cap{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
 .cfg-cap-item{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--text2);}
 .cfg-cap-item label{font-family:var(--font-head);font-size:14px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
@@ -383,6 +386,12 @@ document.getElementById('pw-input').focus();
         </div>
         <div class="block-group-title">Games</div>
         <table class="cfg-table"><thead><tr><th>項目</th><th>單套工時 (hr)</th></tr></thead><tbody id="cfg-games-tbody"></tbody></table>
+        <div class="block-group-title">解析度管理（新增／移除自訂命名，Games 疊加用）</div>
+        <div class="fanmode-mgmt-list" id="resolution-mgmt-list"></div>
+        <div class="member-form-row" style="margin-top:8px;">
+          <input type="text" id="res-new" class="member-inp" placeholder="新增解析度名稱" style="width:180px;"/>
+          <button class="member-add-btn" onclick="addResolution()">＋ 新增</button>
+        </div>
         <div class="block-group-title">Fan Mode 管理（新增／移除自訂命名）</div>
         <div class="fanmode-mgmt-list" id="fanmode-mgmt-list"></div>
         <div class="member-form-row" style="margin-top:8px;">
@@ -1161,16 +1170,75 @@ function deleteLeaveModal(){
 }
 
 /* ---------- SETTINGS (BLOCKLIB) ---------- */
+var cfgEditing={battery:null,benchmark:null};
+var cfgDragCat=null,cfgDragKey=null;
 function renderCfgSubtable(catKey,list){
   var tbody=document.getElementById('cfg-'+catKey+'-tbody'); if(!tbody)return; tbody.innerHTML='';
   var color=CAT_COLOR[catKey];
   list.forEach(function(item){
     var tr=document.createElement('tr');
-    tr.innerHTML='<td><span class="cfg-type"><span class="cfg-dot" style="background:'+color+'"></span>'+item.label+'</span></td>'+
+    tr.draggable=true;
+    tr.ondragstart=function(e){
+      cfgDragCat=catKey; cfgDragKey=item.key;
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain','cfg-reorder');
+    };
+    tr.ondragover=function(e){ e.preventDefault(); tr.classList.add('cfg-drag-over'); };
+    tr.ondragleave=function(){ tr.classList.remove('cfg-drag-over'); };
+    tr.ondrop=function(e){
+      e.preventDefault();
+      tr.classList.remove('cfg-drag-over');
+      reorderBlockLibItem(catKey,cfgDragKey,item.key);
+    };
+    var isEditing=(cfgEditing[catKey]===item.key);
+    var labelCell=isEditing
+      ? '<input type="text" class="member-inp" id="cfg-edit-'+catKey+'-'+item.key+'" value="'+String(item.label).replace(/"/g,'&quot;')+'" style="width:170px;"/>'
+      : '<span class="cfg-drag-handle" title="拖曳排序">⠿</span><span class="cfg-type"><span class="cfg-dot" style="background:'+color+'"></span>'+item.label+'</span>';
+    var actionCell=isEditing
+      ? '<button class="member-add-btn" style="font-size:13px;padding:3px 9px;" onclick="saveEditBlockLibItem(\''+catKey+'\',\''+item.key+'\')">儲存</button> '+
+        '<button class="member-del" style="font-size:13px;padding:3px 9px;" onclick="cancelEditBlockLibItem(\''+catKey+'\')">取消</button>'
+      : '<button class="member-del" style="font-size:13px;padding:3px 9px;background:rgba(76,158,245,0.1);border-color:rgba(76,158,245,0.3);color:var(--blue);" onclick="startEditBlockLibItem(\''+catKey+'\',\''+item.key+'\')">編輯</button> '+
+        '<button class="member-del" style="font-size:13px;padding:3px 9px;" onclick="removeBlockLibItem(\''+catKey+'\',\''+item.key+'\')">移除</button>';
+    tr.innerHTML='<td>'+labelCell+'</td>'+
       '<td><input type="number" class="cfg-inp" id="cfg-'+catKey+'-'+item.key+'" value="'+(item.hours==null?'':item.hours)+'" min="0" step="0.5" placeholder="留空"/></td>'+
-      '<td><button class="member-del" style="font-size:13px;padding:3px 9px;" onclick="removeBlockLibItem(\''+catKey+'\',\''+item.key+'\')">移除</button></td>';
+      '<td>'+actionCell+'</td>';
     tbody.appendChild(tr);
   });
+}
+function startEditBlockLibItem(catKey,key){
+  cfgEditing[catKey]=key;
+  buildCfgTable();
+}
+function cancelEditBlockLibItem(catKey){
+  cfgEditing[catKey]=null;
+  buildCfgTable();
+}
+function saveEditBlockLibItem(catKey,key){
+  var input=document.getElementById('cfg-edit-'+catKey+'-'+key);
+  var v=input.value.trim();
+  if(!v)return;
+  var item=BLOCKLIB[catKey].filter(function(i){return i.key===key;})[0];
+  if(item)item.label=v;
+  cfgEditing[catKey]=null;
+  buildCfgTable();
+  buildBlockPalette();
+  persistBlockLib();
+}
+function reorderBlockLibItem(catKey,fromKey,toKey){
+  var cat=cfgDragCat; cfgDragCat=null; cfgDragKey=null;
+  if(!fromKey||fromKey===toKey||cat!==catKey)return;
+  var arr=BLOCKLIB[catKey];
+  var fromIdx=-1,toIdx=-1;
+  for(var i=0;i<arr.length;i++){
+    if(arr[i].key===fromKey)fromIdx=i;
+    if(arr[i].key===toKey)toIdx=i;
+  }
+  if(fromIdx===-1||toIdx===-1)return;
+  var moved=arr.splice(fromIdx,1)[0];
+  arr.splice(toIdx,0,moved);
+  buildCfgTable();
+  buildBlockPalette();
+  persistBlockLib();
 }
 function addBlockLibItem(catKey){
   var input=document.getElementById('new-'+catKey+'-name');
@@ -1289,9 +1357,36 @@ function buildBlockPalette(){
   lCon.appendChild(makeLeaveChip('overtime','公出','leave-ot'));
   var mCon=document.getElementById('chips-misc'); mCon.innerHTML='';
   mCon.appendChild(makeMiscChip());
+  buildResolutionUI();
+  buildFanModeUI();
+}
+function buildResolutionUI(){
   var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
   BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});
-  buildFanModeUI();
+  var mgmt=document.getElementById('resolution-mgmt-list'); if(!mgmt)return; mgmt.innerHTML='';
+  BLOCKLIB.resolutions.forEach(function(r,idx){
+    var row=document.createElement('div'); row.className='member-row';
+    row.innerHTML='<div class="member-info"><div class="member-name" style="font-size:15px;">'+r+'</div></div>';
+    var del=document.createElement('button'); del.className='member-del'; del.textContent='移除';
+    del.onclick=function(){removeResolution(idx);};
+    row.appendChild(del);
+    mgmt.appendChild(row);
+  });
+}
+function addResolution(){
+  var inp=document.getElementById('res-new');
+  var v=inp.value.trim();
+  if(!v)return;
+  if(BLOCKLIB.resolutions.indexOf(v)>-1){inp.value='';return;}
+  BLOCKLIB.resolutions.push(v);
+  inp.value='';
+  buildResolutionUI();
+  persistBlockLib();
+}
+function removeResolution(idx){
+  BLOCKLIB.resolutions.splice(idx,1);
+  buildResolutionUI();
+  persistBlockLib();
 }
 function buildFanModeUI(){
   var fCon=document.getElementById('chips-fanmodes'); fCon.innerHTML='';
