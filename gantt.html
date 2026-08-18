@@ -224,6 +224,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .hv-block{height:34px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;flex-shrink:0;transition:filter 0.15s;margin-right:2px;}
 .hv-block:hover{filter:brightness(1.15);}
 .hv-block.pending{background:transparent;border:2px dashed currentColor;}
+.hv-block.leave-off{background:repeating-linear-gradient(45deg,rgba(255,92,122,0.22),rgba(255,92,122,0.22) 5px,rgba(255,92,122,0.08) 5px,rgba(255,92,122,0.08) 10px);border:1px solid rgba(255,92,122,0.4);color:var(--red);}
+.hv-block.leave-ot{background:repeating-linear-gradient(45deg,rgba(0,212,255,0.22),rgba(0,212,255,0.22) 5px,rgba(0,212,255,0.08) 5px,rgba(0,212,255,0.08) 10px);border:1px solid rgba(0,212,255,0.4);color:var(--cyan);}
 .hv-empty{color:var(--text3);font-size:14px;padding:14px;}
 .gantt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .gantt-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
@@ -1718,14 +1720,29 @@ function buildHourView(){
       if(data.kind!=='main')return;
       createTaskFromBlock(p,data,dayStr);
     };
-    var dayTasks=tasks.filter(function(t){
+    var dayLeaves=calFilter==='tasks'?[]:LEAVES.filter(function(l){
+      if(String(l.personId)!==String(p.spId))return false;
+      var sOff=dayOff(l.start),eOff=dayOff(l.end);
+      return todayOff>=sOff&&todayOff<=eOff;
+    });
+    dayLeaves.forEach(function(l){
+      var lb=document.createElement('div');lb.className='hv-block '+(l.type==='overtime'?'leave-ot':'leave-off');
+      var hrText=l.hoursPerDay?l.hoursPerDay+'hr':'待填';
+      var w=l.hoursPerDay?Math.max(4,l.hoursPerDay*HOUR_W-3):130;
+      lb.style.width=w+'px';
+      lb.textContent=(l.type==='overtime'?'公出':'請假')+' '+hrText+(l.note?' · '+l.note:'');
+      lb.title=(l.type==='overtime'?'公出':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+' · '+hrText+(l.note?' · '+l.note:'');
+      lb.onclick=function(e){e.stopPropagation();openLeaveEditModal(l);};
+      tl.appendChild(lb);
+    });
+    var dayTasks=calFilter==='leave'?[]:tasks.filter(function(t){
       if(t.person!==p.id)return false;
       var c=calc(t);
       var startOff=dayOff(t.start);
       if(c.pending)return todayOff===startOff;
       return todayOff>=startOff&&todayOff<startOff+c.md;
     });
-    if(dayTasks.length===0){
+    if(dayTasks.length===0&&dayLeaves.length===0){
       var empty=document.createElement('div');empty.className='hv-empty';
       empty.textContent='當日無排定任務';
       tl.appendChild(empty);
