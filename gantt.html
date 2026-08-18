@@ -252,6 +252,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .task-lbl{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis;}
 .task-badge{position:relative;z-index:1;font-size:13px;background:rgba(0,0,0,0.3);border-radius:3px;padding:1px 5px;margin-left:5px;flex-shrink:0;}
 .task-bar.pending .task-badge{background:transparent;border:1px dashed currentColor;}
+.task-bar-manual{position:absolute;top:0;bottom:0;left:0;z-index:0;border-radius:var(--r4);}
+.task-bar-machine{position:absolute;top:0;bottom:0;z-index:0;opacity:0.4;background-image:repeating-linear-gradient(45deg,currentColor,currentColor 3px,transparent 3px,transparent 7px);border-left:1px dashed currentColor;}
 .g-sub-rows{display:none;}.g-sub-rows.open{display:block;}
 .g-proj-row{display:flex;border-top:1px solid var(--border);background:rgba(0,0,0,0.1);}
 .g-proj-lbl{width:260px;flex-shrink:0;padding:7px 14px;border-right:1px solid var(--border);display:flex;align-items:center;gap:8px;}
@@ -626,7 +628,11 @@ document.getElementById('pw-input').focus();
     </div>
     <div class="g2">
       <div class="field"><label>機台數</label><input type="number" id="e-machines" min="1" max="3"/></div>
-      <div class="field"><label id="e-hours-label">工時 (hr)</label><input type="number" id="e-hours" min="0" step="0.5" placeholder="留空待填" oninput="updateEditEst()"/></div>
+      <div class="field"><label id="e-hours-label">手動工時 (hr)</label><input type="number" id="e-hours" min="0" step="0.5" placeholder="留空待填" oninput="updateEditEst()"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>機台自動工時 (hr，選填)</label><input type="number" id="e-machine-hours" min="0" step="0.5" placeholder="機台需連續運作才填，例如整晚跑" oninput="updateEditEst()"/></div>
+      <div class="field"><label>&nbsp;</label><div style="padding-top:9px;color:var(--text3);font-size:14px;">24hr連續換算天數，不佔用人力容量</div></div>
     </div>
     <div id="e-game-block" style="display:none;">
       <div class="field"><label>套數（×N）</label><input type="number" id="e-count" min="1" step="1" oninput="updateEditEst()"/></div>
@@ -648,8 +654,9 @@ document.getElementById('pw-input').focus();
     <div class="est-box">
       <div class="est-title">預估工時</div>
       <div class="est-row">總人工工時：<span class="em" id="ee-total">—</span></div>
-      <div class="est-row">工作天數：<span class="eb" id="ee-days">—</span></div>
-      <div class="est-row">預估結束日：<span class="eb" id="ee-end">—</span></div>
+      <div class="est-row">人工工作天數：<span class="eb" id="ee-days">—</span></div>
+      <div class="est-row">人工結束日：<span class="eb" id="ee-end">—</span></div>
+      <div class="est-row" id="ee-machine-row" style="display:none;">機台自動工時：<span class="em" id="ee-machine-total">—</span>　機台預計完成：<span class="eb" id="ee-machine-end">—</span></div>
     </div>
     <div class="mbtns">
       <button class="btn btn-del" onclick="deleteTask()">刪除</button>
@@ -960,7 +967,8 @@ function loadAllData(){
         category:meta.category||'battery',
         item:meta.item||t.TestType||'',
         blockLabel:t.TestType||meta.item||'',
-        hours:(meta.hours===undefined||meta.hours===null||meta.hours==='')?null:parseFloat(meta.hours),
+        manualHours:(meta.manualHours!==undefined)?((meta.manualHours===null||meta.manualHours==='')?null:parseFloat(meta.manualHours)):((meta.hours===undefined||meta.hours===null||meta.hours==='')?null:parseFloat(meta.hours)),
+        machineHours:(meta.machineHours===undefined||meta.machineHours===null||meta.machineHours==='')?null:parseFloat(meta.machineHours),
         count:meta.count||1,
         resolutions:meta.resolutions||[],
         fanModes:meta.fanModes||[],
@@ -1620,16 +1628,23 @@ function persistBlockLib(){
 
 /* ---------- CORE ---------- */
 function calc(t){
-  if(t.hours===null||t.hours===undefined||t.hours===''||isNaN(t.hours)){
-    return {mh:null,md:1,total:1,end:t.start,pending:true};
+  var mHrs=(t.manualHours===null||t.manualHours===undefined||t.manualHours===''||isNaN(t.manualHours))?null:parseFloat(t.manualHours);
+  var kHrs=(t.machineHours===null||t.machineHours===undefined||t.machineHours===''||isNaN(t.machineHours))?null:parseFloat(t.machineHours);
+  if(mHrs===null&&kHrs===null){
+    return {mh:null,md:1,machineDays:0,total:1,end:t.start,machineEnd:t.start,pending:true};
   }
   var mult=1;
   if(t.category==='game'){
     mult=(t.count||1)*Math.max(1,(t.resolutions||[]).length)*Math.max(1,(t.fanModes||[]).length);
   }
-  var mh=t.hours*mult;
-  var md=Math.max(1,Math.ceil(mh/HPD));
-  return {mh:mh,md:md,total:md,end:addDays(t.start,md-1),pending:false};
+  var mh=(mHrs||0)*mult;
+  var kh=(kHrs||0)*mult;
+  var md=mHrs===null?0:Math.max(1,Math.ceil(mh/HPD));
+  var machineDays=kh>0?Math.ceil(kh/24):0;
+  var total=Math.max(1,md+machineDays);
+  var end=addDays(t.start,Math.max(0,md-1));
+  var machineEnd=machineDays>0?addDays(end,machineDays):end;
+  return {mh:mh,md:md,machineDays:machineDays,total:total,end:end,machineEnd:machineEnd,pending:false};
 }
 function addDays(s,n){var d=new Date(s);d.setDate(d.getDate()+n);return fmt(d);}
 function fmt(d){var x=new Date(d);return x.getFullYear()+'-'+(x.getMonth()<9?'0':'')+(x.getMonth()+1)+'-'+(x.getDate()<10?'0':'')+x.getDate();}
@@ -1661,7 +1676,7 @@ function buildHeader(){
 }
 function hoursOnDay(t,dayIndex){
   var c=calc(t);
-  if(c.pending)return 0;
+  if(c.pending||c.md===0)return 0;
   var remaining=c.mh-dayIndex*HPD;
   if(remaining<=0)return 0;
   return Math.min(HPD,remaining);
@@ -1856,20 +1871,33 @@ function buildGantt(){
 }
 
 function summaryBadge(t,c){
+  var suffix=c.machineDays>0?' ⚙':'';
   if(t.category==='game'){
     var parts=['×'+(t.count||1)];
     if(t.resolutions&&t.resolutions.length)parts.push(t.resolutions.join('+'));
     if(t.fanModes&&t.fanModes.length)parts.push(t.fanModes.join('+'));
-    return parts.join(' · ')+' · '+c.mh+'hr';
+    return parts.join(' · ')+' · '+c.mh+'hr'+suffix;
   }
-  return c.mh+'hr';
+  return c.mh+'hr'+suffix;
 }
 function renderBar(t,c,container,h,top,small){
   var color=catColor(t.category);
   var off=dayOff(t.start);
   var bar=document.createElement('div');bar.className='task-bar'+(c.pending?' pending':'');
   var barW=Math.max(4,c.total*DAY_W-3);
-  bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+barW+'px;top:'+top+'px;height:'+h+'px;'+(c.pending?('color:'+color+';'):('background:'+color+';color:#000;'));
+  bar.style.cssText='left:'+(off*DAY_W+1)+'px;width:'+barW+'px;top:'+top+'px;height:'+h+'px;'+(c.pending?('color:'+color+';'):'');
+  if(!c.pending){
+    var manualW=c.machineDays>0?c.md*DAY_W:barW;
+    var manualSeg=document.createElement('div');manualSeg.className='task-bar-manual';
+    manualSeg.style.cssText='width:'+manualW+'px;background:'+color+';color:#000;';
+    bar.appendChild(manualSeg);
+    if(c.machineDays>0){
+      var machineSeg=document.createElement('div');machineSeg.className='task-bar-machine';
+      machineSeg.style.cssText='left:'+manualW+'px;width:'+(barW-manualW)+'px;color:'+color+';';
+      bar.appendChild(machineSeg);
+    }
+    bar.title='手動 '+c.mh+'hr'+(c.machineDays>0?('　機台自動工時需另計　人工結束日 '+c.end+'　機台預計完成 '+c.machineEnd):('　結束日 '+c.end));
+  }
   var lbl=document.createElement('span');lbl.className='task-lbl';
   var itemLabel=t.blockLabel||t.item||'(待命名)';
   var nameTxt=small?t.code:(t.category==='misc'?itemLabel:(itemLabel+' · '+t.code));
@@ -1920,7 +1948,7 @@ function updateLoadingBars(){
 
 /* ---------- BLOCK → TASK CRUD ---------- */
 function createTaskFromBlock(p,data,startStr){
-  var meta={category:data.category,item:data.label,hours:null};
+  var meta={category:data.category,item:data.label,manualHours:null,machineHours:null};
   if(data.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
   var isMisc=data.category==='misc';
   var payload={
@@ -1951,7 +1979,10 @@ function createLeaveFromBlock(p,leaveType,dateStr){
   .catch(function(){setBusy(false);alert('新增請假／公出失敗，請重試。');});
 }
 function buildBlockMeta(t){
-  var m={category:t.category,item:t.item,hours:(t.hours===null||t.hours===undefined||t.hours==='')?null:parseFloat(t.hours)};
+  var m={category:t.category,item:t.item,
+    manualHours:(t.manualHours===null||t.manualHours===undefined||t.manualHours==='')?null:parseFloat(t.manualHours),
+    machineHours:(t.machineHours===null||t.machineHours===undefined||t.machineHours==='')?null:parseFloat(t.machineHours)
+  };
   if(t.category==='game'){
     m.count=t.count||1;
     m.resolutions=t.resolutions||[];
@@ -2016,18 +2047,28 @@ function editRemoveFanMode(v){
 function updateEditEst(){
   if(!editTask)return;
   var hoursVal=document.getElementById('e-hours').value;
+  var machineVal=document.getElementById('e-machine-hours').value;
   var temp={
     category:editTask.category,
-    hours:hoursVal===''?null:parseFloat(hoursVal),
+    manualHours:hoursVal===''?null:parseFloat(hoursVal),
+    machineHours:machineVal===''?null:parseFloat(machineVal),
     count:editTask.category==='game'?(parseFloat(document.getElementById('e-count').value)||1):1,
     resolutions:editTask.resolutions||[],
     fanModes:editTask.fanModes||[],
     start:document.getElementById('e-start').value||editTask.start
   };
   var c=calc(temp);
-  document.getElementById('ee-total').textContent=c.pending?'待填':c.mh+' hr';
-  document.getElementById('ee-days').textContent=c.pending?'—':c.md+' 天 × '+HPD+'hr';
-  document.getElementById('ee-end').textContent=c.pending?'—':c.end;
+  document.getElementById('ee-total').textContent=(c.pending||temp.manualHours===null)?'待填':c.mh+' hr';
+  document.getElementById('ee-days').textContent=(c.pending||c.md===0)?'—':c.md+' 天 × '+HPD+'hr';
+  document.getElementById('ee-end').textContent=(c.pending||c.md===0)?'—':c.end;
+  var mRow=document.getElementById('ee-machine-row');
+  if(!c.pending&&c.machineDays>0){
+    mRow.style.display='block';
+    document.getElementById('ee-machine-total').textContent=(machineVal===''?'—':machineVal+' hr');
+    document.getElementById('ee-machine-end').textContent=c.machineEnd;
+  }else{
+    mRow.style.display='none';
+  }
 }
 function openEditModal(t){
   editTask=t;
@@ -2039,8 +2080,9 @@ function openEditModal(t){
   document.getElementById('e-code').value=t.code;
   document.getElementById('e-sku').value=t.sku;
   document.getElementById('e-machines').value=t.machines||1;
-  document.getElementById('e-hours').value=(t.hours===null||t.hours===undefined)?'':t.hours;
-  document.getElementById('e-hours-label').textContent=t.category==='game'?'單套工時 (hr)':'工時 (hr)';
+  document.getElementById('e-hours').value=(t.manualHours===null||t.manualHours===undefined)?'':t.manualHours;
+  document.getElementById('e-machine-hours').value=(t.machineHours===null||t.machineHours===undefined)?'':t.machineHours;
+  document.getElementById('e-hours-label').textContent=t.category==='game'?'單套手動工時 (hr)':'手動工時 (hr)';
   var isGame=t.category==='game';
   document.getElementById('e-game-block').style.display=isGame?'block':'none';
   if(isGame){
@@ -2067,7 +2109,9 @@ function saveEdit(){
   editTask.sku=document.getElementById('e-sku').value||editTask.sku;
   editTask.machines=parseInt(document.getElementById('e-machines').value)||1;
   var hv=document.getElementById('e-hours').value;
-  editTask.hours=hv===''?null:parseFloat(hv);
+  editTask.manualHours=hv===''?null:parseFloat(hv);
+  var mv=document.getElementById('e-machine-hours').value;
+  editTask.machineHours=mv===''?null:parseFloat(mv);
   if(editTask.category==='game'){
     editTask.count=parseFloat(document.getElementById('e-count').value)||1;
   }
@@ -2102,7 +2146,7 @@ function createRetestFromTask(){
   var person=null;
   for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===editTask.person){person=PERSONS[i];break;}}
   if(!person){alert('找不到負責人資料，請重試。');return;}
-  var meta={category:editTask.category,item:editTask.item,hours:null};
+  var meta={category:editTask.category,item:editTask.item,manualHours:null,machineHours:null};
   if(editTask.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
   var payload={
     action:'add',
