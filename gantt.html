@@ -2176,6 +2176,10 @@ function setZoom(mode){
   currentZoom=mode;
   var vm=VIEW_MODES[mode];
   DAY_W=vm.dayW;DAYS=vm.days;
+  if(mode==='hour'){
+    START=new Date();
+    START.setHours(0,0,0,0);
+  }
   document.querySelectorAll('.zoom-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById('zoom-'+mode).classList.add('active');
   buildHeader();buildGantt();
