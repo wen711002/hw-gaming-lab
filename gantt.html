@@ -169,6 +169,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .cfg-table tr[draggable]{cursor:grab;}
 .cfg-drag-handle{color:var(--text3);margin-right:8px;cursor:grab;letter-spacing:-1px;}
 .cfg-table tr.cfg-drag-over td{border-top:2px dashed var(--blue);}
+.member-row[draggable]{cursor:grab;}
+.member-row.cfg-drag-over-row{outline:2px dashed var(--blue);}
 .cfg-cap{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
 .cfg-cap-item{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--text2);}
 .cfg-cap-item label{font-family:var(--font-head);font-size:14px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
@@ -1360,18 +1362,81 @@ function buildBlockPalette(){
   buildResolutionUI();
   buildFanModeUI();
 }
+var cfgEditingMod={resolutions:null,fanModes:null};
+var cfgDragModField=null,cfgDragModVal=null;
+function buildModList(field){
+  var containerId=field==='resolutions'?'resolution-mgmt-list':'fanmode-mgmt-list';
+  var mgmt=document.getElementById(containerId); if(!mgmt)return; mgmt.innerHTML='';
+  BLOCKLIB[field].forEach(function(val){
+    var row=document.createElement('div'); row.className='member-row';
+    row.draggable=true;
+    row.ondragstart=function(e){
+      cfgDragModField=field; cfgDragModVal=val;
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain','mod-reorder');
+    };
+    row.ondragover=function(e){ e.preventDefault(); row.classList.add('cfg-drag-over-row'); };
+    row.ondragleave=function(){ row.classList.remove('cfg-drag-over-row'); };
+    row.ondrop=function(e){
+      e.preventDefault();
+      row.classList.remove('cfg-drag-over-row');
+      reorderModItem(field,val);
+    };
+    var isEditing=(cfgEditingMod[field]===val);
+    if(isEditing){
+      row.innerHTML='<span class="cfg-drag-handle" title="拖曳排序">⠿</span>'+
+        '<div class="member-info"><input type="text" class="member-inp" id="cfg-edit-mod-'+field+'" value="'+String(val).replace(/"/g,'&quot;')+'" style="width:160px;"/></div>';
+      var save=document.createElement('button'); save.className='member-add-btn'; save.textContent='儲存';
+      save.onclick=function(){saveEditModItem(field,val);};
+      var cancel=document.createElement('button'); cancel.className='member-del'; cancel.textContent='取消';
+      cancel.onclick=function(){cfgEditingMod[field]=null; buildModList(field);};
+      row.appendChild(save); row.appendChild(cancel);
+    }else{
+      row.innerHTML='<span class="cfg-drag-handle" title="拖曳排序">⠿</span><div class="member-info"><div class="member-name" style="font-size:15px;">'+val+'</div></div>';
+      var edit=document.createElement('button'); edit.className='member-del'; edit.textContent='編輯';
+      edit.style.background='rgba(76,158,245,0.1)'; edit.style.borderColor='rgba(76,158,245,0.3)'; edit.style.color='var(--blue)';
+      edit.onclick=function(){cfgEditingMod[field]=val; buildModList(field);};
+      var del=document.createElement('button'); del.className='member-del'; del.textContent='移除';
+      del.onclick=function(){removeModItem(field,val);};
+      row.appendChild(edit); row.appendChild(del);
+    }
+    mgmt.appendChild(row);
+  });
+}
+function saveEditModItem(field,oldVal){
+  var input=document.getElementById('cfg-edit-mod-'+field);
+  var v=input.value.trim();
+  if(!v)return;
+  if(v!==oldVal&&BLOCKLIB[field].indexOf(v)>-1){alert('已存在相同名稱。');return;}
+  var idx=BLOCKLIB[field].indexOf(oldVal);
+  if(idx>-1)BLOCKLIB[field][idx]=v;
+  cfgEditingMod[field]=null;
+  buildModList(field);
+  if(field==='resolutions'){var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML=''; BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});}
+  else{var fCon=document.getElementById('chips-fanmodes'); fCon.innerHTML=''; BLOCKLIB.fanModes.forEach(function(fm){fCon.appendChild(makeModifierChip('fanMode',fm));});}
+  persistBlockLib();
+}
+function removeModItem(field,val){
+  var idx=BLOCKLIB[field].indexOf(val);
+  if(idx>-1)BLOCKLIB[field].splice(idx,1);
+  if(field==='resolutions')buildResolutionUI(); else buildFanModeUI();
+  persistBlockLib();
+}
+function reorderModItem(field,toVal){
+  var f=cfgDragModField,fromVal=cfgDragModVal; cfgDragModField=null; cfgDragModVal=null;
+  if(!fromVal||fromVal===toVal||f!==field)return;
+  var arr=BLOCKLIB[field];
+  var fromIdx=arr.indexOf(fromVal),toIdx=arr.indexOf(toVal);
+  if(fromIdx===-1||toIdx===-1)return;
+  var moved=arr.splice(fromIdx,1)[0];
+  arr.splice(toIdx,0,moved);
+  if(field==='resolutions')buildResolutionUI(); else buildFanModeUI();
+  persistBlockLib();
+}
 function buildResolutionUI(){
   var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
   BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});
-  var mgmt=document.getElementById('resolution-mgmt-list'); if(!mgmt)return; mgmt.innerHTML='';
-  BLOCKLIB.resolutions.forEach(function(r,idx){
-    var row=document.createElement('div'); row.className='member-row';
-    row.innerHTML='<div class="member-info"><div class="member-name" style="font-size:15px;">'+r+'</div></div>';
-    var del=document.createElement('button'); del.className='member-del'; del.textContent='移除';
-    del.onclick=function(){removeResolution(idx);};
-    row.appendChild(del);
-    mgmt.appendChild(row);
-  });
+  buildModList('resolutions');
 }
 function addResolution(){
   var inp=document.getElementById('res-new');
@@ -1383,23 +1448,10 @@ function addResolution(){
   buildResolutionUI();
   persistBlockLib();
 }
-function removeResolution(idx){
-  BLOCKLIB.resolutions.splice(idx,1);
-  buildResolutionUI();
-  persistBlockLib();
-}
 function buildFanModeUI(){
   var fCon=document.getElementById('chips-fanmodes'); fCon.innerHTML='';
   BLOCKLIB.fanModes.forEach(function(fm){fCon.appendChild(makeModifierChip('fanMode',fm));});
-  var mgmt=document.getElementById('fanmode-mgmt-list'); mgmt.innerHTML='';
-  BLOCKLIB.fanModes.forEach(function(fm,idx){
-    var row=document.createElement('div'); row.className='member-row';
-    row.innerHTML='<div class="member-info"><div class="member-name" style="font-size:15px;">'+fm+'</div></div>';
-    var del=document.createElement('button'); del.className='member-del'; del.textContent='移除';
-    del.onclick=function(){removeFanMode(idx);};
-    row.appendChild(del);
-    mgmt.appendChild(row);
-  });
+  buildModList('fanModes');
 }
 function addFanMode(){
   var inp=document.getElementById('fm-new');
@@ -1408,11 +1460,6 @@ function addFanMode(){
   if(BLOCKLIB.fanModes.indexOf(v)>-1){inp.value='';return;}
   BLOCKLIB.fanModes.push(v);
   inp.value='';
-  buildFanModeUI();
-  persistBlockLib();
-}
-function removeFanMode(idx){
-  BLOCKLIB.fanModes.splice(idx,1);
   buildFanModeUI();
   persistBlockLib();
 }
