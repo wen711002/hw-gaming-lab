@@ -571,6 +571,7 @@ document.getElementById('pw-input').focus();
         <div class="block-chips" id="chips-fanmodes"></div>
       </div>
     </div>
+    <div id="block-palette-categories-after-games"></div>
     <div class="block-palette-cat">
       <span class="block-palette-lbl">其他</span>
       <div class="block-chips" id="chips-misc"></div>
@@ -1327,13 +1328,16 @@ function buildCategoryMgmtUI(){
       row.appendChild(save); row.appendChild(cancel);
     }else{
       row.innerHTML='<span class="cfg-drag-handle" title="拖曳排序">⠿</span>'+
-        '<div class="member-info"><div class="member-name" style="font-size:15px;"><span class="cfg-dot" style="background:'+cat.color+'"></span>'+cat.label+'（'+cat.items.length+' 項測項）</div></div>';
+        '<div class="member-info"><div class="member-name" style="font-size:15px;"><span class="cfg-dot" style="background:'+cat.color+'"></span>'+cat.label+'（'+cat.items.length+' 項測項'+(cat.afterGames?'・顯示於Games下方':'')+'）</div></div>';
+      var pos=document.createElement('button'); pos.className='member-del'; pos.textContent=cat.afterGames?'移到Games上方':'移到Games下方';
+      pos.style.background='rgba(0,229,160,0.1)'; pos.style.borderColor='rgba(0,229,160,0.3)'; pos.style.color='var(--green)';
+      pos.onclick=function(){toggleCategoryAfterGames(cat.key);};
       var edit=document.createElement('button'); edit.className='member-del'; edit.textContent='編輯';
       edit.style.background='rgba(76,158,245,0.1)'; edit.style.borderColor='rgba(76,158,245,0.3)'; edit.style.color='var(--blue)';
       edit.onclick=function(){cfgEditingCat=cat.key; buildCategoryMgmtUI();};
       var del=document.createElement('button'); del.className='member-del'; del.textContent='移除';
       del.onclick=function(){removeCategory(cat.key);};
-      row.appendChild(edit); row.appendChild(del);
+      row.appendChild(pos); row.appendChild(edit); row.appendChild(del);
     }
     mgmt.appendChild(row);
   });
@@ -1345,8 +1349,15 @@ function addCategory(){
   var key='cat_'+Date.now();
   var usedColors=BLOCKLIB.categories.map(function(c){return c.color;});
   var color=CAT_COLOR_PALETTE.filter(function(c){return usedColors.indexOf(c)===-1;})[0]||CAT_COLOR_PALETTE[BLOCKLIB.categories.length%CAT_COLOR_PALETTE.length];
-  BLOCKLIB.categories.push({key:key,label:label,color:color,items:[]});
+  BLOCKLIB.categories.push({key:key,label:label,color:color,items:[],afterGames:false});
   inp.value='';
+  buildCfgTable();
+  buildBlockPalette();
+  persistBlockLib();
+}
+function toggleCategoryAfterGames(key){
+  var cat=getCategory(key); if(!cat)return;
+  cat.afterGames=!cat.afterGames;
   buildCfgTable();
   buildBlockPalette();
   persistBlockLib();
@@ -1467,19 +1478,20 @@ function makeMiscChip(){
   };
   return c;
 }
+function renderPaletteCategoryGroup(containerId,cats){
+  var con=document.getElementById(containerId); if(!con)return; con.innerHTML='';
+  cats.forEach(function(cat){
+    var row=document.createElement('div'); row.className='block-palette-cat';
+    var lbl=document.createElement('span'); lbl.className='block-palette-lbl'; lbl.textContent=cat.label;
+    var chips=document.createElement('div'); chips.className='block-chips'; chips.id='chips-'+cat.key;
+    cat.items.forEach(function(item){chips.appendChild(makeChip(cat.key,item.key,item.label,cat.color));});
+    row.appendChild(lbl); row.appendChild(chips);
+    con.appendChild(row);
+  });
+}
 function buildBlockPalette(){
-  var catCon=document.getElementById('block-palette-categories');
-  if(catCon){
-    catCon.innerHTML='';
-    BLOCKLIB.categories.forEach(function(cat){
-      var row=document.createElement('div'); row.className='block-palette-cat';
-      var lbl=document.createElement('span'); lbl.className='block-palette-lbl'; lbl.textContent=cat.label;
-      var chips=document.createElement('div'); chips.className='block-chips'; chips.id='chips-'+cat.key;
-      cat.items.forEach(function(item){chips.appendChild(makeChip(cat.key,item.key,item.label,cat.color));});
-      row.appendChild(lbl); row.appendChild(chips);
-      catCon.appendChild(row);
-    });
-  }
+  renderPaletteCategoryGroup('block-palette-categories',BLOCKLIB.categories.filter(function(c){return !c.afterGames;}));
+  renderPaletteCategoryGroup('block-palette-categories-after-games',BLOCKLIB.categories.filter(function(c){return c.afterGames;}));
   var gCon=document.getElementById('chips-games'); if(!gCon)return; gCon.innerHTML='';
   gCon.appendChild(makeChip('game','games',BLOCKLIB.games.label||'Games'));
   var lCon=document.getElementById('chips-leave'); lCon.innerHTML='';
