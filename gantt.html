@@ -225,6 +225,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .hv-block{height:34px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;flex-shrink:0;transition:filter 0.15s;margin-right:2px;}
 .hv-block:hover{filter:brightness(1.15);}
 .hv-block.pending{background:transparent;border:2px dashed currentColor;}
+.hv-block.machine-seg{opacity:0.45;background-image:repeating-linear-gradient(45deg,currentColor,currentColor 3px,transparent 3px,transparent 7px);border:1px dashed currentColor;}
 .hv-block.leave-off{background:repeating-linear-gradient(45deg,rgba(255,92,122,0.22),rgba(255,92,122,0.22) 5px,rgba(255,92,122,0.08) 5px,rgba(255,92,122,0.08) 10px);border:1px solid rgba(255,92,122,0.4);color:var(--red);}
 .hv-block.leave-ot{background:repeating-linear-gradient(45deg,rgba(0,212,255,0.22),rgba(0,212,255,0.22) 5px,rgba(0,212,255,0.08) 5px,rgba(0,212,255,0.08) 10px);border:1px solid rgba(0,212,255,0.4);color:var(--cyan);}
 .hv-empty{color:var(--text3);font-size:14px;padding:14px;}
@@ -726,8 +727,8 @@ var VIEW_MODES = {
   month: {label:'月', dayW:3,  days:365}
 };
 var HOUR_W = 60;
-var WORKDAY_START_HOUR = 8;
-var WORKDAY_END_HOUR = 20;
+var WORKDAY_START_HOUR = 0;
+var WORKDAY_END_HOUR = 24;
 var currentZoom = 'day';
 var calFilter = 'all';
 var DAY_W = VIEW_MODES.day.dayW;
@@ -1735,6 +1736,20 @@ function hoursOnDay(t,dayIndex){
   if(remaining<=0)return 0;
   return Math.min(HPD,remaining);
 }
+function machineHoursOnDay(t,dayIndex){
+  var c=calc(t);
+  if(c.pending||c.machineDays===0)return 0;
+  var mDayIndex=dayIndex-c.md;
+  if(mDayIndex<0)return 0;
+  var mult=1;
+  if(t.category==='game'){
+    mult=(t.count||1)*Math.max(1,(t.resolutions||[]).length)*Math.max(1,(t.fanModes||[]).length);
+  }
+  var kh=(t.machineHours||0)*mult;
+  var remaining=kh-mDayIndex*24;
+  if(remaining<=0)return 0;
+  return Math.min(24,remaining);
+}
 function buildHourView(){
   var hv=document.getElementById('hour-view');hv.innerHTML='';
   var dayStr=fmt(START);
@@ -1799,7 +1814,7 @@ function buildHourView(){
       var c=calc(t);
       var startOff=dayOff(t.start);
       if(c.pending)return todayOff===startOff;
-      return todayOff>=startOff&&todayOff<startOff+c.md;
+      return todayOff>=startOff&&todayOff<startOff+c.md+c.machineDays;
     });
     if(dayTasks.length===0&&dayLeaves.length===0){
       var empty=document.createElement('div');empty.className='hv-empty';
@@ -1832,23 +1847,33 @@ function buildHourView(){
       var startOff=dayOff(t.start);
       var dayIndex=todayOff-startOff;
       var hrs=hoursOnDay(t,dayIndex);
-      if(hrs<=0)return;
-      blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
+      var machHrs=machineHoursOnDay(t,dayIndex);
       var hvItem=t.blockLabel||t.item||'(待命名)';
-      blk.textContent=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
-      blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
-      if(t.category==='game'){
-        blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
-        blk.ondrop=function(e){
-          e.preventDefault();e.stopPropagation();
-          var raw=e.dataTransfer.getData('text/plain');
-          if(!raw)return;
-          var data;try{data=JSON.parse(raw);}catch(err){return;}
-          if(data.kind!=='modifier')return;
-          applyModifierToTask(t,data);
-        };
+      if(hrs>0){
+        blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
+        blk.textContent=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
+        blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
+        if(t.category==='game'){
+          blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
+          blk.ondrop=function(e){
+            e.preventDefault();e.stopPropagation();
+            var raw=e.dataTransfer.getData('text/plain');
+            if(!raw)return;
+            var data;try{data=JSON.parse(raw);}catch(err){return;}
+            if(data.kind!=='modifier')return;
+            applyModifierToTask(t,data);
+          };
+        }
+        tl.appendChild(blk);
       }
-      tl.appendChild(blk);
+      if(machHrs>0){
+        var kblk=document.createElement('div');kblk.className='hv-block machine-seg';
+        kblk.style.cssText='width:'+Math.max(4,machHrs*HOUR_W-3)+'px;color:'+color+';';
+        kblk.textContent='⚙ 機台運作中';
+        kblk.title=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+' · 機台自動工時運作中';
+        kblk.onclick=function(e){e.stopPropagation();openEditModal(t);};
+        tl.appendChild(kblk);
+      }
     });
     row.appendChild(rl);row.appendChild(tl);
     hv.appendChild(row);
