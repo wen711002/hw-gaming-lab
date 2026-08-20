@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <title>HW Gaming Lab — 測試排程</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Share+Tech+Mono&display=swap');
 </style>
@@ -550,6 +551,8 @@ document.getElementById('pw-input').focus();
     <span class="tb-label">展開：</span>
     <button class="tb-btn" onclick="expandAll()">全部</button>
     <button class="tb-btn" onclick="collapseAll()">收合</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="exportScheduleExcel()">📊 匯出Excel</button>
   </div>
 
   <!-- LEGEND -->
@@ -2017,6 +2020,93 @@ function updateLoadingBars(){
       '<div class="pl-hrs">'+tm+'hr / '+cap+'hr</div>';
     con.appendChild(row);
   });
+}
+
+/* ---------- EXCEL EXPORT ---------- */
+function monthWorkdays(mKey){
+  var parts=mKey.split('-');var y=parseInt(parts[0]),mo=parseInt(parts[1]);
+  var days=new Date(y,mo,0).getDate();
+  var count=0;
+  for(var d=1;d<=days;d++){
+    var wd=new Date(y,mo-1,d).getDay();
+    if(wd!==0&&wd!==6)count++;
+  }
+  return count;
+}
+function categoryLabelFor(catKey){
+  if(catKey==='game')return 'Games';
+  if(catKey==='misc')return '雜項活動';
+  var cat=getCategory(catKey);
+  return cat?cat.label:catKey;
+}
+function buildMonthReportRows(mKey){
+  var workdays=monthWorkdays(mKey);
+  var capacityPerPerson=workdays*HPD;
+  var monthTasks=tasks.filter(function(t){return t.start.slice(0,7)===mKey;});
+  var perPersonHours={};
+  PERSONS.forEach(function(p){perPersonHours[p.id]=0;});
+  var teamManualHours=0;
+  monthTasks.forEach(function(t){
+    var c=calc(t);
+    if(c.pending)return;
+    perPersonHours[t.person]=(perPersonHours[t.person]||0)+c.mh;
+    teamManualHours+=c.mh;
+  });
+  var teamCapacity=capacityPerPerson*PERSONS.length;
+  var teamLoadingPct=teamCapacity>0?Math.round(teamManualHours/teamCapacity*1000)/10:0;
+  var rows=[];
+  rows.push(['HW Gaming Lab 測試排程月報 － '+mKey]);
+  rows.push([]);
+  rows.push(['【部門總覽】']);
+  rows.push(['項目','數值']);
+  rows.push(['團隊人數',PERSONS.length]);
+  rows.push(['當月工作天數',workdays]);
+  rows.push(['團隊總產能(hr)',teamCapacity]);
+  rows.push(['團隊已排手動工時(hr)',Math.round(teamManualHours*100)/100]);
+  rows.push(['團隊Loading(%)',teamLoadingPct]);
+  rows.push(['團隊人力缺口(hr，正值代表超出產能)',Math.round((teamManualHours-teamCapacity)*100)/100]);
+  rows.push([]);
+  rows.push(['【每人當月Loading摘要】']);
+  rows.push(['姓名','產能(hr)','已排手動工時(hr)','Loading(%)','缺口(hr，正值代表超出產能)']);
+  PERSONS.forEach(function(p){
+    var used=Math.round((perPersonHours[p.id]||0)*100)/100;
+    var pct=capacityPerPerson>0?Math.round(used/capacityPerPerson*1000)/10:0;
+    var gap=Math.round((used-capacityPerPerson)*100)/100;
+    rows.push([p.name,capacityPerPerson,used,pct,gap]);
+  });
+  rows.push([]);
+  rows.push(['【任務明細】']);
+  rows.push(['姓名','開始日期','分類','測項','手動工時(hr)','機台自動工時(hr)','專案代號','SKU','備註']);
+  monthTasks.slice().sort(function(a,b){return a.start<b.start?-1:(a.start>b.start?1:0);}).forEach(function(t){
+    var p=PERSONS.filter(function(x){return x.id===t.person;})[0];
+    rows.push([
+      p?p.name:'',
+      t.start,
+      categoryLabelFor(t.category),
+      t.blockLabel||t.item||'',
+      (t.manualHours===null||t.manualHours===undefined)?'待填':t.manualHours,
+      (t.machineHours===null||t.machineHours===undefined)?'':t.machineHours,
+      t.code||'',
+      t.sku||'',
+      t.note||''
+    ]);
+  });
+  return rows;
+}
+function exportScheduleExcel(){
+  if(typeof XLSX==='undefined'){alert('Excel匯出元件載入失敗，請檢查網路連線後重新整理頁面再試。');return;}
+  if(tasks.length===0){alert('目前沒有任務資料可匯出。');return;}
+  var months={};
+  tasks.forEach(function(t){months[t.start.slice(0,7)]=true;});
+  var monthKeys=Object.keys(months).sort();
+  var wb=XLSX.utils.book_new();
+  monthKeys.forEach(function(mKey){
+    var rows=buildMonthReportRows(mKey);
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:14},{wch:14},{wch:14},{wch:16},{wch:16},{wch:16},{wch:14},{wch:14},{wch:20}];
+    XLSX.utils.book_append_sheet(wb,ws,mKey);
+  });
+  XLSX.writeFile(wb,'HWGamingLab_Schedule_'+fmt(new Date())+'.xlsx');
 }
 
 /* ---------- BLOCK → TASK CRUD ---------- */
