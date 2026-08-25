@@ -895,7 +895,7 @@ else{document.getElementById('pw-input').focus();}
     <p class="modal-sub" id="delay-modal-title" style="font-family:var(--font-mono);color:var(--purple);">// 專案資訊</p>
     <div class="delay-field">
       <label>延期截止日期 <span class="req">*</span></label>
-      <input type="date" id="delay-date-input">
+      <input type="date" id="delay-date-input" onkeydown="return false;" onpaste="return false;">
     </div>
     <div class="delay-field">
       <label>接單 Owner Email <span class="req">*</span></label>
@@ -1284,9 +1284,9 @@ function _buildReportCardHtml(n){
     '<span class="rpt-file-name" style="font-family:var(--font-mono);font-size:14px;color:var(--green);"></span></div></div>'+
     '<div class="g2" style="margin-bottom:12px;">'+
     '<div class="field"><label>測試開始日期<span class="req">*</span></label>'+
-    '<input type="text" class="rpt-start" placeholder="年/月/日" min="'+today()+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="updRptDueMin(this)"/></div>'+
+    '<input type="date" class="rpt-start" min="'+today()+'" onkeydown="return false;" onpaste="return false;" onchange="updRptDueMin(this)"/></div>'+
     '<div class="field"><label>提交日期<span class="req">*</span></label>'+
-    '<input type="text" class="rpt-submit" placeholder="年/月/日" min="'+_calcMinSubmitDate('')+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" onchange="onRptSubmitChange(this)"/>'+
+    '<input type="date" class="rpt-submit" min="'+_calcMinSubmitDate('')+'" onkeydown="return false;" onpaste="return false;" onchange="onRptSubmitChange(this)"/>'+
     '<span class="hint">如需求測試日期低於5天，請另行和窗口溝通</span></div>'+
     '</div>'+
     '<div class="field" style="margin-bottom:12px;"><label>測試機台<span class="req">*</span> <span style="font-weight:400;color:var(--text3);font-family:var(--font-mono);font-size:13px;">// 通常 1~10 台</span></label>'+
