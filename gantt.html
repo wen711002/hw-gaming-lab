@@ -645,6 +645,10 @@ document.getElementById('pw-input').focus();
       <div class="field"><label id="e-hours-label">手動工時 (hr)</label><input type="number" id="e-hours" min="0" step="0.5" placeholder="留空待填" oninput="updateEditEst()"/></div>
     </div>
     <div class="g2">
+      <div class="field"><label>起始時間（選填，用於「時」檢視精準定位）</label><input type="time" id="e-start-time" oninput="updateEditEst()"/></div>
+      <div class="field"><label>今日時段</label><div class="est-row" id="e-today-slot" style="padding-top:8px;color:var(--text2);">—</div></div>
+    </div>
+    <div class="g2">
       <div class="field"><label>機台自動工時 (hr，選填)</label><input type="number" id="e-machine-hours" min="0" step="0.5" placeholder="機台需連續運作才填，例如整晚跑" oninput="updateEditEst()"/></div>
       <div class="field"><label>&nbsp;</label><div style="padding-top:9px;color:var(--text3);font-size:14px;">24hr連續換算天數，不佔用人力容量</div></div>
     </div>
@@ -990,6 +994,7 @@ function loadAllData(){
         blockLabel:t.TestType||meta.item||'',
         manualHours:(meta.manualHours!==undefined)?((meta.manualHours===null||meta.manualHours==='')?null:parseFloat(meta.manualHours)):((meta.hours===undefined||meta.hours===null||meta.hours==='')?null:parseFloat(meta.hours)),
         machineHours:(meta.machineHours===undefined||meta.machineHours===null||meta.machineHours==='')?null:parseFloat(meta.machineHours),
+        startTime:meta.startTime||null,
         count:meta.count||1,
         resolutions:meta.resolutions||[],
         fanModes:meta.fanModes||[],
@@ -1133,6 +1138,7 @@ function onLeaveDateChange(prefix){
   if(se.value)ee.min=se.value;
 }
 function parseHM(s){var parts=s.split(':');return parseFloat(parts[0])+parseFloat(parts[1])/60;}
+function timeSlotLeft(startTimeStr){return Math.max(0,(parseHM(startTimeStr)-WORKDAY_START_HOUR))*HOUR_W;}
 function onLeaveTimeChange(prefix){
   var st=document.getElementById(prefix+'-start-time'),et=document.getElementById(prefix+'-end-time'),hrs=document.getElementById(prefix+'-hours');
   if(!st||!et||!hrs)return;
@@ -1826,7 +1832,7 @@ function buildHourView(){
       var color=catColor(t.category);
       var blk=document.createElement('div');blk.className='hv-block'+(c.pending?' pending':'');
       if(c.pending){
-        blk.style.cssText='width:130px;color:'+color+';';
+        blk.style.cssText=(t.startTime?('position:absolute;left:'+timeSlotLeft(t.startTime)+'px;top:0;bottom:0;width:130px;color:'+color+';'):('width:130px;color:'+color+';'));
         var pendItem=t.blockLabel||t.item||'(待命名)';
         blk.textContent=(t.category==='misc'?pendItem:(pendItem+' · '+t.code))+'（待填）';
         blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
@@ -1850,8 +1856,8 @@ function buildHourView(){
       var machHrs=machineHoursOnDay(t,dayIndex);
       var hvItem=t.blockLabel||t.item||'(待命名)';
       if(hrs>0){
-        blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
-        blk.textContent=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
+        blk.style.cssText=(t.startTime?('position:absolute;left:'+timeSlotLeft(t.startTime)+'px;top:0;bottom:0;width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;'):('width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;'));
+        blk.textContent=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr'+(t.startTime?(' · '+t.startTime):'')+'）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
         blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
         if(t.category==='game'){
           blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
@@ -2136,7 +2142,7 @@ function exportScheduleExcel(){
 
 /* ---------- BLOCK → TASK CRUD ---------- */
 function createTaskFromBlock(p,data,startStr){
-  var meta={category:data.category,item:data.label,manualHours:null,machineHours:null};
+  var meta={category:data.category,item:data.label,manualHours:null,machineHours:null,startTime:null};
   if(data.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
   var isMisc=data.category==='misc';
   var payload={
@@ -2169,7 +2175,8 @@ function createLeaveFromBlock(p,leaveType,dateStr){
 function buildBlockMeta(t){
   var m={category:t.category,item:t.item,
     manualHours:(t.manualHours===null||t.manualHours===undefined||t.manualHours==='')?null:parseFloat(t.manualHours),
-    machineHours:(t.machineHours===null||t.machineHours===undefined||t.machineHours==='')?null:parseFloat(t.machineHours)
+    machineHours:(t.machineHours===null||t.machineHours===undefined||t.machineHours==='')?null:parseFloat(t.machineHours),
+    startTime:t.startTime||null
   };
   if(t.category==='game'){
     m.count=t.count||1;
@@ -2257,6 +2264,17 @@ function updateEditEst(){
   }else{
     mRow.style.display='none';
   }
+  var stVal=document.getElementById('e-start-time').value;
+  var slotEl=document.getElementById('e-today-slot');
+  if(stVal&&!c.pending&&c.md>0){
+    var todayHrs=Math.min(c.mh,HPD);
+    var endT=parseHM(stVal)+todayHrs;
+    var eh=Math.floor(endT),em=Math.round((endT-eh)*60);
+    if(em===60){eh++;em=0;}
+    slotEl.textContent=stVal+' ~ '+(eh<10?'0':'')+eh+':'+(em<10?'0':'')+em;
+  }else{
+    slotEl.textContent='—';
+  }
 }
 function openEditModal(t){
   editTask=t;
@@ -2270,6 +2288,7 @@ function openEditModal(t){
   document.getElementById('e-machines').value=t.machines||1;
   document.getElementById('e-hours').value=(t.manualHours===null||t.manualHours===undefined)?'':t.manualHours;
   document.getElementById('e-machine-hours').value=(t.machineHours===null||t.machineHours===undefined)?'':t.machineHours;
+  document.getElementById('e-start-time').value=t.startTime||'';
   document.getElementById('e-hours-label').textContent=t.category==='game'?'單套手動工時 (hr)':'手動工時 (hr)';
   var isGame=t.category==='game';
   document.getElementById('e-game-block').style.display=isGame?'block':'none';
@@ -2300,6 +2319,7 @@ function saveEdit(){
   editTask.manualHours=hv===''?null:parseFloat(hv);
   var mv=document.getElementById('e-machine-hours').value;
   editTask.machineHours=mv===''?null:parseFloat(mv);
+  editTask.startTime=document.getElementById('e-start-time').value||null;
   if(editTask.category==='game'){
     editTask.count=parseFloat(document.getElementById('e-count').value)||1;
   }
@@ -2334,7 +2354,7 @@ function createRetestFromTask(){
   var person=null;
   for(var i=0;i<PERSONS.length;i++){if(PERSONS[i].id===editTask.person){person=PERSONS[i];break;}}
   if(!person){alert('找不到負責人資料，請重試。');return;}
-  var meta={category:editTask.category,item:editTask.item,manualHours:null,machineHours:null};
+  var meta={category:editTask.category,item:editTask.item,manualHours:null,machineHours:null,startTime:null};
   if(editTask.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
   var payload={
     action:'add',
