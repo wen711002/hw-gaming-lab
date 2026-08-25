@@ -284,6 +284,8 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .btn-sec:hover{border-color:var(--border3);color:var(--text);background:var(--bg4);}
 .btn-pri{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;box-shadow:0 4px 16px var(--blue-glow);}
 .btn-pri:hover{box-shadow:0 6px 24px rgba(76,158,245,0.4);transform:translateY(-1px);}
+.btn-del{background:rgba(255,92,122,0.15);border:1px solid rgba(255,92,122,0.4);color:var(--red);}
+.btn-del:hover{background:rgba(255,92,122,0.25);}
 .btn-grn{background:linear-gradient(135deg,#0e7a5a,var(--green));color:#000;box-shadow:0 4px 16px var(--green-glow);}
 .btn-grn:hover{box-shadow:0 6px 24px rgba(0,229,160,0.35);transform:translateY(-1px);}
 
@@ -333,8 +335,11 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .sb-accept{background:rgba(0,229,160,0.12);color:var(--green);}
 .sb-fail{background:rgba(255,92,122,0.12);color:var(--red);}
 .sb-delay{background:rgba(168,85,247,0.15);color:var(--purple);}
+.sb-cancel{background:rgba(255,92,122,0.12);color:var(--red);}
 .ab-delay{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
 .ab-delay:hover{background:rgba(168,85,247,0.2);}
+.ab-cancel{background:rgba(255,92,122,0.1);color:var(--red);border:1px solid rgba(255,92,122,0.3);}
+.ab-cancel:hover{background:rgba(255,92,122,0.18);}
 .delay-field{margin-bottom:14px;}
 .delay-field label{display:block;font-size:14px;color:var(--text2);margin-bottom:6px;font-family:var(--font-head);font-weight:600;letter-spacing:0.04em;}
 .delay-field input{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;font-family:var(--font-body);}
@@ -861,10 +866,14 @@ else{document.getElementById('pw-input').focus();}
         <button class="admin-subtab" id="subtab-accepted" onclick="switchAdminSubtab('accepted')">
           ACCEPTED <span class="astab-count" id="accepted-count">—</span>
         </button>
+        <button class="admin-subtab" id="subtab-cancelled" onclick="switchAdminSubtab('cancelled')">
+          CANCELLED <span class="astab-count" id="cancelled-count">—</span>
+        </button>
       </div>
       <div id="admin-loading" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
       <div class="admin-subpanel active" id="admin-list-pending"></div>
       <div class="admin-subpanel" id="admin-list-accepted"></div>
+      <div class="admin-subpanel" id="admin-list-cancelled"></div>
     </div>
     <div class="btab-panel" id="btab-result">
       <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 測試結果請直接放入 SharePoint 文件的對應專案資料夾。填寫完成後，在此針對「已接單」專案發送完成通知即可。已發送過「全部完成」的專案會自動從此清單移除。</p>
@@ -909,11 +918,30 @@ else{document.getElementById('pw-input').focus();}
   </div>
 </div>
 
+<!-- 取消接單 Modal -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeCancelModal()">×</button>
+    <h2>🚫 取消接單</h2>
+    <p class="modal-sub" id="cancel-modal-title" style="font-family:var(--font-mono);color:var(--red);">// 專案資訊</p>
+    <div class="delay-field">
+      <label>取消原因 <span class="req">*</span></label>
+      <textarea id="cancel-note-input" rows="3" placeholder="例：與需求者協調後，可開測時間已超出其可接受範圍，需求者將自行測試，本次不予接單" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 12px;resize:vertical;font-family:var(--font-body);"></textarea>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px;font-family:var(--font-mono);">// 確認後將把此需求單標記為「已取消」，並寄送通知信給需求者，內容包含上方取消原因</p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="sa-btn" onclick="closeCancelModal()">返回</button>
+      <button id="cancel-confirm-btn" class="btn btn-del" onclick="confirmCancel()" style="padding:8px 24px;">確認取消接單</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 var PA_DELAY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/09b7285c6c594487bdb0d49f19ef9152/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iV6Xmitmm1EUWn6k3ePGXOEdZCgK0JjskjarwKzz9-I';
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
+var PA_CANCEL='__PASTE_PA_CANCEL_FLOW_URL_HERE__';
 var PA_RESULT_MANAGE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/03/workflows/c0e0c53fe43b4c3c8db0bbfab44c310d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dyNQmj9EXbZwPujzbOT8hUVLG-3ICEftUU9vzBBmWWQ';
 var PA_SCHED_READ='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/ec95713a15c74114ac054f69c2e1c9c2/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hjky61tC6V0im2nUtHrVuMa2UhyMdpqxqzu8i5bgBOU';
 var currentSeriesType='gaming'; // 'gaming' | 'consumer'
@@ -2066,6 +2094,7 @@ function loadAdminData(){
     });
     var pending=all.filter(function(i){return i.Status==='Pending';});
     var accepted=all.filter(function(i){return i.Status==='Accepted';});
+    var cancelled=all.filter(function(i){return i.Status==='Cancelled';});
     _adminItems={};
     function fmtDt(raw){
       if(!raw)return'—';
@@ -2130,7 +2159,36 @@ function loadAdminData(){
       h+='<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">';
       h+='<button class="ab ab-delay" onclick="delayItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">⏰ 延期</button>';
       if(isPending)h+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
+      if(isPending)h+='<button class="ab ab-cancel" onclick="cancelItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">🚫 取消接單</button>';
       h+='</div></div></div>';
+      h+=buildReportsHtml(item);
+      h+='</div>';
+      return h;
+    }
+    function buildCancelledCard(item){
+      var itemId=item.ID||item.Id||item.id||'';
+      _adminItems[itemId]=item;
+      var projCode=item.ProjectCode;
+      if(projCode&&typeof projCode==='object')projCode=projCode.Title||projCode.Value||'';
+      projCode=projCode||item.Title||'—';
+      var phase=item.Phase;
+      if(phase&&typeof phase==='object')phase=phase.Title||phase.Value||'';
+      phase=phase||'—';
+      var dt=fmtDt(item.SubmittedDate||item.Created||'');
+      var cancelDt=fmtDt(item.CancelledDate||'');
+      var cancelNote=esc(item.CancelNote||'');
+      var h='<div class="sub-item" data-id="'+itemId+'" style="flex-direction:column;align-items:stretch;opacity:0.85;">';
+      h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
+      h+='<div>';
+      h+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase)+'</div>';
+      h+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — 發單：'+dt+'</div>';
+      h+='</div>';
+      h+='<span class="sbadge sb-cancel">CANCELLED</span>';
+      h+='</div>';
+      h+='<div style="margin-top:8px;padding:8px 10px;background:var(--bg1);border:1px solid rgba(255,92,122,0.25);border-radius:var(--r6);">';
+      h+='<div style="font-size:14px;color:var(--text3);">取消時間：'+cancelDt+'</div>';
+      h+='<div style="font-size:15px;color:var(--red);margin-top:4px;">取消原因：'+(cancelNote||'—')+'</div>';
+      h+='</div>';
       h+=buildReportsHtml(item);
       h+='</div>';
       return h;
@@ -2222,6 +2280,13 @@ function loadAdminData(){
       document.getElementById('admin-list-accepted').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有已接收的申請</p>';
     } else {
       document.getElementById('admin-list-accepted').innerHTML=accepted.map(function(i){return buildCard(i,false);}).join('');
+    }
+    // Cancelled
+    document.getElementById('cancelled-count').textContent=cancelled.length;
+    if(!cancelled.length){
+      document.getElementById('admin-list-cancelled').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有取消接單的申請</p>';
+    } else {
+      document.getElementById('admin-list-cancelled').innerHTML=cancelled.map(function(i){return buildCancelledCard(i);}).join('');
     }
     // Result 完成通知（沿用已接單專案清單，依 submit 時間新到舊排序；已發送「全部完成」的專案自動收合為標題列）
     document.getElementById('admin-loading-result').style.display='none';
@@ -2325,6 +2390,48 @@ function confirmDelay(){
   .catch(function(err){
     btn.disabled=false;btn.textContent='確認延期';
     alert('延期設定失敗：'+err.message);
+  });
+}
+
+// ── Cancel Item ───────────────────────────────────────────────────────
+var _cancelCtx={};
+function cancelItem(id,reqEmail,projCode){
+  _cancelCtx={id:id,reqEmail:reqEmail,projCode:projCode};
+  document.getElementById('cancel-modal-title').textContent='// '+projCode;
+  document.getElementById('cancel-note-input').value='';
+  var btn=document.getElementById('cancel-confirm-btn');
+  btn.disabled=false;btn.textContent='確認取消接單';
+  document.getElementById('cancel-modal').classList.add('show');
+}
+function closeCancelModal(){
+  document.getElementById('cancel-modal').classList.remove('show');
+  _cancelCtx={};
+}
+function confirmCancel(){
+  var cancelNote=document.getElementById('cancel-note-input').value.trim();
+  if(!cancelNote){alert('請填寫取消原因');return;}
+  if(PA_CANCEL.indexOf('__PASTE')===0){alert('請先在程式碼中填入 PA_CANCEL 的 Flow URL');return;}
+  var btn=document.getElementById('cancel-confirm-btn');
+  btn.disabled=true;btn.textContent='處理中...';
+  var ctxId=_cancelCtx.id,ctxReq=_cancelCtx.reqEmail,ctxProj=_cancelCtx.projCode;
+  fetch(PA_CANCEL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({itemId:parseInt(ctxId),requesterEmail:ctxReq,projCode:ctxProj,cancelNote:cancelNote})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    closeCancelModal();
+    var card=document.querySelector('.sub-item[data-id="'+ctxId+'"]');
+    if(card)card.remove();
+    var pendingCountEl=document.getElementById('pending-count');
+    if(pendingCountEl)pendingCountEl.textContent=Math.max(0,(parseInt(pendingCountEl.textContent)||1)-1);
+    alert('🚫 已取消接單！\n通知信已寄送至：'+ctxReq);
+    loadAdminData();
+  })
+  .catch(function(err){
+    btn.disabled=false;btn.textContent='確認取消接單';
+    alert('取消接單失敗：'+err.message);
   });
 }
 // ── Admin Result Complete Notification ───────────────────────────────────
