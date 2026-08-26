@@ -941,7 +941,7 @@ var selPhaseVal='',selFanVal='',isRetest=false,skuCount=1;
 var PA_QUERY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f0be976210fd46378a403ee41435a05d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EHVYIE-SP4nPVpaj-Xc8XZ7hhcvEmfSKllCmcYifqfk';
 var PA_DELAY='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/09b7285c6c594487bdb0d49f19ef9152/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iV6Xmitmm1EUWn6k3ePGXOEdZCgK0JjskjarwKzz9-I';
 var PA_QUERY_RESULTS='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/36652175c1ee4a4e98ef6708ec5d02f6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0zzT0ttR8TlQl5CC-vBOmIFobXO_LVhiYd1YCMbmA40';
-var PA_CANCEL='__PASTE_PA_CANCEL_FLOW_URL_HERE__';
+var PA_CANCEL='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/27/workflows/97b1a9d200e64005b5a5d64035425ab7/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=js_D45MUFHf7vur5JKuBDb1o5lnWA3RccTFKOeexT8Y';
 var PA_RESULT_MANAGE='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/03/workflows/c0e0c53fe43b4c3c8db0bbfab44c310d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dyNQmj9EXbZwPujzbOT8hUVLG-3ICEftUU9vzBBmWWQ';
 var PA_SCHED_READ='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/ec95713a15c74114ac054f69c2e1c9c2/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hjky61tC6V0im2nUtHrVuMa2UhyMdpqxqzu8i5bgBOU';
 var currentSeriesType='gaming'; // 'gaming' | 'consumer'
@@ -1188,6 +1188,12 @@ function selFan(el,val){
 }
 function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function stripRichText(html){
+  if(!html)return'';
+  var tmp=document.createElement('div');
+  tmp.innerHTML=html;
+  return(tmp.textContent||tmp.innerText||'').trim();
+}
 function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
 
 // ── Single project + SKU table ───────────────────────────────────────────────
@@ -2176,7 +2182,7 @@ function loadAdminData(){
       phase=phase||'—';
       var dt=fmtDt(item.SubmittedDate||item.Created||'');
       var cancelDt=fmtDt(item.CancelledDate||'');
-      var cancelNote=esc(item.CancelNote||'');
+      var cancelNote=esc(stripRichText(item.CancelNote||''));
       var h='<div class="sub-item" data-id="'+itemId+'" style="flex-direction:column;align-items:stretch;opacity:0.85;">';
       h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
       h+='<div>';
