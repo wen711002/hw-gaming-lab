@@ -486,24 +486,20 @@ document.getElementById('pw-input').focus();
               <input type="date" id="lv-start" class="member-inp" style="width:150px;" oninput="onLeaveDateChange('lv')"/>
             </div>
             <div class="member-field">
+              <label>起始時間（留空預設08:00）</label>
+              <input type="time" id="lv-start-time" class="member-inp" style="width:100px;" oninput="onLeaveTimeChange('lv')"/>
+            </div>
+            <div class="member-field">
               <label>結束日期</label>
               <input type="date" id="lv-end" class="member-inp" style="width:150px;" oninput="onLeaveDateChange('lv')"/>
             </div>
             <div class="member-field">
-              <label>總天數</label>
-              <input type="number" id="lv-days-display" class="member-inp" placeholder="請填寫" min="0" step="0.5" style="width:70px;text-align:center;"/>
-            </div>
-            <div class="member-field">
-              <label>時數／天</label>
-              <input type="number" id="lv-hours" class="member-inp" placeholder="請填寫" min="0.5" max="24" step="0.5" style="width:80px;"/>
-            </div>
-            <div class="member-field">
-              <label>起始時間（選填）</label>
-              <input type="time" id="lv-start-time" class="member-inp" style="width:100px;" oninput="onLeaveTimeChange('lv')"/>
-            </div>
-            <div class="member-field">
-              <label>結束時間（選填）</label>
+              <label>結束時間（留空預設17:00）</label>
               <input type="time" id="lv-end-time" class="member-inp" style="width:100px;" oninput="onLeaveTimeChange('lv')"/>
+            </div>
+            <div class="member-field">
+              <label>總天數／時數（自動計算）</label>
+              <input type="text" id="lv-days-display" class="member-inp" readonly style="width:150px;text-align:center;background:rgba(255,255,255,0.03);color:var(--text2);"/>
             </div>
             <div class="member-field" style="flex:1 1 160px;">
               <label>備註</label>
@@ -686,20 +682,19 @@ document.getElementById('pw-input').focus();
     <h3>編輯請假／公出</h3>
     <p id="leave-edit-sub" style="color:var(--cyan);font-family:var(--font-mono);font-size:17px;"></p>
     <div class="g2">
+      <div class="field"><label>開始日期</label><input type="date" id="le-start" oninput="onLeaveDateChange('le')"/></div>
+      <div class="field"><label>起始時間（留空預設08:00）</label><input type="time" id="le-start-time" oninput="onLeaveTimeChange('le')"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>結束日期</label><input type="date" id="le-end" oninput="onLeaveDateChange('le')"/></div>
+      <div class="field"><label>結束時間（留空預設17:00）</label><input type="time" id="le-end-time" oninput="onLeaveTimeChange('le')"/></div>
+    </div>
+    <div class="g2">
       <div class="field"><label>類型</label>
         <select id="le-type"><option value="leave">請假</option><option value="overtime">公出</option></select>
       </div>
-      <div class="field"><label>時數／天</label><input type="number" id="le-hours" min="0" step="0.5" placeholder="留空待填"/></div>
+      <div class="field"><label>總天數／時數（自動計算，不含週末與午休）</label><input type="text" id="le-days-display" readonly style="background:rgba(255,255,255,0.03);color:var(--text2);"/></div>
     </div>
-    <div class="g2">
-      <div class="field"><label>開始日期</label><input type="date" id="le-start" oninput="onLeaveDateChange('le')"/></div>
-      <div class="field"><label>結束日期</label><input type="date" id="le-end" oninput="onLeaveDateChange('le')"/></div>
-    </div>
-    <div class="g2">
-      <div class="field"><label>起始時間（選填，僅單日部分時段請假時填寫）</label><input type="time" id="le-start-time" oninput="onLeaveTimeChange('le')"/></div>
-      <div class="field"><label>結束時間（選填）</label><input type="time" id="le-end-time" oninput="onLeaveTimeChange('le')"/></div>
-    </div>
-    <div class="field"><label>總天數（僅供自行備註，不影響實際排程）</label><input type="number" id="le-days-display" min="0" step="0.5" placeholder="請填寫"/></div>
     <div class="field"><label>備註</label><input type="text" id="le-note"/></div>
     <div class="member-err" id="le-err"></div>
     <div class="mbtns">
@@ -1106,7 +1101,7 @@ function buildLeaveList(){
       var badge=document.createElement('span');badge.className='leave-type-badge '+l.type;badge.textContent=l.type==='overtime'?'公出':'請假';
       var info=document.createElement('div');info.className='member-info';
       info.innerHTML='<div class="leave-person" style="color:'+(p?p.c:'#888')+'">'+(p?p.name:'（未知成員）')+'</div>'+
-        '<div class="leave-meta">'+l.start+(l.end!==l.start?' ~ '+l.end:'')+(l.startTime&&l.endTime?' · '+l.startTime+'~'+l.endTime:'')+' · '+l.hoursPerDay+'hr/天'+(l.note?' · '+l.note:'')+'</div>';
+        '<div class="leave-meta">'+l.start+(l.end!==l.start?' ~ '+l.end:'')+(l.startTime&&l.endTime?' · '+l.startTime+'~'+l.endTime:'')+' · 共'+l.hoursPerDay+'hr'+(l.note?' · '+l.note:'')+'</div>';
       var editBtn=document.createElement('button');editBtn.className='member-edit';editBtn.textContent='編輯';
       var del=document.createElement('button');del.className='member-del';del.textContent='刪除';
       (function(lid){del.onclick=function(){removeLeave(lid);};})(l.spId);
@@ -1132,8 +1127,50 @@ function onLeaveDateChange(prefix){
   var se=document.getElementById(prefix+'-start'),ee=document.getElementById(prefix+'-end');
   if(!se||!ee)return;
   if(se.value)ee.min=se.value;
+  updateLeaveEst(prefix);
+}
+function updateLeaveEst(prefix){
+  var disp=document.getElementById(prefix+'-days-display');
+  if(!disp)return;
+  var s=document.getElementById(prefix+'-start').value;
+  var e=document.getElementById(prefix+'-end').value||s;
+  if(!s){disp.value='';return;}
+  var st=document.getElementById(prefix+'-start-time').value||LEAVE_DAY_START;
+  var et=document.getElementById(prefix+'-end-time').value||LEAVE_DAY_END;
+  var t=computeLeaveTotals(s,st,e,et);
+  disp.value=t.days+' 天（'+t.hours+' hr）';
 }
 function parseHM(s){var parts=s.split(':');return parseFloat(parts[0])+parseFloat(parts[1])/60;}
+var LEAVE_DAY_START='08:00',LEAVE_DAY_END='17:00',LEAVE_DAY_HOURS=8;
+function isWeekendStr(dateStr){var d=new Date(dateStr+'T00:00:00').getDay();return d===0||d===6;}
+function hoursInWindowExcludingLunch(startH,endH){
+  if(endH<=startH)return 0;
+  var lunchOverlap=Math.max(0,Math.min(endH,LUNCH_END_HOUR)-Math.max(startH,LUNCH_START_HOUR));
+  return (endH-startH)-lunchOverlap;
+}
+function leaveHoursOnDate(startDateStr,startTimeStr,endDateStr,endTimeStr,dateStr){
+  if(dateStr<startDateStr||dateStr>endDateStr)return 0;
+  if(isWeekendStr(dateStr))return 0;
+  var dayStartH=(dateStr===startDateStr)?parseHM(startTimeStr||LEAVE_DAY_START):parseHM(LEAVE_DAY_START);
+  var dayEndH=(dateStr===endDateStr)?parseHM(endTimeStr||LEAVE_DAY_END):parseHM(LEAVE_DAY_END);
+  dayStartH=Math.max(parseHM(LEAVE_DAY_START),Math.min(parseHM(LEAVE_DAY_END),dayStartH));
+  dayEndH=Math.max(parseHM(LEAVE_DAY_START),Math.min(parseHM(LEAVE_DAY_END),dayEndH));
+  return hoursInWindowExcludingLunch(dayStartH,dayEndH);
+}
+function computeLeaveTotals(startDateStr,startTimeStr,endDateStr,endTimeStr){
+  if(!startDateStr||!endDateStr||endDateStr<startDateStr)return {hours:0,days:0};
+  var totalHours=0;
+  var cur=new Date(startDateStr+'T00:00:00');
+  var end=new Date(endDateStr+'T00:00:00');
+  var guard=0;
+  while(cur<=end&&guard<3660){
+    guard++;
+    totalHours+=leaveHoursOnDate(startDateStr,startTimeStr,endDateStr,endTimeStr,fmt(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+  totalHours=Math.round(totalHours*100)/100;
+  return {hours:totalHours,days:Math.round((totalHours/LEAVE_DAY_HOURS)*100)/100};
+}
 function timeSlotLeft(startTimeStr){return Math.max(0,(parseHM(startTimeStr)-WORKDAY_START_HOUR))*HOUR_W;}
 function splitAroundLunch(startH,durH){
   var segs=[];
@@ -1156,14 +1193,7 @@ function splitAroundLunch(startH,durH){
   return segs;
 }
 function onLeaveTimeChange(prefix){
-  var st=document.getElementById(prefix+'-start-time'),et=document.getElementById(prefix+'-end-time'),hrs=document.getElementById(prefix+'-hours');
-  if(!st||!et||!hrs)return;
-  if(st.value&&et.value&&parseHM(et.value)>parseHM(st.value)){
-    hrs.value=Math.round((parseHM(et.value)-parseHM(st.value))*100)/100;
-    hrs.disabled=true;
-  }else{
-    hrs.disabled=false;
-  }
+  updateLeaveEst(prefix);
 }
 function encodeLeaveNote(startTime,endTime,note){
   var n=note||'';
@@ -1184,23 +1214,20 @@ function addLeave(){
   var type=document.getElementById('lv-type').value;
   var start=document.getElementById('lv-start').value;
   var end=document.getElementById('lv-end').value||start;
-  var hoursVal=document.getElementById('lv-hours').value;
-  var hours=hoursVal===''?0:parseFloat(hoursVal);
   var note=document.getElementById('lv-note').value;
-  var startTime=document.getElementById('lv-start-time').value;
-  var endTime=document.getElementById('lv-end-time').value;
+  var startTime=document.getElementById('lv-start-time').value||LEAVE_DAY_START;
+  var endTime=document.getElementById('lv-end-time').value||LEAVE_DAY_END;
   var todayStr=fmt(new Date());
   if(!start){errEl.textContent='請選擇開始日期。';return;}
   if(start<todayStr){errEl.textContent='開始日期不可早於今天。';return;}
   if(end<start){errEl.textContent='結束日期不可早於開始日期。';return;}
-  if(startTime&&endTime&&parseHM(endTime)<=parseHM(startTime)){errEl.textContent='結束時間必須晚於起始時間。';return;}
+  if(start===end&&parseHM(endTime)<=parseHM(startTime)){errEl.textContent='結束時間必須晚於起始時間。';return;}
+  var totals=computeLeaveTotals(start,startTime,end,endTime);
   setBusy(true);
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'add',personId:String(person.spId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hours,note:encodeLeaveNote(startTime,endTime,note)})
+    body:JSON.stringify({action:'add',personId:String(person.spId),leaveType:type,startDate:start,endDate:end,hoursPerDay:totals.hours,note:encodeLeaveNote(startTime,endTime,note)})
   }).then(function(r){return r.json();}).then(function(){
     document.getElementById('lv-note').value='';
-    document.getElementById('lv-hours').value='';
-    document.getElementById('lv-hours').disabled=false;
     document.getElementById('lv-start-time').value='';
     document.getElementById('lv-end-time').value='';
     document.getElementById('lv-days-display').value='';
@@ -1221,8 +1248,6 @@ function openLeaveEditModal(l){
   var p=personBySpId(l.personId);
   document.getElementById('leave-edit-sub').textContent=p?p.name:'（未知成員）';
   document.getElementById('le-type').value=l.type;
-  document.getElementById('le-hours').value=l.hoursPerDay?l.hoursPerDay:'';
-  document.getElementById('le-hours').disabled=false;
   var todayStr=fmt(new Date());
   var se=document.getElementById('le-start'),ee=document.getElementById('le-end');
   se.value=l.start;ee.value=l.end;
@@ -1239,20 +1264,20 @@ function openLeaveEditModal(l){
 function saveLeaveEditModal(){
   if(!editLeave)return;
   var type=document.getElementById('le-type').value;
-  var hoursVal=document.getElementById('le-hours').value;
   var start=document.getElementById('le-start').value||editLeave.start;
   var end=document.getElementById('le-end').value||start;
   var note=document.getElementById('le-note').value;
-  var startTime=document.getElementById('le-start-time').value;
-  var endTime=document.getElementById('le-end-time').value;
+  var startTime=document.getElementById('le-start-time').value||LEAVE_DAY_START;
+  var endTime=document.getElementById('le-end-time').value||LEAVE_DAY_END;
   var errEl=document.getElementById('le-err');errEl.textContent='';
   var todayStr=fmt(new Date());
   if(start<todayStr){errEl.textContent='開始日期不可早於今天。';return;}
   if(end<start){errEl.textContent='結束日期不可早於開始日期。';return;}
-  if(startTime&&endTime&&parseHM(endTime)<=parseHM(startTime)){errEl.textContent='結束時間必須晚於起始時間。';return;}
+  if(start===end&&parseHM(endTime)<=parseHM(startTime)){errEl.textContent='結束時間必須晚於起始時間。';return;}
+  var totals=computeLeaveTotals(start,startTime,end,endTime);
   setBusy(true);
   fetch(PA_LEAVE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    action:'update',id:editLeave.spId,personId:String(editLeave.personId),leaveType:type,startDate:start,endDate:end,hoursPerDay:hoursVal===''?0:parseFloat(hoursVal),note:encodeLeaveNote(startTime,endTime,note)
+    action:'update',id:editLeave.spId,personId:String(editLeave.personId),leaveType:type,startDate:start,endDate:end,hoursPerDay:totals.hours,note:encodeLeaveNote(startTime,endTime,note)
   })}).then(function(r){return r.json();}).then(function(){closeM('leave-edit-modal');loadAllData();})
   .catch(function(){setBusy(false);alert('儲存失敗，請重試。');});
 }
@@ -1927,7 +1952,7 @@ function buildGantt(){
         var sOff=dayOff(l.start),eOff=dayOff(l.end);
         if(eOff<0||sOff>=DAYS)return;
         var clipS=Math.max(0,sOff),clipE=Math.min(DAYS-1,eOff);
-        var hrText=l.hoursPerDay?l.hoursPerDay+'hr/天':'待填時數';
+        var hrText=l.hoursPerDay?'共'+l.hoursPerDay+'hr':'待填時數';
         var lb=document.createElement('div');lb.className='leave-blk '+l.type;
         lb.style.cssText='left:'+(clipS*DAY_W+1)+'px;width:'+((clipE-clipS+1)*DAY_W-2)+'px;cursor:pointer;';
         lb.title=(l.type==='overtime'?'公出':'請假')+' '+l.start+(l.end!==l.start?' ~ '+l.end:'')+(l.startTime&&l.endTime?' '+l.startTime+'~'+l.endTime:'')+' · '+hrText+(l.note?' · '+l.note:'');
