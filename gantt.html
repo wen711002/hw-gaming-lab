@@ -580,14 +580,6 @@ document.getElementById('pw-input').focus();
         <span class="block-palette-lbl">Games</span>
         <div class="block-chips" id="chips-games"></div>
       </div>
-      <div class="block-palette-group">
-        <span class="block-palette-lbl">解析度疊加</span>
-        <div class="block-chips" id="chips-resolutions"></div>
-      </div>
-      <div class="block-palette-group">
-        <span class="block-palette-lbl">Fan Mode疊加</span>
-        <div class="block-chips" id="chips-fanmodes"></div>
-      </div>
     </div>
     <div id="block-palette-categories-after-games"></div>
     <div class="block-palette-cat">
@@ -598,7 +590,7 @@ document.getElementById('pw-input').focus();
       <span class="block-palette-lbl">請假／公出</span>
       <div class="block-chips" id="chips-leave"></div>
     </div>
-    <div class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；解析度／Fan Mode 積木拖到已建立的 Games 任務條上疊加</div>
+    <div class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；Games 任務點擊後可在編輯面板勾選解析度／Fan Mode 疊加</div>
   </div>
 
   <!-- GANTT CHART -->
@@ -656,8 +648,8 @@ document.getElementById('pw-input').focus();
     </div>
     <div id="e-game-block" style="display:none;">
       <div class="field"><label>套數（×N）</label><input type="number" id="e-count" min="1" step="1" oninput="updateEditEst()"/></div>
-      <div class="field"><label>已疊加解析度</label><div class="member-series" id="e-resolutions"></div></div>
-      <div class="field"><label>已疊加 Fan Mode</label><div class="member-series" id="e-fanmodes"></div></div>
+      <div class="field"><label>解析度（可複選疊加）</label><div class="series-opts" id="e-resolutions"></div></div>
+      <div class="field"><label>Fan Mode（可複選疊加）</label><div class="series-opts" id="e-fanmodes"></div></div>
     </div>
     <div id="e-misc-block" style="display:none;">
       <div class="field"><label>活動名稱</label><input type="text" id="e-misc-name" placeholder="例：issue debug、EE溝通、開會、內訓課程"/></div>
@@ -1541,16 +1533,6 @@ function makeChip(cat,key,label,color){
   };
   return c;
 }
-function makeModifierChip(modType,value){
-  var c=document.createElement('div');
-  c.className='block-chip modifier';
-  c.textContent=value;
-  c.draggable=true;
-  c.ondragstart=function(e){
-    e.dataTransfer.setData('text/plain',JSON.stringify({kind:'modifier',modType:modType,value:value}));
-  };
-  return c;
-}
 function makeLeaveChip(leaveType,label,cls){
   var c=document.createElement('div');
   c.className='block-chip '+cls;
@@ -1645,8 +1627,6 @@ function saveEditModItem(field,oldVal){
   if(idx>-1)BLOCKLIB[field][idx]=v;
   cfgEditingMod[field]=null;
   buildModList(field);
-  if(field==='resolutions'){var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML=''; BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});}
-  else{var fCon=document.getElementById('chips-fanmodes'); fCon.innerHTML=''; BLOCKLIB.fanModes.forEach(function(fm){fCon.appendChild(makeModifierChip('fanMode',fm));});}
   persistBlockLib();
 }
 function removeModItem(field,val){
@@ -1667,8 +1647,6 @@ function reorderModItem(field,toVal){
   persistBlockLib();
 }
 function buildResolutionUI(){
-  var rCon=document.getElementById('chips-resolutions'); rCon.innerHTML='';
-  BLOCKLIB.resolutions.forEach(function(r){rCon.appendChild(makeModifierChip('resolution',r));});
   buildModList('resolutions');
 }
 function addResolution(){
@@ -1682,8 +1660,6 @@ function addResolution(){
   persistBlockLib();
 }
 function buildFanModeUI(){
-  var fCon=document.getElementById('chips-fanmodes'); fCon.innerHTML='';
-  BLOCKLIB.fanModes.forEach(function(fm){fCon.appendChild(makeModifierChip('fanMode',fm));});
   buildModList('fanModes');
 }
 function addFanMode(){
@@ -1868,17 +1844,6 @@ function buildHourView(){
         var pendItem=t.blockLabel||t.item||'(待命名)';
         blk.textContent=(t.category==='misc'?pendItem:(pendItem+' · '+t.code))+'（待填）';
         blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
-        if(t.category==='game'){
-          blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
-          blk.ondrop=function(e){
-            e.preventDefault();e.stopPropagation();
-            var raw=e.dataTransfer.getData('text/plain');
-            if(!raw)return;
-            var data;try{data=JSON.parse(raw);}catch(err){return;}
-            if(data.kind!=='modifier')return;
-            applyModifierToTask(t,data);
-          };
-        }
         tl.appendChild(blk);
         return;
       }
@@ -1891,17 +1856,6 @@ function buildHourView(){
         var hvLabel=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr'+(t.startTime?(' · '+t.startTime):'')+'）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
         var attachHvHandlers=function(el){
           el.onclick=function(e){e.stopPropagation();openEditModal(t);};
-          if(t.category==='game'){
-            el.ondragover=function(e){e.preventDefault();e.stopPropagation();};
-            el.ondrop=function(e){
-              e.preventDefault();e.stopPropagation();
-              var raw=e.dataTransfer.getData('text/plain');
-              if(!raw)return;
-              var data;try{data=JSON.parse(raw);}catch(err){return;}
-              if(data.kind!=='modifier')return;
-              applyModifierToTask(t,data);
-            };
-          }
         };
         if(t.startTime){
           var hvSegs=splitAroundLunch(parseHM(t.startTime),hrs);
@@ -2062,17 +2016,6 @@ function renderBar(t,c,container,h,top,small){
   lbl.textContent=nameTxt+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');bar.appendChild(lbl);
   if(!small){var bdg=document.createElement('span');bdg.className='task-badge';bdg.textContent=c.pending?'?':summaryBadge(t,c);bar.appendChild(bdg);}
   bar.onclick=function(e){e.stopPropagation();openEditModal(t);};
-  if(t.category==='game'){
-    bar.ondragover=function(e){e.preventDefault();e.stopPropagation();};
-    bar.ondrop=function(e){
-      e.preventDefault();e.stopPropagation();
-      var raw=e.dataTransfer.getData('text/plain');
-      if(!raw)return;
-      var data;try{data=JSON.parse(raw);}catch(err){return;}
-      if(data.kind!=='modifier')return;
-      applyModifierToTask(t,data);
-    };
-  }
   container.appendChild(bar);
 }
 
@@ -2256,38 +2199,20 @@ function taskUpdatePayload(t){
     blockMeta:JSON.stringify(buildBlockMeta(t))
   };
 }
-function applyModifierToTask(t,data){
-  if(!t.resolutions)t.resolutions=[];
-  if(!t.fanModes)t.fanModes=[];
-  var changed=false;
-  if(data.modType==='resolution'){
-    if(t.resolutions.indexOf(data.value)===-1){t.resolutions.push(data.value);changed=true;}
-  }else if(data.modType==='fanMode'){
-    if(t.fanModes.indexOf(data.value)===-1){t.fanModes.push(data.value);changed=true;}
-  }
-  if(!changed)return;
-  var payload=taskUpdatePayload(t);
-  setBusy(true);
-  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(){loadAllData();})
-  .catch(function(){setBusy(false);});
-}
-function buildRemovableTags(list,removeFn){
-  if(!list||list.length===0)return '<span class="series-tag empty">尚未疊加</span>';
-  return list.map(function(v){
-    return '<span class="series-tag" style="color:var(--amber);border-color:rgba(255,179,71,0.4);background:rgba(255,179,71,0.12);">'+v+' <span style="cursor:pointer;font-weight:900;" onclick="'+removeFn+'(\''+v+'\')">×</span></span>';
+function buildModCheckboxesHtml(field,current){
+  if(!BLOCKLIB[field]||BLOCKLIB[field].length===0)return '<span class="series-tag empty">尚未設定選項，請至「運算設定」新增</span>';
+  return BLOCKLIB[field].map(function(v){
+    var checked=current&&current.indexOf(v)>-1?' checked':'';
+    return '<label class="series-opt"><input type="checkbox" data-mod-field="'+field+'" data-mod-val="'+String(v).replace(/"/g,'&quot;')+'" onchange="toggleEditModifier(this)"'+checked+'/> '+v+'</label>';
   }).join('');
 }
-function editRemoveResolution(v){
+function toggleEditModifier(el){
   if(!editTask)return;
-  editTask.resolutions=(editTask.resolutions||[]).filter(function(x){return x!==v;});
-  document.getElementById('e-resolutions').innerHTML=buildRemovableTags(editTask.resolutions,'editRemoveResolution');
-  updateEditEst();
-}
-function editRemoveFanMode(v){
-  if(!editTask)return;
-  editTask.fanModes=(editTask.fanModes||[]).filter(function(x){return x!==v;});
-  document.getElementById('e-fanmodes').innerHTML=buildRemovableTags(editTask.fanModes,'editRemoveFanMode');
+  var field=el.getAttribute('data-mod-field'),v=el.getAttribute('data-mod-val');
+  if(!editTask[field])editTask[field]=[];
+  var idx=editTask[field].indexOf(v);
+  if(el.checked){if(idx===-1)editTask[field].push(v);}
+  else{if(idx>-1)editTask[field].splice(idx,1);}
   updateEditEst();
 }
 function updateEditEst(){
@@ -2345,8 +2270,8 @@ function openEditModal(t){
   document.getElementById('e-game-block').style.display=isGame?'block':'none';
   if(isGame){
     document.getElementById('e-count').value=t.count||1;
-    document.getElementById('e-resolutions').innerHTML=buildRemovableTags(t.resolutions,'editRemoveResolution');
-    document.getElementById('e-fanmodes').innerHTML=buildRemovableTags(t.fanModes,'editRemoveFanMode');
+    document.getElementById('e-resolutions').innerHTML=buildModCheckboxesHtml('resolutions',t.resolutions);
+    document.getElementById('e-fanmodes').innerHTML=buildModCheckboxesHtml('fanModes',t.fanModes);
   }
   var isMisc=t.category==='misc';
   document.getElementById('e-misc-block').style.display=isMisc?'block':'none';
