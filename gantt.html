@@ -199,6 +199,9 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .tb-btn{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.05em;padding:6px 14px;border-radius:var(--r6);cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);transition:all 0.15s;}
 .tb-btn:hover{color:var(--text);border-color:var(--border3);}
 .tb-btn.active{background:rgba(76,158,245,0.15);color:var(--blue);border-color:rgba(76,158,245,0.4);}
+.person-toggles{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.person-toggle-chip{font-family:var(--font-head);font-size:14px;font-weight:700;padding:5px 12px;border-radius:var(--r6);cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text3);transition:all 0.15s;}
+.person-toggle-chip.active{background:rgba(255,255,255,0.06);}
 .tb-sep{width:1px;height:22px;background:var(--border2);}
 .tb-label{font-size:15px;color:var(--text3);font-family:var(--font-mono);}
 .add-btn{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.05em;padding:6px 18px;border-radius:var(--r6);cursor:pointer;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;margin-left:auto;transition:all 0.15s;}
@@ -550,6 +553,7 @@ document.getElementById('pw-input').focus();
     <span class="tb-label">展開：</span>
     <button class="tb-btn" onclick="expandAll()">全部</button>
     <button class="tb-btn" onclick="collapseAll()">收合</button>
+    <div class="person-toggles" id="person-toggles"></div>
     <div class="tb-sep"></div>
     <button class="tb-btn" onclick="exportScheduleExcel()">📊 匯出Excel</button>
   </div>
@@ -1736,7 +1740,17 @@ function addDays(s,n){var d=new Date(s);d.setDate(d.getDate()+n);return fmt(d);}
 function fmt(d){var x=new Date(d);return x.getFullYear()+'-'+(x.getMonth()<9?'0':'')+(x.getMonth()+1)+'-'+(x.getDate()<10?'0':'')+x.getDate();}
 function dayOff(s){return Math.round((new Date(s)-START)/(864e5));}
 
+function fitDaysToViewport(){
+  if(currentZoom==='hour')return;
+  var scrollEl=document.querySelector('.gantt-scroll');
+  if(!scrollEl)return;
+  var availW=scrollEl.clientWidth-260;
+  if(availW<=0)return;
+  var fitDays=Math.ceil(availW/DAY_W)+2;
+  if(fitDays>DAYS)DAYS=fitDays;
+}
 function buildHeader(){
+  fitDaysToViewport();
   var mi=document.getElementById('gh-months'),di=document.getElementById('gh-days');
   mi.innerHTML='';di.innerHTML='';
   var mm={};
@@ -1928,6 +1942,8 @@ function buildGantt(){
   }
   scrollEl.style.display='';
   hourEl.style.display='none';
+  PERSONS.forEach(function(p){if(!(p.id in expanded))expanded[p.id]=true;});
+  buildPersonToggles();
   var body=document.getElementById('gantt-body');body.innerHTML='';
   var tw=DAYS*DAY_W,todOff=dayOff(fmt(new Date()));
   PERSONS.forEach(function(p){
@@ -2001,7 +2017,7 @@ function buildGantt(){
         pr.appendChild(pl);pr.appendChild(ptl);subs.appendChild(pr);
       });
     }
-    prow.onclick=function(){expanded[p.id]=!expanded[p.id];subs.classList.toggle('open',expanded[p.id]);tog.classList.toggle('open',expanded[p.id]);};
+    prow.onclick=function(){expanded[p.id]=!expanded[p.id];subs.classList.toggle('open',expanded[p.id]);tog.classList.toggle('open',expanded[p.id]);refreshPersonToggles();};
     prow.appendChild(lbl);prow.appendChild(tl);grp.appendChild(prow);grp.appendChild(subs);body.appendChild(grp);
   });
   updateStats();updateLoadingBars();
@@ -2381,6 +2397,31 @@ function createRetestFromTask(){
 function closeM(id){document.getElementById(id).classList.remove('show');}
 function expandAll(){PERSONS.forEach(function(p){expanded[p.id]=true;});buildGantt();}
 function collapseAll(){PERSONS.forEach(function(p){expanded[p.id]=false;});buildGantt();}
+function buildPersonToggles(){
+  var con=document.getElementById('person-toggles');
+  if(!con)return;
+  con.innerHTML='';
+  PERSONS.forEach(function(p){
+    var chip=document.createElement('button');
+    chip.className='person-toggle-chip'+(expanded[p.id]?' active':'');
+    chip.textContent=p.name;
+    chip.style.color=expanded[p.id]?p.c:'';
+    chip.style.borderColor=expanded[p.id]?(p.c+'66'):'';
+    chip.onclick=function(){expanded[p.id]=!expanded[p.id];buildGantt();};
+    con.appendChild(chip);
+  });
+}
+function refreshPersonToggles(){
+  var con=document.getElementById('person-toggles');
+  if(!con)return;
+  Array.prototype.forEach.call(con.children,function(chip,i){
+    var p=PERSONS[i];
+    if(!p)return;
+    chip.classList.toggle('active',!!expanded[p.id]);
+    chip.style.color=expanded[p.id]?p.c:'';
+    chip.style.borderColor=expanded[p.id]?(p.c+'66'):'';
+  });
+}
 function setZoom(mode){
   currentZoom=mode;
   var vm=VIEW_MODES[mode];
@@ -2415,6 +2456,13 @@ buildSeriesCheckboxesForAdd();
 buildCfgTable();
 buildBlockPalette();
 loadAllData();
+var resizeTimer=null;
+window.addEventListener('resize',function(){
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(function(){
+    if(currentZoom!=='hour'){buildHeader();buildGantt();}
+  },250);
+});
 </script>
 </body>
 </html>
