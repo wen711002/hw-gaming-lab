@@ -218,6 +218,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .hv-label-col{width:260px;flex-shrink:0;padding:10px 16px;border-right:1px solid var(--border2);font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.08em;color:var(--blue);white-space:nowrap;}
 .hv-hours{display:flex;}
 .hv-hour-lbl{font-family:var(--font-mono);font-size:14px;color:var(--text3);text-align:center;padding:10px 0;flex-shrink:0;border-right:1px solid var(--border);}
+.hv-hour-lbl.lunch{background:rgba(255,180,60,0.12);color:var(--orange,#ffb43c);}
+.hv-lunch-shade{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(255,180,60,0.08),rgba(255,180,60,0.08) 6px,rgba(255,180,60,0.03) 6px,rgba(255,180,60,0.03) 12px);border-left:1px dashed rgba(255,180,60,0.35);border-right:1px dashed rgba(255,180,60,0.35);pointer-events:none;z-index:0;}
 .hv-row{display:flex;border-bottom:1px solid var(--border2);}
 .hv-row-lbl{width:260px;flex-shrink:0;padding:10px 14px;display:flex;align-items:center;gap:10px;border-right:1px solid var(--border2);}
 .hv-row-name{font-family:var(--font-head);font-size:17px;font-weight:700;}
@@ -733,6 +735,8 @@ var VIEW_MODES = {
 var HOUR_W = 60;
 var WORKDAY_START_HOUR = 0;
 var WORKDAY_END_HOUR = 24;
+var LUNCH_START_HOUR = 12;
+var LUNCH_END_HOUR = 13;
 var currentZoom = 'day';
 var calFilter = 'all';
 var DAY_W = VIEW_MODES.day.dayW;
@@ -1139,6 +1143,26 @@ function onLeaveDateChange(prefix){
 }
 function parseHM(s){var parts=s.split(':');return parseFloat(parts[0])+parseFloat(parts[1])/60;}
 function timeSlotLeft(startTimeStr){return Math.max(0,(parseHM(startTimeStr)-WORKDAY_START_HOUR))*HOUR_W;}
+function splitAroundLunch(startH,durH){
+  var segs=[];
+  var cur=startH;
+  var remaining=durH;
+  var guard=0;
+  while(remaining>0.0001&&guard<20){
+    guard++;
+    if(cur>=LUNCH_START_HOUR&&cur<LUNCH_END_HOUR){
+      cur=LUNCH_END_HOUR;
+      continue;
+    }
+    var boundary=(cur<LUNCH_START_HOUR)?LUNCH_START_HOUR:Infinity;
+    var avail=boundary-cur;
+    var use=Math.min(avail,remaining);
+    segs.push({start:cur,end:cur+use});
+    remaining-=use;
+    cur+=use;
+  }
+  return segs;
+}
 function onLeaveTimeChange(prefix){
   var st=document.getElementById(prefix+'-start-time'),et=document.getElementById(prefix+'-end-time'),hrs=document.getElementById(prefix+'-hours');
   if(!st||!et||!hrs)return;
@@ -1766,8 +1790,9 @@ function buildHourView(){
   lblCol.textContent=dayStr+'（週'+wd+'）';
   var hoursWrap=document.createElement('div');hoursWrap.className='hv-hours';
   for(var h=WORKDAY_START_HOUR;h<WORKDAY_END_HOUR;h++){
-    var hl=document.createElement('div');hl.className='hv-hour-lbl';
-    hl.style.width=HOUR_W+'px';hl.textContent=h+':00';
+    var isLunchHr=h>=LUNCH_START_HOUR&&h<LUNCH_END_HOUR;
+    var hl=document.createElement('div');hl.className='hv-hour-lbl'+(isLunchHr?' lunch':'');
+    hl.style.width=HOUR_W+'px';hl.textContent=isLunchHr?'🍱午休':h+':00';
     hoursWrap.appendChild(hl);
   }
   header.appendChild(lblCol);header.appendChild(hoursWrap);
@@ -1783,6 +1808,13 @@ function buildHourView(){
     rl.appendChild(av);rl.appendChild(nm);
     var tl=document.createElement('div');tl.className='hv-row-tl';
     tl.style.width=(hoursCount*HOUR_W)+'px';
+    if(LUNCH_END_HOUR>WORKDAY_START_HOUR&&LUNCH_START_HOUR<WORKDAY_END_HOUR){
+      var lsh=document.createElement('div');lsh.className='hv-lunch-shade';
+      var lshS=Math.max(WORKDAY_START_HOUR,LUNCH_START_HOUR),lshE=Math.min(WORKDAY_END_HOUR,LUNCH_END_HOUR);
+      lsh.style.left=((lshS-WORKDAY_START_HOUR)*HOUR_W)+'px';
+      lsh.style.width=((lshE-lshS)*HOUR_W)+'px';
+      tl.appendChild(lsh);
+    }
     tl.ondragover=function(e){e.preventDefault();};
     tl.ondrop=function(e){
       e.preventDefault();
@@ -1856,21 +1888,40 @@ function buildHourView(){
       var machHrs=machineHoursOnDay(t,dayIndex);
       var hvItem=t.blockLabel||t.item||'(待命名)';
       if(hrs>0){
-        blk.style.cssText=(t.startTime?('position:absolute;left:'+timeSlotLeft(t.startTime)+'px;top:0;bottom:0;width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;'):('width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;'));
-        blk.textContent=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr'+(t.startTime?(' · '+t.startTime):'')+'）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
-        blk.onclick=function(e){e.stopPropagation();openEditModal(t);};
-        if(t.category==='game'){
-          blk.ondragover=function(e){e.preventDefault();e.stopPropagation();};
-          blk.ondrop=function(e){
-            e.preventDefault();e.stopPropagation();
-            var raw=e.dataTransfer.getData('text/plain');
-            if(!raw)return;
-            var data;try{data=JSON.parse(raw);}catch(err){return;}
-            if(data.kind!=='modifier')return;
-            applyModifierToTask(t,data);
-          };
+        var hvLabel=(t.category==='misc'?hvItem:(hvItem+' · '+t.code))+'（'+hrs+'hr'+(t.startTime?(' · '+t.startTime):'')+'）'+(t.failMode?' ⚠':'')+(t.retest?' ↻':'');
+        var attachHvHandlers=function(el){
+          el.onclick=function(e){e.stopPropagation();openEditModal(t);};
+          if(t.category==='game'){
+            el.ondragover=function(e){e.preventDefault();e.stopPropagation();};
+            el.ondrop=function(e){
+              e.preventDefault();e.stopPropagation();
+              var raw=e.dataTransfer.getData('text/plain');
+              if(!raw)return;
+              var data;try{data=JSON.parse(raw);}catch(err){return;}
+              if(data.kind!=='modifier')return;
+              applyModifierToTask(t,data);
+            };
+          }
+        };
+        if(t.startTime){
+          var hvSegs=splitAroundLunch(parseHM(t.startTime),hrs);
+          hvSegs.forEach(function(seg,segIdx){
+            var segBlk=(segIdx===0)?blk:document.createElement('div');
+            segBlk.className='hv-block';
+            var segLeft=(seg.start-WORKDAY_START_HOUR)*HOUR_W;
+            var segW=Math.max(4,(seg.end-seg.start)*HOUR_W-3);
+            segBlk.style.cssText='position:absolute;left:'+segLeft+'px;top:0;bottom:0;width:'+segW+'px;background:'+color+';color:#000;z-index:1;';
+            segBlk.textContent=segIdx===0?hvLabel:'↷ 續';
+            segBlk.title=hvLabel;
+            attachHvHandlers(segBlk);
+            tl.appendChild(segBlk);
+          });
+        }else{
+          blk.style.cssText='width:'+Math.max(4,hrs*HOUR_W-3)+'px;background:'+color+';color:#000;';
+          blk.textContent=hvLabel;
+          attachHvHandlers(blk);
+          tl.appendChild(blk);
         }
-        tl.appendChild(blk);
       }
       if(machHrs>0){
         var kblk=document.createElement('div');kblk.className='hv-block machine-seg';
