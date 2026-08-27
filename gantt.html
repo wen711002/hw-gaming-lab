@@ -152,6 +152,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .block-palette .block-chips{margin-bottom:0;flex:1;}
 .block-palette-group{display:flex;align-items:flex-start;gap:10px;flex-shrink:0;}
 .block-palette-group .block-palette-lbl{width:auto;text-align:left;}
+.block-palette-compact{gap:24px;}
+.block-palette-inline-group{display:contents;}
 .block-palette-hint{font-size:13px;color:var(--text3);padding:8px 0 2px;}
 @media(max-width:860px){
   .block-palette-lbl{width:80px;font-size:12px;}
@@ -216,8 +218,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .gantt-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r12);overflow:hidden;}
 
 /* HOUR VIEW */
-.hour-view{overflow-x:auto;}
-.hv-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
+.hour-view{overflow-x:auto;overflow-y:auto;max-height:65vh;}
+.hv-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:15;}
 .hv-label-col{width:260px;flex-shrink:0;padding:10px 16px;border-right:1px solid var(--border2);font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.08em;color:var(--blue);white-space:nowrap;}
 .hv-hours{display:flex;}
 .hv-hour-lbl{font-family:var(--font-mono);font-size:14px;color:var(--text3);text-align:center;padding:10px 0;flex-shrink:0;border-right:1px solid var(--border);}
@@ -234,8 +236,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .hv-block.leave-off{background:repeating-linear-gradient(45deg,rgba(255,92,122,0.22),rgba(255,92,122,0.22) 5px,rgba(255,92,122,0.08) 5px,rgba(255,92,122,0.08) 10px);border:1px solid rgba(255,92,122,0.4);color:var(--red);}
 .hv-block.leave-ot{background:repeating-linear-gradient(45deg,rgba(0,212,255,0.22),rgba(0,212,255,0.22) 5px,rgba(0,212,255,0.08) 5px,rgba(0,212,255,0.08) 10px);border:1px solid rgba(0,212,255,0.4);color:var(--cyan);}
 .hv-empty{color:var(--text3);font-size:14px;padding:14px;}
-.gantt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.gantt-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);}
+.gantt-scroll{overflow-x:auto;overflow-y:auto;max-height:65vh;-webkit-overflow-scrolling:touch;}
+.gantt-header{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:15;}
 .gh-label-col{width:260px;flex-shrink:0;padding:8px 16px 4px;border-right:1px solid var(--border2);}
 .gh-label-col span{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
 .gh-tl{overflow:hidden;}
@@ -258,6 +260,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .task-bar{position:absolute;height:26px;border-radius:var(--r4);display:flex;align-items:center;padding:0 8px;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;transition:filter 0.15s;z-index:2;}
 .task-bar:hover{filter:brightness(1.15);}
 .task-bar.pending{background:transparent;border:2px dashed currentColor;}
+.task-bar-summary{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:var(--text2);font-size:14px;}
 .task-lbl{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis;}
 .task-badge{position:relative;z-index:1;font-size:13px;background:rgba(0,0,0,0.3);border-radius:3px;padding:1px 5px;margin-left:5px;flex-shrink:0;}
 .task-bar.pending .task-badge{background:transparent;border:1px dashed currentColor;}
@@ -575,20 +578,20 @@ document.getElementById('pw-input').focus();
   <!-- BLOCK PALETTE (sticky, sits right above the chart so drag distance stays short) -->
   <div class="block-palette" id="block-palette">
     <div id="block-palette-categories"></div>
-    <div class="block-palette-cat">
+    <div class="block-palette-cat block-palette-compact">
       <div class="block-palette-group">
         <span class="block-palette-lbl">Games</span>
         <div class="block-chips" id="chips-games"></div>
       </div>
-    </div>
-    <div id="block-palette-categories-after-games"></div>
-    <div class="block-palette-cat">
-      <span class="block-palette-lbl">其他</span>
-      <div class="block-chips" id="chips-misc"></div>
-    </div>
-    <div class="block-palette-cat">
-      <span class="block-palette-lbl">請假／公出</span>
-      <div class="block-chips" id="chips-leave"></div>
+      <div id="block-palette-categories-after-games" class="block-palette-inline-group"></div>
+      <div class="block-palette-group">
+        <span class="block-palette-lbl">其他</span>
+        <div class="block-chips" id="chips-misc"></div>
+      </div>
+      <div class="block-palette-group">
+        <span class="block-palette-lbl">請假／公出</span>
+        <div class="block-chips" id="chips-leave"></div>
+      </div>
     </div>
     <div class="block-palette-hint">↑ 把測項／請假／公出／雜項活動積木拖到下方時間軸建立記錄（雜項活動拖入後請點擊補填名稱）；Games 任務點擊後可在編輯面板勾選解析度／Fan Mode 疊加</div>
   </div>
@@ -1582,20 +1585,20 @@ function makeMiscChip(){
   };
   return c;
 }
-function renderPaletteCategoryGroup(containerId,cats){
+function renderPaletteCategoryGroup(containerId,cats,compact){
   var con=document.getElementById(containerId); if(!con)return; con.innerHTML='';
   cats.forEach(function(cat){
-    var row=document.createElement('div'); row.className='block-palette-cat';
     var lbl=document.createElement('span'); lbl.className='block-palette-lbl'; lbl.textContent=cat.label;
     var chips=document.createElement('div'); chips.className='block-chips'; chips.id='chips-'+cat.key;
     cat.items.forEach(function(item){chips.appendChild(makeChip(cat.key,item.key,item.label,cat.color));});
+    var row=document.createElement('div'); row.className=compact?'block-palette-group':'block-palette-cat';
     row.appendChild(lbl); row.appendChild(chips);
     con.appendChild(row);
   });
 }
 function buildBlockPalette(){
-  renderPaletteCategoryGroup('block-palette-categories',BLOCKLIB.categories.filter(function(c){return !c.afterGames;}));
-  renderPaletteCategoryGroup('block-palette-categories-after-games',BLOCKLIB.categories.filter(function(c){return c.afterGames;}));
+  renderPaletteCategoryGroup('block-palette-categories',BLOCKLIB.categories.filter(function(c){return !c.afterGames;}),false);
+  renderPaletteCategoryGroup('block-palette-categories-after-games',BLOCKLIB.categories.filter(function(c){return c.afterGames;}),true);
   var gCon=document.getElementById('chips-games'); if(!gCon)return; gCon.innerHTML='';
   gCon.appendChild(makeChip('game','games',BLOCKLIB.games.label||'Games'));
   var lCon=document.getElementById('chips-leave'); lCon.innerHTML='';
@@ -1930,6 +1933,16 @@ function buildHourView(){
   });
 }
 
+function mergeBusyRanges(pt){
+  var ranges=pt.map(function(t){var c=calc(t);var off=dayOff(t.start);return {s:off,e:off+c.total,n:1};}).sort(function(a,b){return a.s-b.s;});
+  var merged=[];
+  ranges.forEach(function(r){
+    var last=merged[merged.length-1];
+    if(last&&r.s<=last.e){last.e=Math.max(last.e,r.e);last.n++;}
+    else merged.push({s:r.s,e:r.e,n:1});
+  });
+  return merged;
+}
 function buildGantt(){
   var scrollEl=document.querySelector('.gantt-scroll');
   var hourEl=document.getElementById('hour-view');
@@ -1993,17 +2006,28 @@ function buildGantt(){
       createTaskFromBlock(p,data,startStr);
     };
     var used=[];
-    if(calFilter!=='leave'){
+    var isOpen=!!expanded[p.id];
+    if(calFilter!=='leave'&&isOpen){
       pt.forEach(function(t){
         var c=calc(t),off=dayOff(t.start),slot=0;
         while(used.some(function(s){return s.slot===slot&&s.e>off&&s.s<off+c.total;}))slot++;
         used.push({slot:slot,s:off,e:off+c.total});
         renderBar(t,c,tl,26,slot*32+10,false);
       });
+    }else if(calFilter!=='leave'){
+      mergeBusyRanges(pt).forEach(function(r){
+        var left=r.s*DAY_W+2,width=Math.max(4,(r.e-r.s)*DAY_W-4);
+        var bar=document.createElement('div');
+        bar.className='task-bar task-bar-summary';
+        bar.style.cssText='left:'+left+'px;top:13px;width:'+width+'px;';
+        bar.textContent='● 忙碌中';
+        bar.title=r.n+' 項任務・點擊展開查看細節';
+        tl.appendChild(bar);
+      });
     }
-    tl.style.minHeight=Math.max(52,(used.length||1)*32+12)+'px';
-    var subs=document.createElement('div');subs.className='g-sub-rows'+(expanded[p.id]?' open':'');
-    if(calFilter!=='leave'){
+    tl.style.minHeight=isOpen?Math.max(52,(used.length||1)*32+12)+'px':'52px';
+    var subs=document.createElement('div');subs.className='g-sub-rows'+(isOpen?' open':'');
+    if(calFilter!=='leave'&&isOpen){
       var pm={};pt.forEach(function(t){var k=t.code+'|'+t.sku;if(!pm[k])pm[k]=[];pm[k].push(t);});
       Object.keys(pm).forEach(function(key){
         var parts=key.split('|'),code=parts[0],sku=parts[1],ptasks2=pm[key];
