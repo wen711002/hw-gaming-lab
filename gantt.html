@@ -2129,7 +2129,7 @@ function categoryLabelFor(catKey){
   var cat=getCategory(catKey);
   return cat?cat.label:catKey;
 }
-function buildMonthReportRows(mKey){
+function computeMonthStats(mKey){
   var workdays=monthWorkdays(mKey);
   var capacityPerPerson=workdays*HPD;
   var monthTasks=tasks.filter(function(t){return t.start.slice(0,7)===mKey;});
@@ -2144,6 +2144,23 @@ function buildMonthReportRows(mKey){
   });
   var teamCapacity=capacityPerPerson*PERSONS.length;
   var teamLoadingPct=teamCapacity>0?Math.round(teamManualHours/teamCapacity*1000)/10:0;
+  return {workdays:workdays,capacityPerPerson:capacityPerPerson,monthTasks:monthTasks,perPersonHours:perPersonHours,teamManualHours:teamManualHours,teamCapacity:teamCapacity,teamLoadingPct:teamLoadingPct};
+}
+function buildOverviewRows(monthKeys){
+  var rows=[];
+  rows.push(['HW Gaming Lab 測試排程 － 部門月度Loading總覽']);
+  rows.push([]);
+  rows.push(['月份','團隊人數','當月工作天數','團隊總產能(hr)','團隊已排手動工時(hr)','團隊Loading(%)','人力缺口(hr，正值代表超出產能)','狀態']);
+  monthKeys.forEach(function(mKey){
+    var s=computeMonthStats(mKey);
+    var gap=Math.round((s.teamManualHours-s.teamCapacity)*100)/100;
+    rows.push([mKey,PERSONS.length,s.workdays,s.teamCapacity,Math.round(s.teamManualHours*100)/100,s.teamLoadingPct,gap,gap>0?'超出負荷':'正常']);
+  });
+  return rows;
+}
+function buildMonthReportRows(mKey){
+  var s=computeMonthStats(mKey);
+  var workdays=s.workdays,capacityPerPerson=s.capacityPerPerson,monthTasks=s.monthTasks,perPersonHours=s.perPersonHours,teamManualHours=s.teamManualHours,teamCapacity=s.teamCapacity,teamLoadingPct=s.teamLoadingPct;
   var rows=[];
   rows.push(['HW Gaming Lab 測試排程月報 － '+mKey]);
   rows.push([]);
@@ -2155,14 +2172,15 @@ function buildMonthReportRows(mKey){
   rows.push(['團隊已排手動工時(hr)',Math.round(teamManualHours*100)/100]);
   rows.push(['團隊Loading(%)',teamLoadingPct]);
   rows.push(['團隊人力缺口(hr，正值代表超出產能)',Math.round((teamManualHours-teamCapacity)*100)/100]);
+  rows.push(['團隊狀態',teamManualHours>teamCapacity?'超出負荷':'正常']);
   rows.push([]);
   rows.push(['【每人當月Loading摘要】']);
-  rows.push(['姓名','產能(hr)','已排手動工時(hr)','Loading(%)','缺口(hr，正值代表超出產能)']);
+  rows.push(['姓名','產能(hr)','已排手動工時(hr)','Loading(%)','缺口(hr，正值代表超出產能)','狀態']);
   PERSONS.forEach(function(p){
     var used=Math.round((perPersonHours[p.id]||0)*100)/100;
     var pct=capacityPerPerson>0?Math.round(used/capacityPerPerson*1000)/10:0;
     var gap=Math.round((used-capacityPerPerson)*100)/100;
-    rows.push([p.name,capacityPerPerson,used,pct,gap]);
+    rows.push([p.name,capacityPerPerson,used,pct,gap,gap>0?'超出負荷':'正常']);
   });
   rows.push([]);
   rows.push(['【任務明細】']);
@@ -2190,6 +2208,10 @@ function exportScheduleExcel(){
   tasks.forEach(function(t){months[t.start.slice(0,7)]=true;});
   var monthKeys=Object.keys(months).sort();
   var wb=XLSX.utils.book_new();
+  var ovRows=buildOverviewRows(monthKeys);
+  var ovWs=XLSX.utils.aoa_to_sheet(ovRows);
+  ovWs['!cols']=[{wch:12},{wch:12},{wch:14},{wch:16},{wch:18},{wch:14},{wch:22},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ovWs,'總覽');
   monthKeys.forEach(function(mKey){
     var rows=buildMonthReportRows(mKey);
     var ws=XLSX.utils.aoa_to_sheet(rows);
