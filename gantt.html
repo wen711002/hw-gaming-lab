@@ -762,6 +762,10 @@ var BLOCKLIB = {
       {key:'3dmark',      label:'3DMark',         hours:null},
       {key:'diskmark',    label:'DiskMark',       hours:null},
       {key:'geekbench6',  label:'GeekBench6',     hours:null}
+    ]},
+    {key:'shared',label:'共同活動',color:'#818cf8',afterGames:true,teamWide:true,items:[
+      {key:'dept_meeting', label:'部門會議', hours:null},
+      {key:'company_event',label:'公司活動', hours:null}
     ]}
   ],
   games:{label:'Games', hoursPerSet:null},
@@ -955,6 +959,14 @@ function loadAllData(){
       document.getElementById('cfg-max-proj').value=maxProj;
       document.getElementById('cfg-max-person').value=maxPerson;
       document.getElementById('hdr-hpd').textContent=HPD;
+      if(!BLOCKLIB.categories.some(function(c){return c.key==='shared';})&&!BLOCKLIB._sharedMigrated){
+        BLOCKLIB.categories.push({key:'shared',label:'共同活動',color:'#818cf8',afterGames:true,teamWide:true,items:[
+          {key:'dept_meeting', label:'部門會議', hours:null},
+          {key:'company_event',label:'公司活動', hours:null}
+        ]});
+        BLOCKLIB._sharedMigrated=true;
+        persistBlockLib();
+      }
     }
     /* Leaves */
     LEAVES=[];
@@ -1000,7 +1012,8 @@ function loadAllData(){
         start:startStr,
         retest:t.RetesOf===1||t.RetesOf===true||t.RetesOf==='1',
         failMode:t.FailMode===true||t.FailMode==='true',
-        note:t.Note||''
+        note:t.Note||'',
+        groupId:meta.groupId||null
       });
     });
     buildCfgTable();
@@ -2222,7 +2235,37 @@ function exportScheduleExcel(){
 }
 
 /* ---------- BLOCK → TASK CRUD ---------- */
+function createTeamWideTaskFromBlock(data,startStr){
+  if(PERSONS.length===0)return;
+  var groupId='grp_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  setBusy(true);
+  var reqs=PERSONS.map(function(p){
+    var meta={category:data.category,item:data.label,manualHours:null,machineHours:null,startTime:null,groupId:groupId};
+    var payload={
+      action:'add',
+      PersonId:String(p.spId),
+      ProjectCode:'',
+      SKU:'',
+      TestType:data.label,
+      Machines:1,
+      StartDate:startStr,
+      FailMode:false,
+      Note:'',
+      Status:'Planned',
+      ActualHours:0,
+      RetestOf:0,
+      blockMeta:JSON.stringify(meta)
+    };
+    return fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  });
+  Promise.all(reqs).then(function(rs){
+    if(rs.some(function(r){return !r.ok;}))throw new Error('部分成員新增失敗');
+    loadAllData();
+  }).catch(function(){setBusy(false);alert('新增共同活動失敗，請重試。');});
+}
 function createTaskFromBlock(p,data,startStr){
+  var cat=getCategory(data.category);
+  if(cat&&cat.teamWide){createTeamWideTaskFromBlock(data,startStr);return;}
   var meta={category:data.category,item:data.label,manualHours:null,machineHours:null,startTime:null};
   if(data.category==='game'){meta.count=1;meta.resolutions=[];meta.fanModes=[];}
   var isMisc=data.category==='misc';
@@ -2264,6 +2307,7 @@ function buildBlockMeta(t){
     m.resolutions=t.resolutions||[];
     m.fanModes=t.fanModes||[];
   }
+  if(t.groupId)m.groupId=t.groupId;
   return m;
 }
 function taskUpdatePayload(t){
@@ -2342,9 +2386,11 @@ function updateEditEst(){
 function openEditModal(t){
   editTask=t;
   var subItem=t.blockLabel||t.item||'(待命名)';
-  document.getElementById('edit-sub').textContent=t.category==='misc'?subItem:(subItem+' · '+t.code+' · '+t.sku);
+  var groupCount=t.groupId?tasks.filter(function(x){return x.groupId===t.groupId;}).length:0;
+  document.getElementById('edit-sub').textContent=(t.category==='misc'?subItem:(subItem+' · '+t.code+' · '+t.sku))+(t.groupId?(' · 👥 共同活動（套用於'+groupCount+'人）'):'');
   var psel=document.getElementById('e-person');psel.innerHTML='';
   PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===t.person)o.selected=true;psel.appendChild(o);});
+  psel.disabled=!!t.groupId;
   document.getElementById('e-start').value=t.start;
   document.getElementById('e-code').value=t.code;
   document.getElementById('e-sku').value=t.sku;
@@ -2394,21 +2440,30 @@ function saveEdit(){
   editTask.retest=document.getElementById('e-retest').value==='1';
   editTask.failMode=document.getElementById('e-fail').value==='1';
   editTask.note=document.getElementById('e-note').value;
-  var payload=taskUpdatePayload(editTask);
+  var payloads=[taskUpdatePayload(editTask)];
+  if(editTask.groupId){
+    tasks.forEach(function(t){
+      if(t.groupId===editTask.groupId&&t.spId!==editTask.spId){
+        t.start=editTask.start;t.startTime=editTask.startTime;t.manualHours=editTask.manualHours;t.note=editTask.note;
+        payloads.push(taskUpdatePayload(t));
+      }
+    });
+  }
   closeM('edit-modal');
   setBusy(true);
-  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  Promise.all(payloads.map(function(p){return fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});}))
+  .then(function(){loadAllData();})
   .catch(function(){setBusy(false);alert('儲存失敗，請重試。');});
 }
 function deleteTask(){
   if(!editTask)return;
-  if(!confirm('確定要刪除這個任務嗎？'))return;
-  var payload={action:'delete',id:editTask.spId};
+  var siblings=editTask.groupId?tasks.filter(function(t){return t.groupId===editTask.groupId;}):[editTask];
+  var msg=siblings.length>1?('這是共同活動，將會一併刪除全部 '+siblings.length+' 位成員的這筆記錄，確定要刪除嗎？'):'確定要刪除這個任務嗎？';
+  if(!confirm(msg))return;
   closeM('edit-modal');
   setBusy(true);
-  fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(){loadAllData();})
+  Promise.all(siblings.map(function(t){return fetch(PA_TASK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:t.spId})});}))
+  .then(function(){loadAllData();})
   .catch(function(){setBusy(false);alert('刪除失敗，請重試。');});
 }
 function createRetestFromTask(){
