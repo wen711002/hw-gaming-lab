@@ -2389,7 +2389,12 @@ function openEditModal(t){
   var groupCount=t.groupId?tasks.filter(function(x){return x.groupId===t.groupId;}).length:0;
   document.getElementById('edit-sub').textContent=(t.category==='misc'?subItem:(subItem+' · '+t.code+' · '+t.sku))+(t.groupId?(' · 👥 共同活動（套用於'+groupCount+'人）'):'');
   var psel=document.getElementById('e-person');psel.innerHTML='';
-  PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===t.person)o.selected=true;psel.appendChild(o);});
+  if(t.groupId){
+    var allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='所有人';allOpt.selected=true;
+    psel.appendChild(allOpt);
+  }else{
+    PERSONS.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===t.person)o.selected=true;psel.appendChild(o);});
+  }
   psel.disabled=!!t.groupId;
   document.getElementById('e-start').value=t.start;
   document.getElementById('e-code').value=t.code;
@@ -2419,7 +2424,7 @@ function openEditModal(t){
 }
 function saveEdit(){
   if(!editTask)return;
-  editTask.person=document.getElementById('e-person').value;
+  if(!editTask.groupId)editTask.person=document.getElementById('e-person').value;
   editTask.start=document.getElementById('e-start').value||editTask.start;
   editTask.code=document.getElementById('e-code').value||editTask.code;
   editTask.sku=document.getElementById('e-sku').value||editTask.sku;
