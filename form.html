@@ -544,13 +544,9 @@ else{document.getElementById('pw-input').focus();}
   <div class="schedule-section" id="lload-section">
     <div class="schedule-header">
       <div class="schedule-title">📊 實驗室目前 Loading 狀態</div>
-      <div style="display:flex;gap:8px;">
-        <button class="lload-zoom-btn active" id="lload-week-btn" onclick="setLabLoadZoom('week')">週檢視</button>
-        <button class="lload-zoom-btn" id="lload-month-btn" onclick="setLabLoadZoom('month')">月檢視</button>
-      </div>
     </div>
     <div id="lload-list">// 載入中...</div>
-    <div class="schedule-note" style="text-align:left;">※ 僅計算人工操作工時，機台自動執行時間不計入；供申請測試前參考，實際排程仍需由實驗室確認</div>
+    <div class="schedule-note" style="text-align:left;">※ 以「過去30天」實際排程狀態回推計算，工作天數已排除週六日及台灣國定假日；僅計算人工操作工時，機台自動執行時間不計入</div>
   </div>
 
   <!-- ADMIN BAR -->
@@ -1778,7 +1774,6 @@ function loadAnnouncement(){
 loadAnnouncement();
 
 // ── 實驗室目前 Loading 狀態（讀取 gantt.html 用的同一個 PA_READ，僅計算人工工時，不計機台自動工時）──
-var lloadZoom='week';
 var LLOAD_DATA=null;
 function decodeSchedBlockMeta(s){
   if(!s) return null;
@@ -1796,33 +1791,24 @@ function schedTaskManualHours(meta){
   }
   return parseFloat(meta.hours)*mult;
 }
-function schedStartOfWeek(d){
-  var x=new Date(d);
-  var day=x.getDay();
-  var diff=(day===0?-6:1-day);
-  x.setDate(x.getDate()+diff);
-  x.setHours(0,0,0,0);
-  return x;
+/* 資料來源：行政院人事行政總處「中華民國115年（西元2026年）政府行政機關辦公日曆表」。
+   2026年起已取消補班制度（只補假不補班）。僅收錄2026年資料，其他年度回退為僅排除週六日。 */
+var TW_HOLIDAY_RANGES={
+  2026:[
+    ['2026-01-01','2026-01-01'],['2026-02-14','2026-02-22'],['2026-02-27','2026-03-01'],
+    ['2026-04-03','2026-04-06'],['2026-05-01','2026-05-03'],['2026-06-19','2026-06-21'],
+    ['2026-09-25','2026-09-28'],['2026-10-09','2026-10-11'],['2026-10-24','2026-10-26'],
+    ['2026-12-25','2026-12-27']
+  ]
+};
+function isTaiwanHoliday(dateStr){
+  var ranges=TW_HOLIDAY_RANGES[parseInt(dateStr.slice(0,4))];
+  if(!ranges)return false;
+  return ranges.some(function(r){return dateStr>=r[0]&&dateStr<=r[1];});
 }
-function buildLloadWeekPeriods(n){
-  var periods=[];
-  var ws=schedStartOfWeek(new Date());
-  for(var i=0;i<n;i++){
-    var s=new Date(ws);s.setDate(s.getDate()+i*7);
-    var e=new Date(s);e.setDate(e.getDate()+6);
-    periods.push({start:s,end:e,label:(i===0?'本週（':'（')+fmtSchedDate(s).slice(5)+'~'+fmtSchedDate(e).slice(5)+'）'});
-  }
-  return periods;
-}
-function buildLloadMonthPeriods(n){
-  var periods=[];
-  var now=new Date();
-  for(var i=0;i<n;i++){
-    var s=new Date(now.getFullYear(),now.getMonth()+i,1);
-    var e=new Date(now.getFullYear(),now.getMonth()+i+1,0);
-    periods.push({start:s,end:e,label:(i===0?'本月（':'（')+(s.getMonth()+1)+'月）'});
-  }
-  return periods;
+function isTaiwanWorkday(dateStr){
+  var wd=new Date(dateStr+'T00:00:00').getDay();
+  return wd!==0&&wd!==6&&!isTaiwanHoliday(dateStr);
 }
 function loadLabLoading(){
   fetch(PA_SCHED_READ,{method:'GET',headers:{'Accept':'application/json'}})
@@ -1833,12 +1819,7 @@ function loadLabLoading(){
     if(box)box.innerHTML='<div class="announce-empty">// Loading 資料載入失敗</div>';
   });
 }
-function setLabLoadZoom(z){
-  lloadZoom=z;
-  document.getElementById('lload-week-btn').classList.toggle('active',z==='week');
-  document.getElementById('lload-month-btn').classList.toggle('active',z==='month');
-  renderLabLoading();
-}
+var LLOAD_WINDOW_DAYS=30;
 function renderLabLoading(){
   var box=document.getElementById('lload-list');
   if(!box||!LLOAD_DATA)return;
@@ -1861,20 +1842,21 @@ function renderLabLoading(){
       remaining-=use;
     }
   });
-  var periods=lloadZoom==='week'?buildLloadWeekPeriods(4):buildLloadMonthPeriods(3);
+  var today=new Date();today.setHours(0,0,0,0);
+  var winStart=new Date(today);winStart.setDate(winStart.getDate()-(LLOAD_WINDOW_DAYS-1));
+  var sumH=0,workDays=0;
+  var cursor=new Date(winStart);
+  while(cursor<=today){
+    var key=fmtSchedDate(cursor);
+    sumH+=dayHours[key]||0;
+    if(isTaiwanWorkday(key))workDays++;
+    cursor.setDate(cursor.getDate()+1);
+  }
+  sumH=Math.round(sumH*100)/100;
+  var cap=Math.round(numPeople*HPD*workDays*100)/100;
   box.innerHTML='';
-  periods.forEach(function(p){
-    var sumH=0,workDays=0;
-    var cursor=new Date(p.start);
-    while(cursor<=p.end){
-      var key=fmtSchedDate(cursor);
-      sumH+=dayHours[key]||0;
-      var wd=cursor.getDay();
-      if(wd!==0&&wd!==6)workDays++;
-      cursor.setDate(cursor.getDate()+1);
-    }
-    var cap=numPeople*HPD*workDays;
-    var pct=cap>0?Math.min(100,Math.round(sumH/cap*100)):0;
+  [{label:'近'+LLOAD_WINDOW_DAYS+'天（'+fmtSchedDate(winStart).slice(5)+'~'+fmtSchedDate(today).slice(5)+'）',sumH:sumH,cap:cap}].forEach(function(p){
+    var pct=p.cap>0?Math.min(100,Math.round(p.sumH/p.cap*100)):0;
     var col=pct>80?'#ff5c7a':pct>60?'#ffb347':'#00e5a0';
     var row=document.createElement('div');row.className='lload-row';
     row.innerHTML='<div class="lload-label">'+p.label+'</div>'+
