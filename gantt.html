@@ -2142,6 +2142,9 @@ function categoryLabelFor(catKey){
   var cat=getCategory(catKey);
   return cat?cat.label:catKey;
 }
+function isNonProjectCategory(catKey){
+  return catKey==='misc'||catKey==='shared';
+}
 function computeMonthStats(mKey){
   var workdays=monthWorkdays(mKey);
   var capacityPerPerson=workdays*HPD;
@@ -2197,9 +2200,10 @@ function buildMonthReportRows(mKey){
   });
   rows.push([]);
   rows.push(['【任務明細】']);
-  rows.push(['姓名','開始日期','分類','測項','手動工時(hr)','機台自動工時(hr)','專案代號','SKU','備註']);
+  rows.push(['姓名','開始日期','分類','測項','手動工時(hr)','機台自動工時(hr)','機台數','專案代號','SKU','備註']);
   monthTasks.slice().sort(function(a,b){return a.start<b.start?-1:(a.start>b.start?1:0);}).forEach(function(t){
     var p=PERSONS.filter(function(x){return x.id===t.person;})[0];
+    var nonProj=isNonProjectCategory(t.category);
     rows.push([
       p?p.name:'',
       t.start,
@@ -2207,8 +2211,9 @@ function buildMonthReportRows(mKey){
       t.blockLabel||t.item||'',
       (t.manualHours===null||t.manualHours===undefined)?'待填':t.manualHours,
       (t.machineHours===null||t.machineHours===undefined)?'':t.machineHours,
-      t.code||'',
-      t.sku||'',
+      nonProj?'-':(t.machines||1),
+      nonProj?(t.code||'common'):(t.code||''),
+      nonProj?(t.sku||'-'):(t.sku||''),
       t.note||''
     ]);
   });
@@ -2228,7 +2233,7 @@ function exportScheduleExcel(){
   monthKeys.forEach(function(mKey){
     var rows=buildMonthReportRows(mKey);
     var ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:14},{wch:14},{wch:14},{wch:16},{wch:16},{wch:16},{wch:14},{wch:14},{wch:20}];
+    ws['!cols']=[{wch:14},{wch:14},{wch:14},{wch:16},{wch:16},{wch:16},{wch:10},{wch:14},{wch:14},{wch:20}];
     XLSX.utils.book_append_sheet(wb,ws,mKey);
   });
   XLSX.writeFile(wb,'HWGamingLab_Schedule_'+fmt(new Date())+'.xlsx');
@@ -2244,8 +2249,8 @@ function createTeamWideTaskFromBlock(data,startStr){
     var payload={
       action:'add',
       PersonId:String(p.spId),
-      ProjectCode:'',
-      SKU:'',
+      ProjectCode:'common',
+      SKU:'-',
       TestType:data.label,
       Machines:1,
       StartDate:startStr,
@@ -2272,8 +2277,8 @@ function createTaskFromBlock(p,data,startStr){
   var payload={
     action:'add',
     PersonId:String(p.spId),
-    ProjectCode:isMisc?'':'UNNAMED',
-    SKU:isMisc?'':'SKU-???',
+    ProjectCode:isMisc?'common':'UNNAMED',
+    SKU:isMisc?'-':'SKU-???',
     TestType:data.label,
     Machines:1,
     StartDate:startStr,
