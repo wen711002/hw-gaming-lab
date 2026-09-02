@@ -1161,7 +1161,7 @@ function updateLeaveEst(prefix){
   disp.value=t.days+' 天（'+t.hours+' hr）';
 }
 function parseHM(s){var parts=s.split(':');return parseFloat(parts[0])+parseFloat(parts[1])/60;}
-var LEAVE_DAY_START='08:00',LEAVE_DAY_END='17:00',LEAVE_DAY_HOURS=8;
+var LEAVE_DAY_START='08:00',LEAVE_DAY_END='17:00',LEAVE_DAY_HOURS=8,LEAVE_FLEX_HOURS=1;
 function isWeekendStr(dateStr){var d=new Date(dateStr+'T00:00:00').getDay();return d===0||d===6;}
 function hoursInWindowExcludingLunch(startH,endH){
   if(endH<=startH)return 0;
@@ -1171,10 +1171,17 @@ function hoursInWindowExcludingLunch(startH,endH){
 function leaveHoursOnDate(startDateStr,startTimeStr,endDateStr,endTimeStr,dateStr){
   if(dateStr<startDateStr||dateStr>endDateStr)return 0;
   if(isWeekendStr(dateStr))return 0;
-  var dayStartH=(dateStr===startDateStr)?parseHM(startTimeStr||LEAVE_DAY_START):parseHM(LEAVE_DAY_START);
-  var dayEndH=(dateStr===endDateStr)?parseHM(endTimeStr||LEAVE_DAY_END):parseHM(LEAVE_DAY_END);
-  dayStartH=Math.max(parseHM(LEAVE_DAY_START),Math.min(parseHM(LEAVE_DAY_END),dayStartH));
-  dayEndH=Math.max(parseHM(LEAVE_DAY_START),Math.min(parseHM(LEAVE_DAY_END),dayEndH));
+  var refStart=parseHM(LEAVE_DAY_START),refEnd=parseHM(LEAVE_DAY_END);
+  var dayStartH=refStart,dayEndH=refEnd;
+  if(dateStr===startDateStr){
+    var rawStart=parseHM(startTimeStr||LEAVE_DAY_START);
+    dayStartH=(rawStart<=refStart+LEAVE_FLEX_HOURS)?refStart:rawStart;
+  }
+  if(dateStr===endDateStr){
+    dayEndH=parseHM(endTimeStr||LEAVE_DAY_END);
+  }
+  dayStartH=Math.max(refStart,Math.min(refEnd,dayStartH));
+  dayEndH=Math.max(refStart,Math.min(refEnd,dayEndH));
   return hoursInWindowExcludingLunch(dayStartH,dayEndH);
 }
 function computeLeaveTotals(startDateStr,startTimeStr,endDateStr,endTimeStr){
