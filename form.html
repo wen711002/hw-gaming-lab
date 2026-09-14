@@ -1620,6 +1620,11 @@ function submitForm(){
   });
   if(isRetest&&!v('retest-reason'))miss.push('複測原因');
   if(miss.length){alert('以下欄位未填寫:\n'+miss.join('\n'));return;}
+  if(proj.projCode&&looksLikeCombinedProjectCodes(proj.projCode)){
+    if(!confirm('偵測到 Project Code「'+proj.projCode+'」看起來像是包含了兩個不同的專案代號。\n\n若這確實是兩個不同專案，請取消送出、改成分開填寫兩張需求單（每張各自的SKU/Report資料才不會混在一起，之後也才能各自被正確追蹤）。\n\n若這本來就是單一個專案代號（系統誤判），請按「確定」繼續送出。')){
+      return;
+    }
+  }
   paSubmit();
 }
 function paSubmit(){
@@ -2659,6 +2664,21 @@ function initReportId(){
   var el=document.getElementById('report-id-display');
   if(el)el.textContent=currentReportId;
   updateFilenamePreview();
+}
+function looksLikeProjectCodeSegment(s){
+  s=s.trim();
+  if(s.length<4||s.length>15)return false;
+  if(!/[A-Za-z]/.test(s)||!/[0-9]/.test(s))return false;
+  return /^[A-Za-z0-9]+$/.test(s);
+}
+function looksLikeCombinedProjectCodes(code){
+  var segments=code.split(/[\/,&+\s]+/).map(function(s){return s.trim();}).filter(Boolean);
+  if(segments.length<2){
+    segments=code.split('_').map(function(s){return s.trim();}).filter(Boolean);
+  }
+  if(segments.length<2)return false;
+  var matchCount=segments.filter(looksLikeProjectCodeSegment).length;
+  return matchCount>=2;
 }
 function sanitizeFilenameField(el){
   var v=el.value;
