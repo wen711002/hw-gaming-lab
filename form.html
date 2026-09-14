@@ -735,8 +735,8 @@ else{document.getElementById('pw-input').focus();}
               </select>
             </div>
           </div>
-          <div class="field"><label>Project Code<span class="req">*</span></label><input type="text" id="projcode" placeholder="例：S5408QA（都大寫）" oninput="updateFilenamePreview()"/></div>
-          <div class="field"><label>Phase<span class="req">*</span></label><input type="text" id="projphase" placeholder="例：PR1、ER2（務必全以大寫輸入）" oninput="updateFilenamePreview()"/></div>
+          <div class="field"><label>Project Code<span class="req">*</span></label><input type="text" id="projcode" placeholder="例：S5408QA（都大寫）" oninput="sanitizeFilenameField(this);updateFilenamePreview()"/></div>
+          <div class="field"><label>Phase<span class="req">*</span></label><input type="text" id="projphase" placeholder="例：PR1、ER2（務必全以大寫輸入）" oninput="sanitizeFilenameField(this);updateFilenamePreview()"/></div>
         </div>
       </div>
 
@@ -1606,6 +1606,9 @@ function submitForm(){
   if(!proj.subSeries)miss.push('專案平台');
   if(!proj.projCode)miss.push('Project Code');
   if(!proj.phase)miss.push('Phase');
+  var badChars=/[\/\\:*?"<>|]/;
+  if(proj.projCode&&badChars.test(proj.projCode))miss.push('Project Code 不可包含 / \\ : * ? " < > | 等符號（會導致檔案無法儲存）');
+  if(proj.phase&&badChars.test(proj.phase))miss.push('Phase 不可包含 / \\ : * ? " < > | 等符號（會導致檔案無法儲存）');
   if(!proj.skus.length)miss.push('SKU 機台（至少一台）');
   var reports=getReportsData();
   if(!reports.length)miss.push('Report（至少一份）');
@@ -2656,6 +2659,15 @@ function initReportId(){
   var el=document.getElementById('report-id-display');
   if(el)el.textContent=currentReportId;
   updateFilenamePreview();
+}
+function sanitizeFilenameField(el){
+  var v=el.value;
+  var cleaned=v.replace(/[\/\\:*?"<>|]/g,'');
+  if(cleaned!==v){
+    var pos=el.selectionStart-(v.length-cleaned.length);
+    el.value=cleaned;
+    if(el.setSelectionRange)el.setSelectionRange(Math.max(0,pos),Math.max(0,pos));
+  }
 }
 function updateFilenamePreview(){
   var proj=getProjectData();
