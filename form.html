@@ -735,7 +735,11 @@ else{document.getElementById('pw-input').focus();}
               </select>
             </div>
           </div>
-          <div class="field"><label>Project Code<span class="req">*</span></label><input type="text" id="projcode" placeholder="例：S5408QA（都大寫）" oninput="sanitizeFilenameField(this);updateFilenamePreview()"/></div>
+          <div class="field">
+            <label>Project Code<span class="req">*</span></label>
+            <input type="text" id="projcode" placeholder="例：S5408QA（都大寫）" oninput="onProjCodeInput(this)"/>
+            <div id="projcode-hint" style="display:none;color:var(--amber);font-size:13px;margin-top:5px;line-height:1.5;"></div>
+          </div>
           <div class="field"><label>Phase<span class="req">*</span></label><input type="text" id="projphase" placeholder="例：PR1、ER2（務必全以大寫輸入）" oninput="sanitizeFilenameField(this);updateFilenamePreview()"/></div>
         </div>
       </div>
@@ -2688,6 +2692,26 @@ function sanitizeFilenameField(el){
     el.value=cleaned;
     if(el.setSelectionRange)el.setSelectionRange(Math.max(0,pos),Math.max(0,pos));
   }
+  return cleaned!==v;
+}
+function onProjCodeInput(el){
+  var hadIllegalChars=sanitizeFilenameField(el);
+  var hint=document.getElementById('projcode-hint');
+  if(hint){
+    if(hadIllegalChars){
+      hint.style.color='var(--red)';
+      hint.textContent='⚠ Project Code 不可包含 / \\ : * ? " < > | 等符號，已自動移除。如果您要送出的需求是「2個不同的專案」，請不要用符號把它們寫在同一格裡，請改成分開填寫兩張需求單。';
+      hint.style.display='block';
+    }else if(el.value&&looksLikeCombinedProjectCodes(el.value)){
+      hint.style.color='var(--amber)';
+      hint.textContent='⚠ 偵測到「'+el.value+'」看起來像是包含了兩個不同的專案代號。若這確實是2個不同專案，請拆成兩張需求單分別填寫送出；若這本來就是單一專案代號，可以忽略此提醒直接送出。';
+      hint.style.display='block';
+    }else{
+      hint.style.display='none';
+      hint.textContent='';
+    }
+  }
+  updateFilenamePreview();
 }
 function updateFilenamePreview(){
   var proj=getProjectData();
