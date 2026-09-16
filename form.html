@@ -2115,6 +2115,12 @@ function loadAdminData(){
         return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
       catch(e){return(raw+'').replace('T',' ').slice(0,16);}
     }
+    function reportDateSummary(item){
+      var reports=Array.isArray(item.Reports)?item.Reports:[];
+      var starts=reports.map(function(r){return r.TestStartDate;}).filter(Boolean).sort();
+      var submits=reports.map(function(r){return r.SubmitDate;}).filter(Boolean).sort();
+      return{start:starts.length?starts[0]:null,deadline:submits.length?submits[submits.length-1]:null};
+    }
     function buildReportsHtml(item){
       var reports=item.Reports;
       if(!Array.isArray(reports)||!reports.length)return'';
@@ -2157,7 +2163,9 @@ function loadAdminData(){
       phase=phase||'—';
       var isRetest=item.FormType==='複測';
       var dt=fmtDt(item.SubmittedDate||item.Created||'');
-      var dlStr=item.ReportDeadline?(item.ReportDeadline+'').slice(0,10):'';
+      var rd=reportDateSummary(item);
+      var startStr=rd.start?rd.start.slice(0,10):'';
+      var dlStr=(item.ReportDeadline?(item.ReportDeadline+'').slice(0,10):'')||(rd.deadline?rd.deadline.slice(0,10):'');
       var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" style="flex-direction:column;align-items:stretch;'+(isDone?'opacity:0.6;':'')+'">';
       h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
       h+='<div>';
@@ -2166,7 +2174,7 @@ function loadAdminData(){
       if(isDone)h+=' &nbsp;<span style="font-size:13px;padding:1px 8px;border-radius:10px;background:rgba(0,229,160,0.15);color:var(--green);">✅ 已全部完成</span>';
       h+='</div>';
       h+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — 發單：'+dt+'</div>';
-      if(dlStr)h+='<div class="si-sub" style="color:var(--amber);margin-top:2px;">📋 報告截止：'+dlStr+'</div>';
+      if(startStr||dlStr)h+='<div class="si-sub" style="color:var(--amber);margin-top:2px;">📋 測試起始：'+(startStr||'—')+'　報告提交：'+(dlStr||'—')+'</div>';
       h+='</div>';
       h+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
       h+='<span class="sbadge '+(isPending?'sb-pending':'sb-accept')+'">'+(isPending?'PENDING':'ACCEPTED')+'</span>';
