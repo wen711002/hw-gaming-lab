@@ -1680,6 +1680,8 @@ function paSubmit(){
     RetestReason:retestTxt,
     Status:'Pending',
     SubmittedDate:getTaiwanDateTimeStr(),
+    ScheduleStart:reports.map(function(r){return r.testStart;}).filter(Boolean).sort()[0]||'',
+    ReportDeadline:reports.map(function(r){return r.submitDate;}).filter(Boolean).sort().slice(-1)[0]||'',
     Reports:reports.map(function(r,i){
       return {Name:r.label||('Report '+(i+1)),SortOrder:i+1,ReportNote:r.note,
         TestStartDate:r.testStart,SubmitDate:r.submitDate,
