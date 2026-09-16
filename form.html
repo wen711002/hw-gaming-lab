@@ -872,7 +872,13 @@ else{document.getElementById('pw-input').focus();}
       </div>
       <div id="admin-loading" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
       <div class="admin-subpanel active" id="admin-list-pending"></div>
-      <div class="admin-subpanel" id="admin-list-accepted"></div>
+      <div class="admin-subpanel" id="admin-list-accepted">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);margin-bottom:10px;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="accepted-show-done" onchange="_renderAcceptedList()"/>
+          顯示已完成的需求單（<span id="accepted-done-count">0</span> 筆）
+        </label>
+        <div id="admin-list-accepted-cards"></div>
+      </div>
       <div class="admin-subpanel" id="admin-list-cancelled"></div>
     </div>
     <div class="btab-panel" id="btab-result">
@@ -2006,6 +2012,7 @@ function moveAnnouncement(btn,dir){
 }
 var _adminAuth=false;
 var _renderResultList=function(){};
+var _renderAcceptedList=function(){};
 // Auto-open admin if arriving from result page after password auth
 document.addEventListener('DOMContentLoaded',function(){
   if(window.location.hash==='#admin' && sessionStorage.getItem('adminAuth')==='1'){
@@ -2055,7 +2062,7 @@ function switchAdminSubtab(tab){
 function loadAdminData(){
   document.getElementById('admin-loading').style.display='block';
   document.getElementById('admin-list-pending').innerHTML='';
-  document.getElementById('admin-list-accepted').innerHTML='';
+  document.getElementById('admin-list-accepted-cards').innerHTML='';
   Promise.all([
     fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
       .then(function(r){if(!r.ok)throw new Error('Error '+r.status);return r.json();}),
@@ -2139,7 +2146,7 @@ function loadAdminData(){
         rows+
       '</div>';
     }
-    function buildCard(item,isPending){
+    function buildCard(item,isPending,isDone){
       var itemId=item.ID||item.Id||item.id||'';
       _adminItems[itemId]=item;
       var projCode=item.ProjectCode;
@@ -2151,11 +2158,12 @@ function loadAdminData(){
       var isRetest=item.FormType==='複測';
       var dt=fmtDt(item.SubmittedDate||item.Created||'');
       var dlStr=item.ReportDeadline?(item.ReportDeadline+'').slice(0,10):'';
-      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" style="flex-direction:column;align-items:stretch;">';
+      var h='<div class="sub-item" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" style="flex-direction:column;align-items:stretch;'+(isDone?'opacity:0.6;':'')+'">';
       h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
       h+='<div>';
       h+='<div class="si-title">'+esc(projCode)+' &nbsp;|&nbsp; '+esc(phase);
       if(isRetest)h+=' &nbsp;<span style="font-size:14px;background:rgba(255,179,71,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;">RETEST</span>';
+      if(isDone)h+=' &nbsp;<span style="font-size:13px;padding:1px 8px;border-radius:10px;background:rgba(0,229,160,0.15);color:var(--green);">✅ 已全部完成</span>';
       h+='</div>';
       h+='<div class="si-sub">'+(item.RequesterEmail||'—')+' — 發單：'+dt+'</div>';
       if(dlStr)h+='<div class="si-sub" style="color:var(--amber);margin-top:2px;">📋 報告截止：'+dlStr+'</div>';
@@ -2280,13 +2288,30 @@ function loadAdminData(){
     } else {
       document.getElementById('admin-list-pending').innerHTML=pending.map(function(i){return buildCard(i,true);}).join('');
     }
-    // Accepted
+    // Accepted（已發送「全部完成」通知的需求單，預設從清單隱藏，可用上方勾選框顯示）
     document.getElementById('accepted-count').textContent=accepted.length;
-    if(!accepted.length){
-      document.getElementById('admin-list-accepted').innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// 目前沒有已接收的申請</p>';
-    } else {
-      document.getElementById('admin-list-accepted').innerHTML=accepted.map(function(i){return buildCard(i,false);}).join('');
+    function isItemFullyDone(item){
+      var itemId=item.ID||item.Id||item.id||'';
+      var c=item.ProjectCode;
+      if(c&&typeof c==='object')c=c.Title||c.Value||'';
+      var pc=(c||item.Title||'').toUpperCase();
+      var hist=historyMap[String(itemId)]||(legacyHistoryMap&&legacyHistoryMap[pc])||[];
+      return hist.some(function(hh){return hh.FileName==='全部完成';});
     }
+    var acceptedDone=accepted.filter(isItemFullyDone);
+    var acceptedInProgress=accepted.filter(function(i){return!isItemFullyDone(i);});
+    document.getElementById('accepted-done-count').textContent=acceptedDone.length;
+    _renderAcceptedList=function(){
+      var showDone=!!document.getElementById('accepted-show-done').checked;
+      var list=showDone?accepted:acceptedInProgress;
+      var cards=document.getElementById('admin-list-accepted-cards');
+      if(!list.length){
+        cards.innerHTML='<p style="color:var(--text3);font-family:var(--font-mono);padding:20px 0;">// '+(showDone||!accepted.length?'目前沒有已接收的申請':'目前沒有進行中的申請（全部已完成，可勾選上方顯示）')+'</p>';
+      } else {
+        cards.innerHTML=list.map(function(i){return buildCard(i,false,isItemFullyDone(i));}).join('');
+      }
+    };
+    _renderAcceptedList();
     // Cancelled
     document.getElementById('cancelled-count').textContent=cancelled.length;
     if(!cancelled.length){
