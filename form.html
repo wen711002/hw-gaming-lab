@@ -737,7 +737,7 @@ else{document.getElementById('pw-input').focus();}
           </div>
           <div class="field">
             <label>Project Code<span class="req">*</span></label>
-            <input type="text" id="projcode" placeholder="例：S5408QA（都大寫）" oninput="onProjCodeInput(this)"/>
+            <input type="text" id="projcode" placeholder="例：S5408QA（都大寫，專案名稱請勿有符號字元）" oninput="onProjCodeInput(this)"/>
             <div id="projcode-hint" style="display:none;color:var(--amber);font-size:13px;margin-top:5px;line-height:1.5;"></div>
           </div>
           <div class="field"><label>Phase<span class="req">*</span></label><input type="text" id="projphase" placeholder="例：PR1、ER2（務必全以大寫輸入）" oninput="sanitizeFilenameField(this);updateFilenamePreview()"/></div>
