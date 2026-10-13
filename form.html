@@ -541,7 +541,7 @@ else{document.getElementById('pw-input').focus();}
   </div>
 
   <!-- LAB LOADING -->
-  <div class="schedule-section" id="lload-section">
+  <div class="schedule-section" id="lload-section" style="display:none;">
     <div class="schedule-header">
       <div class="schedule-title">📊 實驗室目前 Loading 狀態</div>
     </div>
@@ -1891,7 +1891,11 @@ function renderLabLoading(){
     box.appendChild(row);
   });
 }
-loadLabLoading();
+var SHOW_LAB_LOADING=false;
+if(SHOW_LAB_LOADING){
+  document.getElementById('lload-section').style.display='';
+  loadLabLoading();
+}
 
 function loadAnnouncementAdmin(){
   var loading=document.getElementById('announce-admin-loading');
