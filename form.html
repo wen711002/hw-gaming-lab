@@ -468,12 +468,23 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
   .page{display:block!important;}
   .panel{border:1px solid #ddd;}
 }
+.submit-overlay{position:fixed;inset:0;background:rgba(5,8,16,0.8);backdrop-filter:blur(3px);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;}
+.submit-overlay.show{display:flex;}
+.submit-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px 32px;max-width:480px;width:100%;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,0.5);}
+.submit-spinner{width:46px;height:46px;border:4px solid #ffffff22;border-top-color:var(--blue);border-radius:50%;animation:submitspin 0.9s linear infinite;margin:0 auto 16px;}
+@keyframes submitspin{to{transform:rotate(360deg);}}
+.submit-icon{font-size:46px;line-height:1;margin-bottom:12px;}
+.submit-title{font-family:var(--font-head);font-size:22px;font-weight:700;letter-spacing:0.04em;margin-bottom:10px;}
+.submit-body{font-size:15px;color:var(--text2);line-height:1.8;}
+.submit-kv{margin-top:12px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border2);border-radius:8px;text-align:left;font-family:var(--font-mono);font-size:14px;color:var(--text2);word-break:break-all;}
+.submit-btns{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
-<div id="pw-modal" style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
+<div id="submit-overlay" class="submit-overlay"><div class="submit-card" id="submit-card"></div></div>
+<div id="pw-modal"style="position:fixed;inset:0;background:#0a0d14;z-index:9999;display:flex;align-items:center;justify-content:center;">
   <div style="background:#141824;border:1px solid rgba(0,212,255,0.3);border-radius:12px;padding:40px 48px;text-align:center;min-width:320px;">
     <div style="font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:#00d4ff;letter-spacing:0.1em;margin-bottom:8px;">HW GAMING LAB</div>
     <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:28px;">請輸入存取密碼</div>
@@ -1606,7 +1617,97 @@ function onProjCodeChange(src){
   }
 }
 
+var _submitLock=false;
+var SUBMIT_STATE_PREFIX='gl_submit_';
+function _hashStr(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}return(h>>>0).toString(36);}
+function _readSubmitState(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+function _writeSubmitState(k,o){try{localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
+function _clearSubmitState(k){try{localStorage.removeItem(k);}catch(e){}}
+var _submitTimer=null;
+function hideSubmitOverlay(){
+  if(_submitTimer){clearInterval(_submitTimer);_submitTimer=null;}
+  document.getElementById('submit-overlay').classList.remove('show');
+}
+function showSubmitOverlay(state,o){
+  o=o||{};
+  if(_submitTimer){clearInterval(_submitTimer);_submitTimer=null;}
+  var card=document.getElementById('submit-card');
+  var h='';
+  if(state==='sending'){
+    h='<div class="submit-spinner"></div><div class="submit-title">資料送出中…</div>'+
+      '<div class="submit-body">正在上傳需求資料與附件，請<b style="color:var(--amber);">不要關閉或重新整理頁面、也不要重複點擊</b>。<br><span id="submit-wait" style="color:var(--text3);font-family:var(--font-mono);">已等待 0 秒</span><div id="submit-slow" style="display:none;color:var(--amber);margin-top:6px;">網路目前較慢，請耐心等候，送出成功後這裡會顯示確認訊息。</div></div>';
+  }else if(state==='verifying'){
+    h='<div class="submit-spinner"></div><div class="submit-title">正在確認是否已送出…</div>'+
+      '<div class="submit-body">網路回應逾時，系統正在向伺服器確認這張需求單是否已經成功建立，請稍候，<b style="color:var(--amber);">先不要重新送出</b>，以免重複送單。</div>';
+  }else if(state==='success'){
+    h='<div class="submit-icon">✅</div><div class="submit-title" style="color:var(--green);">需求單已成功送出！</div>'+
+      '<div class="submit-body">實驗室將於 1 個工作天內確認排程並回覆。</div>'+
+      '<div class="submit-kv">Report ID：'+esc(o.reportId||'')+'<br>需求人：'+esc(o.requester||'')+'<br>檔名：'+esc(o.fName||'')+'</div>'+
+      '<div class="submit-btns"><button class="btn btn-pri" onclick="window.location.href=\'index.html\'">回首頁</button><button class="btn btn-sec" onclick="window.location.reload()">再填一張新單</button></div>';
+  }else if(state==='duplicate'){
+    h='<div class="submit-icon">ℹ️</div><div class="submit-title" style="color:var(--amber);">這張需求單已經送出了</div>'+
+      '<div class="submit-body">系統偵測到相同內容的需求單已送出成功（Report ID：'+esc(o.reportId||'')+'），<b>無需重複送單</b>。<br>如果是不同專案，請修改內容後再送出。</div>'+
+      '<div class="submit-btns"><button class="btn btn-pri" onclick="window.location.href=\'index.html\'">回首頁</button><button class="btn btn-sec" onclick="hideSubmitOverlay()">關閉</button></div>';
+  }else if(state==='busy'){
+    h='<div class="submit-icon">⏳</div><div class="submit-title" style="color:var(--amber);">這張需求單正在送出中</div>'+
+      '<div class="submit-body">偵測到相同內容的需求單剛剛已送出（可能是另一個視窗或剛才重新整理前的操作），請稍候幾分鐘後到後台確認，不要重複送單。</div>'+
+      '<div class="submit-btns"><button class="btn btn-sec" onclick="hideSubmitOverlay()">關閉</button></div>';
+  }else{
+    h='<div class="submit-icon">⚠️</div><div class="submit-title" style="color:var(--red);">送出失敗</div>'+
+      '<div class="submit-body">'+esc(o.msg||'發生未知錯誤')+'<br>'+(o.unknown?'系統已向伺服器確認，這張單<b>尚未建立成功</b>，可以安全地重新送出。':'您填寫的內容都還在，請確認網路後重新送出。')+'</div>'+
+      '<div class="submit-btns"><button class="btn btn-pri" onclick="hideSubmitOverlay();paSubmit();">重新送出</button><button class="btn btn-sec" onclick="hideSubmitOverlay()">關閉</button></div>';
+  }
+  card.innerHTML=h;
+  document.getElementById('submit-overlay').classList.add('show');
+  if(state==='sending'){
+    var t0=Date.now();
+    _submitTimer=setInterval(function(){
+      var s=Math.floor((Date.now()-t0)/1000);
+      var w=document.getElementById('submit-wait');if(w)w.textContent='已等待 '+s+' 秒';
+      var sl=document.getElementById('submit-slow');if(sl&&s>=15)sl.style.display='block';
+    },1000);
+  }
+}
+function _submitUnloadGuard(e){e.preventDefault();e.returnValue='';return'';}
+function findExistingSubmission(fName,proj,email,formType){
+  return fetch(PA_QUERY,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){if(!r.ok)throw new Error('query '+r.status);return r.json();})
+  .then(function(d){
+    var all=Array.isArray(d)?d:(d.value||(d.d&&d.d.results)||[]);
+    var now=Date.now();
+    var code=(proj.projCode||'').toUpperCase(),phase=(proj.phase||'').toUpperCase();
+    var found=all.filter(function(i){
+      if(i.ReportFileName&&i.ReportFileName===fName)return true;
+      var c=i.ProjectCode;if(c&&typeof c==='object')c=c.Title||c.Value||'';
+      if((c||i.Title||'').toUpperCase()!==code)return false;
+      if((i.Phase||'').toUpperCase()!==phase)return false;
+      if((i.RequesterEmail||'').toLowerCase()!==(email||'').toLowerCase())return false;
+      if(formType&&i.FormType&&i.FormType!==formType)return false;
+      var t=new Date((i.SubmittedDate||'').replace(/-/g,'/')).getTime();
+      return !isNaN(t)&&Math.abs(now-t)<30*60*1000;
+    });
+    return found[0]||null;
+  });
+}
+function verifyWithRetry(fName,proj,email,formType,tries,delayMs){
+  return new Promise(function(resolve){
+    var n=0;
+    function attempt(){
+      n++;
+      findExistingSubmission(fName,proj,email,formType).then(function(f){
+        if(f)resolve({found:f,checked:true});
+        else if(n<tries)setTimeout(attempt,delayMs);
+        else resolve({found:null,checked:true});
+      }).catch(function(){
+        if(n<tries)setTimeout(attempt,delayMs);
+        else resolve({found:null,checked:false});
+      });
+    }
+    attempt();
+  });
+}
 function submitForm(){
+  if(_submitLock)return;
   var miss=[];
   if(!v('dept'))miss.push('需求部門');
   if(!v('requester'))miss.push('需求人姓名');
@@ -1638,6 +1739,7 @@ function submitForm(){
   paSubmit();
 }
 function paSubmit(){
+  if(_submitLock)return;
   var PA_URL='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f72524dfbf1649b69aace89bc5b37b57/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jkj-f6ttMbePYMiAg_vXWc2MKT6ESEwVlRAUNICZyEw';
   var proj=getProjectData();
   var reports=getReportsData();
@@ -1658,7 +1760,43 @@ function paSubmit(){
     else{retestTxt=rrEl.options[rrEl.selectedIndex]?rrEl.options[rrEl.selectedIndex].text:'';}
   }
   var btn=document.querySelector('[onclick="submitForm()"]');
+  var formType=isRetest?'複測':'新建';
+  var fpSrc=[v('req-email').toLowerCase(),(proj.projCode||'').toUpperCase(),(proj.phase||'').toUpperCase(),formType].concat(reports.map(function(r){
+    return[r.label||'',r.testStart,r.submitDate,r.file?r.file.name+':'+r.file.size:''].join('~');
+  })).join('|');
+  var fpKey=SUBMIT_STATE_PREFIX+_hashStr(fpSrc);
+  var prev=_readSubmitState(fpKey);
+  if(prev&&prev.state==='done'&&Date.now()-prev.ts<30*60*1000){showSubmitOverlay('duplicate',{reportId:prev.reportId});return;}
+  if(prev&&prev.state==='sending'&&Date.now()-prev.ts<3*60*1000){showSubmitOverlay('busy');return;}
+  _submitLock=true;
   if(btn){btn.disabled=true;btn.textContent='送出中...';}
+  showSubmitOverlay('sending');
+  window.addEventListener('beforeunload',_submitUnloadGuard);
+  function endSending(){window.removeEventListener('beforeunload',_submitUnloadGuard);}
+  function onSuccess(){
+    endSending();
+    _writeSubmitState(fpKey,{state:'done',ts:Date.now(),reportId:currentReportId,fName:fName});
+    if(btn){btn.disabled=true;btn.textContent='已送出 ✓';}
+    showSubmitOverlay('success',{reportId:currentReportId,requester:v('requester'),fName:fName});
+  }
+  function onFail(msg,verifiedNotCreated){
+    endSending();
+    if(verifiedNotCreated||!ambiguous)_clearSubmitState(fpKey);
+    _submitLock=false;
+    if(btn){btn.disabled=false;btn.textContent='SUBMIT REQUEST ✓';}
+    showSubmitOverlay('error',{msg:msg,unknown:verifiedNotCreated});
+  }
+  var ambiguous=false;
+  function verifyThenDecide(errMsg){
+    ambiguous=true;
+    _writeSubmitState(fpKey,{state:'unknown',ts:Date.now(),reportId:currentReportId,fName:fName});
+    showSubmitOverlay('verifying');
+    verifyWithRetry(fName,proj,v('req-email'),formType,3,6000).then(function(res){
+      if(res.found)onSuccess();
+      else onFail(errMsg,res.checked);
+    });
+  }
+  var needPrecheck=!!(prev&&(prev.state==='unknown'||prev.state==='sending'));
   var payload={
     Title:proj.projCode||('REPORT_'+currentReportId),
     ReportID:currentReportId,
@@ -1699,24 +1837,36 @@ function paSubmit(){
       reader.readAsDataURL(file);
     });
   }
-  Promise.all(reports.map(function(r){return fileToBase64(r.file);}))
-  .then(function(reportB64List){
-    reportB64List.forEach(function(b64,i){if(b64)payload.Reports[i].FileBase64=b64;});
-    return fileToBase64(skuFile);
-  })
-  .then(function(skuB64){
-    if(skuB64){payload.SkuFileBase64=skuB64;payload.SkuFileName=skuFile.name;}
-    return fetch(PA_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  })
-  .then(function(r){
-    if(!r.ok)throw new Error('Error '+r.status);
-    if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
-    alert('表單已成功送出！\nReport ID：'+currentReportId+'\n需求人：'+v('requester')+'\n檔名：'+fName+'\n\n實驗室將於 1 個工作天內確認排程並回覆。');
-    setTimeout(function(){window.location.href='index.html';},1500);
+  var precheck=needPrecheck?findExistingSubmission(fName,proj,v('req-email'),formType).catch(function(){return null;}):Promise.resolve(null);
+  var sent=false;
+  precheck.then(function(existing){
+    if(existing){onSuccess();return null;}
+    return Promise.all(reports.map(function(r){return fileToBase64(r.file);}))
+    .then(function(reportB64List){
+      reportB64List.forEach(function(b64,i){if(b64)payload.Reports[i].FileBase64=b64;});
+      return fileToBase64(skuFile);
+    })
+    .then(function(skuB64){
+      if(skuB64){payload.SkuFileBase64=skuB64;payload.SkuFileName=skuFile.name;}
+      _writeSubmitState(fpKey,{state:'sending',ts:Date.now(),reportId:currentReportId,fName:fName});
+      sent=true;
+      var ctrl=new AbortController();
+      var tm=setTimeout(function(){ctrl.abort();},120000);
+      return fetch(PA_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})
+      .then(function(r){
+        clearTimeout(tm);
+        if(r.ok){onSuccess();return;}
+        if(r.status>=500)verifyThenDecide('伺服器暫時無回應（HTTP '+r.status+'）');
+        else onFail('送出失敗（HTTP '+r.status+'）',false);
+      },function(err){
+        clearTimeout(tm);
+        verifyThenDecide(err&&err.name==='AbortError'?'伺服器回應逾時（超過 2 分鐘）':'網路連線中斷或不穩');
+      });
+    });
   })
   .catch(function(err){
-    if(btn){btn.disabled=false;btn.textContent='確認送出需求';}
-    alert('送出失敗：'+err.message);
+    if(sent)verifyThenDecide('送出過程發生錯誤：'+(err&&err.message||err));
+    else onFail('送出前處理失敗：'+(err&&err.message||err),false);
   });
 }
 // ── 實驗室佈告欄（多筆公告，內容由後台管理「公告設定」頁籤維護，存於 SharePoint GameLabAnnouncement 清單）──
