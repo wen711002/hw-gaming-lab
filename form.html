@@ -935,6 +935,24 @@ else{document.getElementById('pw-input').focus();}
   </div>
 </div>
 
+<!-- 接單 Modal -->
+<div class="modal-overlay" id="accept-modal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeAcceptModal()">×</button>
+    <h2>✓ 接單</h2>
+    <p class="modal-sub" id="accept-modal-title" style="font-family:var(--font-mono);color:var(--green);">// 專案資訊</p>
+    <div class="delay-field">
+      <label>給需求者的留言（選填）</label>
+      <textarea id="accept-note-input" rows="3" placeholder="例：預計 11/3 開始測試，請於測試前備妥 SKU1～SKU3 機台；有任何問題請直接聯絡我" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 12px;resize:vertical;font-family:var(--font-body);"></textarea>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px;font-family:var(--font-mono);">// 確認後將把此需求單標記為「已接單」，並寄送確認信給需求者，上方留言會一併送出</p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="sa-btn" onclick="closeAcceptModal()">返回</button>
+      <button id="accept-confirm-btn" class="btn btn-pri" onclick="confirmAccept()" style="padding:8px 24px;">確認接單</button>
+    </div>
+  </div>
+</div>
+
 <!-- 取消接單 Modal -->
 <div class="modal-overlay" id="cancel-modal">
   <div class="modal" style="max-width:460px;">
@@ -1744,8 +1762,14 @@ function paSubmit(){
   var proj=getProjectData();
   var reports=getReportsData();
   var sku='';
+  // SKUList 內每台以「 | 」分隔、欄位以「KEY:值」串接；CPU/GPU 維持在最前面以相容舊資料，
+  // 其餘欄位（DCD、BIOS 等）附加在後，後台以 _xSkus 解析顯示
+  var _c=function(x){return(x||'').replace(/\|/g,'/').replace(/[\r\n]+/g,' ').trim();};
   proj.skus.forEach(function(s,i){
-    sku+=(i+1)+'. '+s.name+(s.cpu?' CPU:'+s.cpu:'')+(s.gpu?' GPU:'+s.gpu:'')+' | ';
+    sku+=(i+1)+'. '+_c(s.name)+(s.cpu?' CPU:'+_c(s.cpu):'')+(s.gpu?' GPU:'+_c(s.gpu):'')+
+      (s.panel?' Panel:'+_c(s.panel):'')+(s.os?' OS:'+_c(s.os):'')+(s.ram?' DDR:'+_c(s.ram):'')+
+      (s.bios?' BIOS:'+_c(s.bios):'')+(s.vbios?' VBIOS:'+_c(s.vbios):'')+(s.dcd?' DCD:'+_c(s.dcd):'')+
+      (s.vgadrv?' VGA:'+_c(s.vgadrv):'')+(s.note?' Note:'+_c(s.note):'')+' | ';
   });
   // Build filename: RESULT_{PROJCODE}_{PHASE}_{NEW|RETEST}_{ID}_{YYMMDD}.XLSX
   var fName='RESULT'+(proj.projCode?'_'+proj.projCode.replace(/\s+/g,'_').toUpperCase():'')+
@@ -2277,6 +2301,23 @@ function loadAdminData(){
       var submits=reports.map(function(r){return r.SubmitDate;}).filter(Boolean).sort();
       return{start:starts.length?starts[0]:null,deadline:submits.length?submits[submits.length-1]:null};
     }
+    function buildSkuDetailHtml(item){
+      var skus=_xSkus(item.SKUList||'');
+      if(!skus.length)return'';
+      var cols=[['name','SKU'],['cpu','CPU'],['gpu','GPU'],['os','OS'],['panel','Panel'],['ddr','RAM'],['bios','BIOS'],['vbios','VBIOS'],['dcd','DCD'],['vga','VGA Driver'],['note','備註']];
+      cols=cols.filter(function(c){return c[0]==='name'||c[0]==='dcd'||skus.some(function(s){return s[c[0]];});});
+      var th=cols.map(function(c){return'<th style="text-align:left;padding:3px 8px;color:var(--text3);font-weight:normal;white-space:nowrap;">'+c[1]+'</th>';}).join('');
+      var trs=skus.map(function(s){
+        return'<tr>'+cols.map(function(c){
+          var val=s[c[0]];
+          return'<td style="padding:3px 8px;border-top:1px solid var(--border);'+(c[0]==='dcd'?'color:var(--amber);':'')+'">'+(val?esc(val):'<span style="color:var(--text3);">—</span>')+'</td>';
+        }).join('')+'</tr>';
+      }).join('');
+      return'<details style="margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;">'+
+        '<summary style="cursor:pointer;color:var(--text2);font-size:14px;">🖥 SKU 配置明細（'+skus.length+' 台，含 DCD / BIOS）</summary>'+
+        '<div style="overflow-x:auto;margin-top:6px;"><table style="border-collapse:collapse;font-size:14px;">'+
+        '<tr>'+th+'</tr>'+trs+'</table></div></details>';
+    }
     function buildReportsHtml(item){
       var reports=item.Reports;
       if(!Array.isArray(reports)||!reports.length)return'';
@@ -2339,6 +2380,7 @@ function loadAdminData(){
       if(isPending)h+='<button class="ab ab-acc" onclick="acceptItem(this)">✓ 接單</button>';
       if(isPending)h+='<button class="ab ab-cancel" onclick="cancelItem(\''+itemId+'\',\''+esc(item.RequesterEmail||'')+'\',\''+esc(projCode)+'\')">🚫 取消接單</button>';
       h+='</div></div></div>';
+      h+=buildSkuDetailHtml(item);
       h+=buildReportsHtml(item);
       h+='</div>';
       return h;
@@ -2515,28 +2557,42 @@ function loadAdminData(){
     document.getElementById('admin-list-pending').innerHTML='<p style="color:var(--red);padding:20px 0;">載入失敗：'+err.message+'</p>';
   });
 }
+var _acceptCtx={};
 function acceptItem(btn){
   var item=btn.closest('.sub-item');
   var id=item.dataset.id;
-  var email=item.dataset.email;
-  var code=item.dataset.code;
   if(!id){alert('找不到申請 ID，請重新整理後再試。');return;}
-  btn.disabled=true;btn.textContent='處理中...';
+  _acceptCtx={id:id,email:item.dataset.email,code:item.dataset.code};
+  document.getElementById('accept-modal-title').textContent='// '+item.dataset.code;
+  document.getElementById('accept-note-input').value='';
+  var cbtn=document.getElementById('accept-confirm-btn');
+  cbtn.disabled=false;cbtn.textContent='確認接單';
+  document.getElementById('accept-modal').classList.add('show');
+}
+function closeAcceptModal(){
+  document.getElementById('accept-modal').classList.remove('show');
+  _acceptCtx={};
+}
+function confirmAccept(){
+  var id=_acceptCtx.id,email=_acceptCtx.email;
+  var note=document.getElementById('accept-note-input').value.trim();
+  var cbtn=document.getElementById('accept-confirm-btn');
+  if(cbtn.disabled)return;
+  cbtn.disabled=true;cbtn.textContent='處理中...';
   var PA_ACCEPT='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/33b3ad8cd52c4f84964ba7a7f30bb5f3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=XFwxnUk-BZQGfP8aYAnFfl5CkoS8SzPvBNuzweplAP4';
   fetch(PA_ACCEPT,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({itemId:parseInt(id),requesterEmail:email,adminNote:''})
+    body:JSON.stringify({itemId:parseInt(id),requesterEmail:email,adminNote:note})
   })
   .then(function(r){
     if(!r.ok)throw new Error('Error '+r.status);
-    item.querySelector('.sbadge').className='sbadge sb-accept';
-    item.querySelector('.sbadge').textContent='ACCEPTED';
-    btn.remove();
+    closeAcceptModal();
     alert('✅ 接單完成！\n確認信已寄送至：'+email);
+    loadAdminData();
   })
   .catch(function(err){
-    btn.disabled=false;btn.textContent='✓ 接單';
+    cbtn.disabled=false;cbtn.textContent='確認接單';
     alert('接單失敗：'+err.message);
   });
 }
@@ -2838,9 +2894,12 @@ function _xVl(c,t){c.value=t||'';_xfi(c,_V5C.dBg);_xfo(c,9,false,_V5C.nv);_xal(c
 function _xSkus(s){
   if(!s)return[];var r=[];
   s.split('|').forEach(function(p){p=p.trim();if(!p)return;var m=p.match(/^\d+\.\s*(\S+)(.*)/);if(!m)return;
-    var o={name:m[1],cpu:'',gpu:'',panel:'',ddr:''};var rest=m[2];
-    var q=rest.match(/CPU:([^\s|]+)/i);if(q)o.cpu=q[1];q=rest.match(/GPU:([^\s|]+)/i);if(q)o.gpu=q[1];
-    q=rest.match(/Panel:([^\s|]+)/i);if(q)o.panel=q[1];q=rest.match(/DDR:([^\s|]+)/i);if(q)o.ddr=q[1];r.push(o);});return r;}
+    var o={name:m[1],cpu:'',gpu:'',panel:'',ddr:'',os:'',bios:'',vbios:'',dcd:'',vga:'',note:''};
+    var KEYS={OS:'os',Panel:'panel',CPU:'cpu',GPU:'gpu',DDR:'ddr',BIOS:'bios',VBIOS:'vbios',DCD:'dcd',VGA:'vga',Note:'note'};
+    m[2].trim().split(/\s+(?=(?:OS|Panel|CPU|GPU|DDR|BIOS|VBIOS|DCD|VGA|Note):)/).forEach(function(t){
+      var k=t.match(/^(OS|Panel|CPU|GPU|DDR|BIOS|VBIOS|DCD|VGA|Note):\s*([\s\S]*)$/);
+      if(k)o[KEYS[k[1]]]=k[2].trim();});
+    r.push(o);});return r;}
 // ── Report ID ────────────────────────────────────────────────────────────────
 var currentReportId='';
 function getTodayYYMMDD(){var d=new Date();var yy=String(d.getFullYear()).slice(2);var mm=d.getMonth()+1<10?'0'+(d.getMonth()+1):''+(d.getMonth()+1);var dd=d.getDate()<10?'0'+d.getDate():''+d.getDate();return yy+mm+dd;}
