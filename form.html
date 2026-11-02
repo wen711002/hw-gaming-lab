@@ -1768,7 +1768,7 @@ function paSubmit(){
   proj.skus.forEach(function(s,i){
     sku+=(i+1)+'. '+_c(s.name)+(s.cpu?' CPU:'+_c(s.cpu):'')+(s.gpu?' GPU:'+_c(s.gpu):'')+
       (s.panel?' Panel:'+_c(s.panel):'')+(s.os?' OS:'+_c(s.os):'')+(s.ram?' DDR:'+_c(s.ram):'')+
-      (s.bios?' BIOS:'+_c(s.bios):'')+(s.vbios?' VBIOS:'+_c(s.vbios):'')+(s.dcd?' DCD:'+_c(s.dcd):'')+
+      (s.bios?' BIOS:'+_c(s.bios):'')+(s.vbios?' EC:'+_c(s.vbios):'')+(s.dcd?' DCD:'+_c(s.dcd):'')+
       (s.vgadrv?' VGA:'+_c(s.vgadrv):'')+(s.note?' Note:'+_c(s.note):'')+' | ';
   });
   // Build filename: RESULT_{PROJCODE}_{PHASE}_{NEW|RETEST}_{ID}_{YYMMDD}.XLSX
@@ -2304,7 +2304,7 @@ function loadAdminData(){
     function buildSkuDetailHtml(item){
       var skus=_xSkus(item.SKUList||'');
       if(!skus.length)return'';
-      var cols=[['name','SKU'],['cpu','CPU'],['gpu','GPU'],['os','OS'],['panel','Panel'],['ddr','RAM'],['bios','BIOS'],['vbios','VBIOS'],['dcd','DCD'],['vga','VGA Driver'],['note','備註']];
+      var cols=[['name','SKU'],['cpu','CPU'],['gpu','GPU'],['os','OS'],['panel','Panel'],['ddr','RAM'],['bios','BIOS'],['vbios','EC VER'],['dcd','DCD'],['vga','VGA Driver'],['note','備註']];
       cols=cols.filter(function(c){return c[0]==='name'||c[0]==='dcd'||skus.some(function(s){return s[c[0]];});});
       var th=cols.map(function(c){return'<th style="text-align:left;padding:3px 8px;color:var(--text3);font-weight:normal;white-space:nowrap;">'+c[1]+'</th>';}).join('');
       var trs=skus.map(function(s){
@@ -2314,7 +2314,7 @@ function loadAdminData(){
         }).join('')+'</tr>';
       }).join('');
       return'<details style="margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;">'+
-        '<summary style="cursor:pointer;color:var(--text2);font-size:14px;">🖥 SKU 配置明細（'+skus.length+' 台，含 DCD / BIOS）</summary>'+
+        '<summary style="cursor:pointer;color:var(--text2);font-size:14px;">🖥 SKU 配置明細（'+skus.length+' 台，含 DCD / BIOS / EC）</summary>'+
         '<div style="overflow-x:auto;margin-top:6px;"><table style="border-collapse:collapse;font-size:14px;">'+
         '<tr>'+th+'</tr>'+trs+'</table></div></details>';
     }
@@ -2895,9 +2895,9 @@ function _xSkus(s){
   if(!s)return[];var r=[];
   s.split('|').forEach(function(p){p=p.trim();if(!p)return;var m=p.match(/^\d+\.\s*(\S+)(.*)/);if(!m)return;
     var o={name:m[1],cpu:'',gpu:'',panel:'',ddr:'',os:'',bios:'',vbios:'',dcd:'',vga:'',note:''};
-    var KEYS={OS:'os',Panel:'panel',CPU:'cpu',GPU:'gpu',DDR:'ddr',BIOS:'bios',VBIOS:'vbios',DCD:'dcd',VGA:'vga',Note:'note'};
-    m[2].trim().split(/\s+(?=(?:OS|Panel|CPU|GPU|DDR|BIOS|VBIOS|DCD|VGA|Note):)/).forEach(function(t){
-      var k=t.match(/^(OS|Panel|CPU|GPU|DDR|BIOS|VBIOS|DCD|VGA|Note):\s*([\s\S]*)$/);
+    var KEYS={OS:'os',Panel:'panel',CPU:'cpu',GPU:'gpu',DDR:'ddr',BIOS:'bios',EC:'vbios',VBIOS:'vbios',DCD:'dcd',VGA:'vga',Note:'note'};
+    m[2].trim().split(/\s+(?=(?:OS|Panel|CPU|GPU|DDR|BIOS|EC|VBIOS|DCD|VGA|Note):)/).forEach(function(t){
+      var k=t.match(/^(OS|Panel|CPU|GPU|DDR|BIOS|EC|VBIOS|DCD|VGA|Note):\s*([\s\S]*)$/);
       if(k)o[KEYS[k[1]]]=k[2].trim();});
     r.push(o);});return r;}
 // ── Report ID ────────────────────────────────────────────────────────────────
