@@ -893,7 +893,7 @@ else{document.getElementById('pw-input').focus();}
       <div class="admin-subpanel" id="admin-list-cancelled"></div>
     </div>
     <div class="btab-panel" id="btab-result">
-      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 測試結果請直接放入 SharePoint 文件的對應專案資料夾。填寫完成後，在此針對「已接單」專案發送完成通知即可。已發送過「全部完成」的專案會自動從此清單移除。</p>
+      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 測試結果請直接放入 SharePoint 文件的對應專案資料夾。填寫完成後，在此針對「已接單」專案發送完成通知即可。已發送過「全部完成」或已標記「測試完成（已通知）」的專案會自動從此清單移除。</p>
       <input type="text" id="result-search" placeholder="🔍 輸入專案代碼（Project Code）搜尋…" oninput="_renderResultList(this.value)" style="width:100%;max-width:360px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:8px 12px;margin-bottom:14px;outline:none;">
       <div id="admin-loading-result" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--font-mono);">載入中...</div>
       <div id="admin-list-result"></div>
@@ -2418,7 +2418,7 @@ function loadAdminData(){
         return'<div style="margin-top:10px;padding:8px 10px;background:var(--bg1);border:1px dashed var(--border);border-radius:var(--r6);color:var(--text3);font-size:14px;">// 尚無完成通知紀錄</div>';
       }
       var rows=hist.map(function(h){
-        var isFull=h.FileName==='全部完成';
+        var isFull=isDoneRecordName(h.FileName);
         var badge='<span style="font-size:13px;padding:1px 8px;border-radius:10px;'+(isFull?'background:rgba(0,229,160,0.15);color:var(--green);':'background:rgba(255,179,71,0.15);color:var(--amber);')+'">'+esc(h.FileName||'—')+'</span>';
         var dt=fmtDt(h.UploadedAt);
         var by=esc(h.Uploader||'—');
@@ -2453,7 +2453,7 @@ function loadAdminData(){
       phase=phase||'—';
       // 僅顯示屬於這個需求單（ItemId）的紀錄；舊資料（無 ItemId）才退回用 ProjectCode 比對顯示。
       var hist=historyMap[String(itemId)]||(legacyHistoryMap&&legacyHistoryMap[String(projCode).toUpperCase()])||[];
-      var isDone=hist.some(function(hh){return hh.FileName==='全部完成';});
+      var isDone=hist.some(function(hh){return isDoneRecordName(hh.FileName);});
       var h='<div class="sub-item" id="result-card-'+itemId+'" data-id="'+itemId+'" data-email="'+esc(item.RequesterEmail||'')+'" data-code="'+esc(projCode)+'" data-pname="'+esc(item.ProjectName||'')+'" data-pline="'+esc(item.ProductLine||'')+'" data-sseries="'+esc(item.SubSeries||'')+'" style="flex-direction:column;align-items:stretch;'+(isDone?'display:none;':'')+'">';
       h+='<div style="display:flex;justify-content:space-between;gap:12px;">';
       h+='<div>';
@@ -2477,6 +2477,7 @@ function loadAdminData(){
       h+='<button class="btn btn-sec" style="flex:1;" onclick="adminResultComplete(this,\'部份完成\')">📤 部份完成，發送通知</button>';
       h+='<button class="btn btn-pri" style="flex:1;" onclick="adminResultComplete(this,\'全部完成\')">✅ 全部完成，發送通知</button>';
       h+='</div>';
+      h+='<div style="margin-top:8px;"><button class="btn btn-sec" style="width:100%;" title="已透過 Teams 等方式另行通知需求者時使用，只在系統標記完成，不寄信" onclick="adminResultComplete(this,\'已通知\')">✔ 測試完成（已通知，不寄信）</button></div>';
       h+='</div>';
       if(isDone){
         var summary='<div class="sub-item" style="cursor:pointer;opacity:0.6;padding:10px 14px;" onclick="var c=document.getElementById(\'result-card-'+itemId+'\');var open=c.style.display===\'none\';c.style.display=open?\'flex\':\'none\';this.querySelector(\'.rc-toggle\').textContent=open?\'▾ 收合\':\'▸ 展開\';">'+
@@ -2502,7 +2503,7 @@ function loadAdminData(){
       if(c&&typeof c==='object')c=c.Title||c.Value||'';
       var pc=(c||item.Title||'').toUpperCase();
       var hist=historyMap[String(itemId)]||(legacyHistoryMap&&legacyHistoryMap[pc])||[];
-      return hist.some(function(hh){return hh.FileName==='全部完成';});
+      return hist.some(function(hh){return isDoneRecordName(hh.FileName);});
     }
     var acceptedDone=accepted.filter(isItemFullyDone);
     var acceptedInProgress=accepted.filter(function(i){return!isItemFullyDone(i);});
@@ -2686,6 +2687,8 @@ function confirmCancel(){
   });
 }
 // ── Admin Result Complete Notification ───────────────────────────────────
+// 「全部完成」（已寄信）與「已通知」（已另行通知、系統不寄信）都視為該需求單已完成
+function isDoneRecordName(n){return n==='全部完成'||n==='已通知';}
 function adminResultComplete(btn,type){
   var card=btn.closest('.sub-item');
   var id=card.dataset.id;
@@ -2701,6 +2704,10 @@ function adminResultComplete(btn,type){
   if(!id){alert('找不到專案 ID，請重新整理後再試。');return;}
   if(type==='部份完成'&&!note){alert('請填寫本次完成的測項/SKU說明。');return;}
   if(type==='全部完成'&&!confirm('確定要通知「全部完成」嗎？\n此為最終確認通知，請確認所有測試項目皆已完成。')){return;}
+  if(type==='已通知'){
+    if(!confirm('確定將此需求單標記為「測試完成（已通知）」嗎？\n\n・系統不會寄任何 mail 給需求者\n・此需求單會視為已全部完成，並從進行中清單收合\n・如需取消，可刪除下方「完成通知紀錄」中的該筆紀錄')){return;}
+    if(!note)note='已透過其他管道通知需求者，系統未寄信';
+  }
   var PA_UPLOAD='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dc7a41ee5c045548f80940d567f5a90/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4DqiNkJkIoIBlzx8muoGkY_vzyf4_Yj2RNiXYr0yWpU';
   var btns=card.querySelectorAll('button.btn');
   btns.forEach(function(b){b.disabled=true;});
@@ -2720,7 +2727,7 @@ function adminResultComplete(btn,type){
     CcEmails:ccEmails
   })})
   .then(function(r){if(!r.ok)throw new Error('Error '+r.status);
-    alert('✅ 已發送「'+type+'」通知給：'+email);
+    alert(type==='已通知'?'✅ 已標記為「測試完成（已通知）」，未寄送任何 mail。':'✅ 已發送「'+type+'」通知給：'+email);
     loadAdminData();
   })
   .catch(function(err){
