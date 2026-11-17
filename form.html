@@ -899,7 +899,7 @@ else{document.getElementById('pw-input').focus();}
       <div id="admin-list-result"></div>
     </div>
     <div class="btab-panel" id="btab-announce">
-      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 在此管理要對 EE 佈達的公告事項，可新增多筆、調整顯示順序。Form 頁首預設顯示 3 個月內最新 3 則，按「展開查看更多」可看全部（含 3 個月前的舊公告）。</p>
+      <p style="font-size:14px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px;">// 在此管理要對 EE 佈達的公告事項，可新增多筆、調整顯示順序。Form 頁首預設顯示最新 3 則，按「展開查看更多」可看全部公告（不會因日期自動隱藏）。每則公告下方會以灰色小字標示公告日期。</p>
       <div style="margin-bottom:16px;">
         <textarea id="announce-new-input" rows="3" placeholder="輸入新公告內容…" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r6);color:var(--text);font-size:15px;padding:10px 12px;resize:vertical;font-family:var(--font-mono);line-height:1.6;margin-bottom:8px;"></textarea>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -1936,31 +1936,34 @@ function renderAnnounceList(){
   var moreWrap=document.getElementById('announce-more-wrap');
   var moreBtn=document.getElementById('announce-more-btn');
   if(!box)return;
-  var cutoff=new Date();
-  cutoff.setMonth(cutoff.getMonth()-3);
-  function isOld(a){var d=parseAnnounceDate(a.UpdatedAt);return !!d&&d<cutoff;}
-  var visible=_announceCache.filter(function(a){return !isOld(a);});
   if(!_announceCache.length){
     box.innerHTML='<div class="announce-empty">// 目前尚無公告</div>';
     moreWrap.style.display='none';
     return;
   }
-  // 預設只顯示 3 個月內最新 3 則；展開後顯示全部（含 3 個月前的舊公告）
-  var collapsedList=visible.slice(0,ANNOUNCE_SHOW_COUNT);
-  var shown=_announceExpanded?_announceCache:collapsedList;
-  box.innerHTML=shown.length?shown.map(function(a){
-    var old=isOld(a);
-    var meta=(a.UpdatedBy?'發布人：'+esc(a.UpdatedBy)+'　':'')+(a.UpdatedAt?'更新時間：'+esc(a.UpdatedAt):'')+(old?'　· 3 個月前':'');
-    return '<div class="announce-item"'+(old?' style="opacity:0.75;"':'')+'><div class="announce-item-content">'+esc(a.Content||'')+'</div>'+(meta?'<div class="announce-item-meta">'+meta+'</div>':'')+'</div>';
-  }).join(''):'<div class="announce-empty">// 3 個月內沒有新公告，可展開查看較舊的公告</div>';
-  var hiddenCount=_announceCache.length-collapsedList.length;
+  // 全部公告都保留：預設只顯示最新 ANNOUNCE_SHOW_COUNT 則，按「展開查看更多」顯示全部
+  var shown=_announceExpanded?_announceCache:_announceCache.slice(0,ANNOUNCE_SHOW_COUNT);
+  box.innerHTML=shown.map(function(a){
+    var pub=announcePublishDate(a);
+    var upd=a.UpdatedAt?String(a.UpdatedAt).slice(0,10):'';
+    var meta=(pub?'公告日期：'+esc(pub):'')+(a.UpdatedBy?'　發布人：'+esc(a.UpdatedBy):'')+(upd&&pub&&upd!==pub?'　（最後更新：'+esc(a.UpdatedAt)+'）':'');
+    return '<div class="announce-item"><div class="announce-item-content">'+esc(a.Content||'')+'</div>'+(meta?'<div class="announce-item-meta">'+meta+'</div>':'')+'</div>';
+  }).join('');
+  var hiddenCount=_announceCache.length-ANNOUNCE_SHOW_COUNT;
   if(hiddenCount>0){
-    var oldCount=_announceCache.length-visible.length;
     moreWrap.style.display='block';
-    moreBtn.textContent=_announceExpanded?'▴ 收合':'▾ 展開查看更多（另有 '+hiddenCount+' 則'+(oldCount?'，含 3 個月前的舊公告':'')+'）';
+    moreBtn.textContent=_announceExpanded?'▴ 收合':'▾ 展開查看更多（另有 '+hiddenCount+' 則）';
   } else {
     moreWrap.style.display='none';
   }
+}
+// 公告日期＝清單項目的建立時間（UTC→台灣時間，只取日期）；取不到時退回更新時間的日期
+function announcePublishDate(a){
+  if(a.Created){
+    var d=new Date(a.Created);
+    if(!isNaN(d)){var t=new Date(d.getTime()+8*3600*1000);return t.toISOString().slice(0,10);}
+  }
+  return a.UpdatedAt?String(a.UpdatedAt).slice(0,10):'';
 }
 function toggleAnnounceMore(){
   _announceExpanded=!_announceExpanded;
