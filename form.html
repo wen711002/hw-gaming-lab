@@ -724,10 +724,10 @@ else{document.getElementById('pw-input').focus();}
           </div>
           <div class="field">
             <label>需求人 E-mail<span class="req">*</span></label>
-            <input type="email" id="req-email" placeholder="例：Yu.Sandra@inventec.com"/>
+            <input type="email" id="req-email" placeholder="例：Yu.Sandra@inventec.com" onblur="normalizeEmailField(this)"/>
             <span class="hint">審核結果與通知將寄送至此信箱</span>
           </div>
-          <div class="field"><label>對接窗口 E-Mail</label><input type="email" id="contact" placeholder="例：Yu.Sandra@inventec.com"/></div>
+          <div class="field"><label>對接窗口 E-Mail</label><input type="email" id="contact" placeholder="例：Yu.Sandra@inventec.com" onblur="normalizeEmailField(this)"/></div>
         </div>
       </div>
 
@@ -1724,12 +1724,24 @@ function verifyWithRetry(fName,proj,email,formType,tries,delayMs){
     attempt();
   });
 }
+// Email 欄位：去除空白、把「xxx@inventec.com@inventec.com」這種網域重複的輸入還原；
+// 格式不正確的 Email 會讓後端 Power Automate「授與存取權/寄信」步驟失敗（回傳 502）
+function fixEmailText(s){
+  s=(s||'').trim();
+  return s.replace(/^([^@\s;,]+@([^@\s;,]+))@\2$/,'$1');
+}
+function isValidEmail(s){return /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/.test((s||'').trim());}
+function normalizeEmailField(el){if(el)el.value=fixEmailText(el.value);}
 function submitForm(){
   if(_submitLock)return;
   var miss=[];
+  normalizeEmailField(document.getElementById('req-email'));
+  normalizeEmailField(document.getElementById('contact'));
   if(!v('dept'))miss.push('需求部門');
   if(!v('requester'))miss.push('需求人姓名');
   if(!v('req-email'))miss.push('需求人Email');
+  else if(!isValidEmail(v('req-email')))miss.push('需求人Email 格式不正確（請填寫完整信箱，例：name@inventec.com）');
+  if(v('contact')&&!isValidEmail(v('contact')))miss.push('對接窗口 E-Mail 格式不正確（例：name@inventec.com）');
   var proj=getProjectData();
   if(!proj.prodLine)miss.push('專案系列');
   if(!proj.subSeries)miss.push('專案平台');
@@ -2579,6 +2591,7 @@ function confirmAccept(){
   var note=document.getElementById('accept-note-input').value.trim();
   var cbtn=document.getElementById('accept-confirm-btn');
   if(cbtn.disabled)return;
+  if(!isValidEmail(email)){alert('此需求單的需求者 Email 格式有誤：\n'+(email||'（空白）')+'\n\n後端寄信會因此失敗。請先到 SharePoint 清單把 RequesterEmail 改成正確信箱後再試。');return;}
   cbtn.disabled=true;cbtn.textContent='處理中...';
   var PA_ACCEPT='https://default2ae41f0cacca40f19c6349475ff385.12.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/33b3ad8cd52c4f84964ba7a7f30bb5f3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=XFwxnUk-BZQGfP8aYAnFfl5CkoS8SzPvBNuzweplAP4';
   fetch(PA_ACCEPT,{
@@ -2702,6 +2715,7 @@ function adminResultComplete(btn,type){
   var ccInput=card.querySelector('.result-cc');
   var ccEmails=ccInput?ccInput.value.trim():'';
   if(!id){alert('找不到專案 ID，請重新整理後再試。');return;}
+  if(!isValidEmail(email)){alert('此需求單的需求者 Email 格式有誤：\n'+(email||'（空白）')+'\n\n後端授予存取權／寄信會因此失敗（502）。請先到 SharePoint 清單把 RequesterEmail 改成正確信箱後再試。');return;}
   if(type==='部份完成'&&!note){alert('請填寫本次完成的測項/SKU說明。');return;}
   if(type==='全部完成'&&!confirm('確定要通知「全部完成」嗎？\n此為最終確認通知，請確認所有測試項目皆已完成。')){return;}
   if(type==='已通知'){
