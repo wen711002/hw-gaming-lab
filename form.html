@@ -2720,6 +2720,17 @@ function adminResultComplete(btn,type){
   var completedBy=card.querySelector('.result-completer').value;
   var ccInput=card.querySelector('.result-cc');
   var ccEmails=ccInput?ccInput.value.trim():'';
+  // 額外收件人：以逗號/分號/空白/換行分隔 → 逐筆驗證、去重後以「;」串接（Outlook 副本欄位格式）
+  if(ccEmails){
+    var ccList=[],ccBad=[];
+    ccEmails.split(/[,;，；\s]+/).forEach(function(s){
+      s=fixEmailText(s);if(!s)return;
+      if(!isValidEmail(s)){ccBad.push(s);return;}
+      if(ccList.map(function(x){return x.toLowerCase();}).indexOf(s.toLowerCase())<0)ccList.push(s);
+    });
+    if(ccBad.length){alert('額外收件人 Email 格式不正確：\n'+ccBad.join('\n')+'\n\n請修正後再發送（多筆請用逗號 , 或分號 ; 分隔）。');return;}
+    ccEmails=ccList.join(';');
+  }
   if(!id){alert('找不到專案 ID，請重新整理後再試。');return;}
   if(!isValidEmail(email)){alert('此需求單的需求者 Email 格式有誤：\n'+(email||'（空白）')+'\n\n後端授予存取權／寄信會因此失敗（502）。請先到 SharePoint 清單把 RequesterEmail 改成正確信箱後再試。');return;}
   if(type==='部份完成'&&!note){alert('請填寫本次完成的測項/SKU說明。');return;}
@@ -2747,7 +2758,7 @@ function adminResultComplete(btn,type){
     CcEmails:ccEmails
   })})
   .then(function(r){if(!r.ok)throw new Error('Error '+r.status);
-    alert(type==='已通知'?'✅ 已標記為「測試完成（已通知）」，未寄送任何 mail。':'✅ 已發送「'+type+'」通知給：'+email);
+    alert(type==='已通知'?'✅ 已標記為「測試完成（已通知）」，未寄送任何 mail。':'✅ 已發送「'+type+'」通知給：'+email+(ccEmails?'\n副本：'+ccEmails.split(';').join('、'):''));
     loadAdminData();
   })
   .catch(function(err){
